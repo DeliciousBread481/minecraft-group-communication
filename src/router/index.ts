@@ -1,26 +1,19 @@
-import { createRouter, createWebHistory } from "vue-router";
-
-const routes = [
-  {
-    path: "/",
-    name: "Home",
-    component: () => import("@/views/HomeView.vue")
-  },
-  {
-    path: "/notice",
-    name: "Notice",
-    component: () => import("@/views/NoticeView.vue")
-  },
-  {
-    path: "/user",
-    name: "User",
-    component: () => import("@/views/UserView.vue")
-  }
-];
+import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '@/views/HomeView.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: HomeView
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/'
+    }
+  ]
 })
 
-export default router;
+export default router

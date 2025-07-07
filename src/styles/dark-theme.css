@@ -1,0 +1,22 @@
+:root {
+  --bg-color: #1a1a1a;
+  --text-color: #e6e6e6;
+  --border-color: #4d4d4d;
+  --header-bg-color: #121212;
+  --sidebar-bg-color: #1f1f1f;
+  --sidebar-text-color: #a0a0a0;
+  --sidebar-active-text-color: #66b3ff;
+  --card-bg-color: #242424;
+  --card-header-bg-color: #333333;
+  --chart-bg-color: #333333;
+  --warning-text-color: #FFFF00;
+}
+
+.el-dialog {
+  background-color: var(--card-bg-color);
+  color: var(--text-color);
+}
+
+.el-dialog__title {
+  color: var(--text-color);
+}
