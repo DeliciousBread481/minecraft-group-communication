@@ -2,8 +2,8 @@
   <!-- 应用头部导航栏组件 -->
   <el-header class="app-header">
     <!-- 左侧logo区域 -->
-    <el-button type="text" @click="$router.push('/')">
-      <div class="logo" style="max-width: 225px;">
+    <el-button type="text" @click="$router.push('/')" style="max-width: 20%;">
+      <div class="logo">
         <!-- 网站logo图片 -->
         <img
           src="@/assets/image/icon.jpg"
