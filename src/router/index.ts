@@ -12,12 +12,12 @@ const router = createRouter({
     {
       path: "/notice",
       name: "Notice",
-      component: () => import("../views/NoticeView.vue")
+      component: () => import("../components/layout/BasicLayout.vue"),
     },
     {
       path: '/:pathMatch(.*)*',
       redirect: '/'
-    }
+    },
   ]
 })
 

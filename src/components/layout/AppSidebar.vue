@@ -1,3 +1,4 @@
+<!-- components/layout/AppSidebar -->
 <template>
   <!-- 应用侧边栏导航组件 -->
   <el-aside class="app-sidebar">
@@ -8,8 +9,9 @@
       background-color="var(--sidebar-bg-color)"
       text-color="var(--sidebar-text-color)"
       :active-text-color="sidebarTextColor"
+      router
     >
-    <!-- 注意事项菜单项（高亮显示） -->
+    <!-- 注意事项菜单项 -->
     <el-menu-item index="1">
       <el-icon><Document color="yellow" /></el-icon>
       <span style="color: var(--warning-text-color)">必读注意事项！</span>
@@ -68,7 +70,6 @@ const themeStore = useThemeStore()
 const sidebarTextColor = computed(() => {
   return themeStore.darkMode ? '#409EFF' : 'white'
 })
-
 </script>
 
 <style scoped>

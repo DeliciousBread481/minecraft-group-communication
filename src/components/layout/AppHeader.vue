@@ -1,16 +1,14 @@
+<!--components/layout/AppHeader.vue-->
 <template>
   <!-- 应用头部导航栏组件 -->
   <el-header class="app-header">
     <!-- 左侧logo区域 -->
-    <el-button type="text" @click="$router.push('/')" style="max-width: 20%;">
+    <el-button type="text" @click="$router.push('/')" class="logo-btn">
       <div class="logo">
-        <!-- 网站logo图片 -->
         <img
           src="@/assets/image/icon.jpg"
           alt="logo"
-          width="25%"
-          height="25%"
-          style="padding-right: 4px"
+          class="logo-img"
         />
         <el-text class="home-link-text">Minecraft 疑难杂症交流群</el-text>
       </div>
@@ -23,7 +21,7 @@
         :key="button.text"
         :type="button.type"
         text
-        :style="{ color: '#409eff !important' }"
+        class="nav-button"
         @click="$router.push('/notice')"
       >
         {{button.text}}
@@ -39,8 +37,8 @@
       <!-- 登录/注册按钮 -->
       <el-button
         text
+        class="nav-button"
         @click="$emit('show-login')"
-        :style="{ color: '#409eff !important' }"
       >
         登录/注册
       </el-button>
@@ -50,31 +48,19 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useThemeStore } from '@/store/theme'  // 主题状态管理
-import { Sunny, Moon } from '@element-plus/icons-vue' // 主题切换图标
+import { useThemeStore } from '@/store/theme'
+import { Sunny, Moon } from '@element-plus/icons-vue'
 
-// 使用主题状态管理
 const themeStore = useThemeStore()
-
-// 响应式变量：当前是否为深色模式
 const darkMode = ref(themeStore.darkMode)
 
-/**
- * 组件挂载后执行
- * 应用当前主题设置
- */
 onMounted(() => {
   themeStore.applyTheme()
 })
 
-/**
- * 切换主题模式
- * 1. 调用主题仓库的切换方法
- * 2. 更新本地darkMode状态
- */
 const toggleTheme = () => {
-  themeStore.toggleTheme()                // 切换主题
-  darkMode.value = themeStore.darkMode    // 同步主题状态
+  themeStore.toggleTheme()
+  darkMode.value = themeStore.darkMode
 }
 
 const buttons = [
@@ -86,46 +72,102 @@ const buttons = [
 <style scoped>
 /* 头部导航栏样式 */
 .app-header {
-  position: fixed;       /* 固定定位 */
-  top: 0;                /* 顶部对齐 */
-  left: 0;               /* 左侧对齐 */
-  right: 0;              /* 右侧对齐 */
-  height: 6%;          /* 固定高度 */
-  z-index: 1000;         /* 确保在顶层 */
-  display: flex;         /* 弹性布局 */
-  justify-content: space-between; /* 左右两端对齐 */
-  align-items: center;   /* 垂直居中 */
-  background-color: var(--header-bg-color); /* 使用CSS变量设置背景色 */
-  color: #409EFF;           /* 文字颜色 */
-  padding: 0 20px;       /* 左右内边距 */
-  box-shadow: var(--el-box-shadow); /* 底部阴影 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6vh;
+  min-height: 50px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--header-bg-color);
+  color: #409EFF;
+  padding: 0 20px;
+  box-shadow: var(--el-box-shadow);
 }
 
 /* Logo区域样式 */
 .logo {
-  color: #fff;           /* 链接文字颜色 */
-  display: flex;         /* 添加弹性布局 */
-  align-items: center; /* 垂直居中 */
-  width: 1px；
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 8px;
+}
+
+/* 图片自适应样式 */
+.logo-img {
+  height: 80%;
+  max-height: 40px;
+  width: auto;
+  aspect-ratio: 1/1;
+  object-fit: contain;
+}
+
+/* 文本链接样式 */
+.home-link-text {
+  color: #4099f4;
+  font-weight: bold;
+  /* 响应式字体大小 */
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  white-space: nowrap;
 }
 
 /* 右侧导航区域样式 */
 .nav-right {
-  display: flex;         /* 弹性布局 */
-  align-items: center;   /* 垂直居中 */
-  gap: 10px;             /* 按钮间距 */
-}
-
-/* 文本按钮样式 */
-.el-button--text {
-  color: #fff;           /* 按钮文字颜色 */
-}
-
-.home-link-text {
-  color: #4099f4;
-  font-size: "40px";
+  display: flex;
   align-items: center;
-  height: 100%;
-  font-weight: bold;
+  gap: 10px;
+}
+
+/* 导航按钮样式 */
+.nav-button {
+  font-size: clamp(0.8rem, 1vw, 1rem);
+  white-space: nowrap;
+}
+
+/* 响应式调整 */
+@media (max-width: 992px) {
+  .home-link-text {
+    font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  }
+
+  .logo-img {
+    height: 75%;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 15px;
+  }
+
+  .home-link-text {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+  }
+
+  .nav-button {
+    font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+  }
+
+  .logo {
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-link-text {
+    font-size: clamp(0.9rem, 4vw, 1.1rem);
+  }
+
+  .logo-img {
+    height: 70%;
+    max-height: 35px;
+  }
+
+  .nav-right {
+    gap: 6px;
+  }
 }
 </style>
