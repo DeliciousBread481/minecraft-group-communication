@@ -1,22 +1,69 @@
 :root {
-  --bg-color: #1a1a1a;
-  --text-color: #e6e6e6;
-  --border-color: #4d4d4d;
-  --header-bg-color: #121212;
-  --sidebar-bg-color: #1f1f1f;
-  --sidebar-text-color: #a0a0a0;
-  --sidebar-active-text-color: #66b3ff;
-  --card-bg-color: #242424;
-  --card-header-bg-color: #333333;
-  --chart-bg-color: #333333;
-  --warning-text-color: #FFFF00;
+  --bg-color: #121212;
+  --bg-secondary: #1e1e1e;
+  --text-color: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --border-color: #424242;
+  --primary-color: #64b5f6;
+  --primary-light: rgba(100, 181, 246, 0.1);
+  --success-color: #81c784;
+  --warning-color: #ffb74d;
+  --danger-color: #e57373;
+  --info-color: #90a4ae;
+  --card-bg: #1e1e1e;
+  --card-border: #333333;
+  --header-bg: #121212;
+  --sidebar-bg: #1f1f1f;
+  --sidebar-text: #b0b0b0;
+  --sidebar-active: #ffffff;
+  --sidebar-active-bg: #2a4365;
+  --input-bg: #2a2a2a;
+  --switch-bg: #2a4365;
+
+  /* 新增变量用于优化特定视图 */
+  --auth-bg: linear-gradient(135deg, #1a2b3c 0%, #1a1a2e 100%);
+  --solution-card-bg: #1e1e1e;
+  --solution-card-border: #2d2d2d;
+  --solution-card-hover: #2a2a2a;
+  --auth-card-bg: rgba(30, 30, 30, 0.9);
+  --auth-border: #3a3a3a;
 }
 
-.el-dialog {
-  background-color: var(--card-bg-color);
-  color: var(--text-color);
+/* 优化认证页面 */
+.right-aside.auth-mode {
+  background: var(--auth-bg);
 }
 
-.el-dialog__title {
-  color: var(--text-color);
+/* 优化解决方案卡片 */
+.solution-card {
+  background-color: var(--solution-card-bg);
+  border: 1px solid var(--solution-card-border);
+}
+
+.solution-card:hover {
+  background-color: var(--solution-card-hover);
+  transform: translateY(-3px);
+}
+
+/* 优化认证卡片 */
+.auth-card {
+  background-color: var(--auth-card-bg);
+  border: 1px solid var(--auth-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* 优化输入框 */
+.el-input__wrapper {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+}
+
+/* 优化按钮 */
+.el-button {
+  transition: all 0.3s ease;
+}
+
+.el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }

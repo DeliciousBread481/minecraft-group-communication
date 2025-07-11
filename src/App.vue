@@ -1,14 +1,20 @@
 <template>
-  <router-view />
+  <div id="app">
+    <router-view />
+  </div>
 </template>
 
-<script setup lang="ts">
-import { onMounted } from 'vue'
-import { useThemeStore } from '@/store/theme'
-
-const themeStore = useThemeStore()
-
-onMounted(() => {
-  themeStore.applyTheme()
-})
+<script lang="ts">
+export default {
+  name: 'App'
+}
 </script>
+
+<style>
+#app {
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+  Arial, sans-serif;
+}
+</style>

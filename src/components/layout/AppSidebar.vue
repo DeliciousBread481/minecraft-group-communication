@@ -1,97 +1,160 @@
-<!-- components/layout/AppSidebar -->
 <template>
-  <!-- 应用侧边栏导航组件 -->
-  <el-aside class="app-sidebar">
-    <!-- 垂直导航菜单 -->
-    <el-menu
-      default-active="1"
-      class="el-menu-vertical-demo"
-      background-color="var(--sidebar-bg-color)"
-      text-color="var(--sidebar-text-color)"
-      :active-text-color="sidebarTextColor"
-      router
-    >
-    <!-- 注意事项菜单项 -->
-    <el-menu-item index="1">
-      <el-icon><Document color="yellow" /></el-icon>
-      <span style="color: var(--warning-text-color)">必读注意事项！</span>
-    </el-menu-item>
-    <el-menu-item index="2">
-      <template #title>
-        <el-icon><CircleCloseFilled /></el-icon>
-        <span>游戏崩溃</span>
-      </template>
-    </el-menu-item>
+  <div class="app-sidebar">
+    <div class="sidebar-menu">
+      <div
+        v-for="item in menuItems"
+        :key="item.path"
+        class="menu-item"
+        :class="{ 'active': $route.path.startsWith(item.path) }"
+        @click="navigateTo(item.path)"
+      >
+        <el-tooltip effect="dark" :content="item.title" placement="right">
+          <div class="menu-icon">
+            <el-icon :size="20">
+              <component :is="item.icon" />
+            </el-icon>
+          </div>
+        </el-tooltip>
+        <span class="menu-title">{{ item.title }}</span>
+      </div>
+    </div>
 
-    <!-- 游戏联机菜单项 -->
-    <el-menu-item index="3">
-      <el-icon><Switch /></el-icon>
-      <span>游戏联机</span>
-    </el-menu-item>
-
-    <!-- 游戏无响应菜单项 -->
-    <el-menu-item index="4">
-      <el-icon><Loading /></el-icon>
-      <span>游戏无响应</span>
-    </el-menu-item>
-
-    <!-- 游戏卡顿菜单项 -->
-    <el-menu-item index="5">
-      <el-icon><Lightning /></el-icon>
-      <span>游戏卡顿</span>
-    </el-menu-item>
-
-    <!-- 启动器问题菜单项 -->
-    <el-menu-item index="6">
-      <el-icon><VideoPlay /></el-icon>
-      <span>启动器问题</span>
-    </el-menu-item>
-    </el-menu>
-  </el-aside>
+    <div class="sidebar-footer">
+      <el-button
+        type="text"
+        class="feedback-btn"
+        @click="openFeedback"
+      >
+        <el-icon><ChatLineRound /></el-icon>
+        <span>反馈建议</span>
+      </el-button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-// 导入Element Plus图标组件
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import {
-  Document,              // 必读注意事项
-  CircleCloseFilled,  // 崩溃图标（实心圆叉）
-  Switch,             // 切换/联机图标
-  Loading,            // 加载/无响应图标
-  Lightning,          // 闪电/卡顿图标
-  VideoPlay,           // 播放/启动器图标
+  HomeFilled,
+  Notebook,
+  CollectionTag,
+  QuestionFilled,
+  ChatLineRound
 } from '@element-plus/icons-vue'
-import { useThemeStore } from '@/store/theme'
-import { computed } from 'vue'
 
-// 使用主题状态管理
-const themeStore = useThemeStore()
+const router = useRouter()
 
-// 计算属性：根据当前主题模式返回侧边栏文字颜色
-const sidebarTextColor = computed(() => {
-  return themeStore.darkMode ? '#409EFF' : 'white'
-})
+const menuItems = ref([
+  { path: '/', title: '首页', icon: HomeFilled },
+  { path: '/notice', title: '群公告文档', icon: Notebook },
+  { path: '/solutions', title: '解决方案', icon: CollectionTag },
+  { path: '/faq', title: '常见问题', icon: QuestionFilled },
+])
+
+const navigateTo = (path: string) => {
+  router.push(path)
+}
+
+const openFeedback = () => {
+  console.log('打开反馈表单')
+}
 </script>
 
 <style scoped>
 .app-sidebar {
-  position: fixed; /* or absolute, depending on your layout */
-  top: 6%;
-  left: 0;
-  width: 20%; /* adjust based on your design */
-  height: 94%;
-  z-index: 1; /* ensure it's lower than other elements if necessary */
-  box-shadow: var(--el-box-shadow); /* add a shadow for better visibility */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color var(--transition-speed);
 }
 
-.el-menu--vertical > .el-menu-item.is-active {
-  border-left: 4px solid #409EFF;
-  background-color: #f5faff60;
-  transition: border-left 0.3s, background-color 0.3s;
+.sidebar-menu {
+  flex: 1;
+  padding: 15px 0;
 }
 
-.el-menu--vertical > .el-menu-item:hover {
-  border-left: 2px solid #4ea7ff6e;
-  transition: border-left 0.2s;
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  margin: 5px 10px;
+  border-radius: 8px;
 }
 
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.menu-item.active .menu-icon {
+  color: white;
+}
+
+.menu-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  transition: color var(--transition-speed);
+}
+
+.menu-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 10px;
+  transition: color var(--transition-speed);
+}
+
+.sidebar-footer {
+  padding: 15px;
+  border-top: 1px solid var(--border-color);
+  transition: border-color var(--transition-speed);
+}
+
+.feedback-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  padding: 10px;
+  transition: color var(--transition-speed);
+}
+
+.feedback-btn:hover {
+  color: var(--text-color);
+}
+
+.feedback-btn span {
+  margin-left: 8px;
+}
+
+@media (max-width: 768px) {
+  .menu-title {
+    display: none;
+  }
+
+  .feedback-btn span {
+    display: none;
+  }
+
+  .menu-icon {
+    margin: 0 auto;
+  }
+
+  .sidebar-footer {
+    padding: 10px 5px;
+  }
+}
 </style>
