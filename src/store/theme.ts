@@ -1,33 +1,37 @@
 import { defineStore } from 'pinia'
+import { ref, watch } from 'vue'
 
-export const useThemeStore = defineStore('theme', {
-  state: () => ({
-    darkMode: localStorage.getItem('darkMode') === "true" || false
-  }),
+export const useThemeStore = defineStore('theme', () => {
+  const darkMode = ref(localStorage.getItem('darkMode') === "true" || false)
+  // 监听状态变化并保存到 localStorage
+  watch(darkMode, (newValue) => {
+    localStorage.setItem('darkMode', newValue.toString())
+  })
 
-  actions: {
-    toggleTheme() {
-      this.darkMode = !this.darkMode
-      localStorage.setItem('darkMode', this.darkMode.toString())
-      this.applyTheme()
-    },
+  function toggleTheme() {
+    darkMode.value = !darkMode.value
+    applyTheme()
+  }
 
-    applyTheme() {
-      document.getElementById('theme-style')?.remove()
+  function applyTheme() {
+    document.getElementById('theme-style')?.remove()
 
-      const link = document.createElement('link')
-      link.id = 'theme-style'
-      link.rel = 'stylesheet'
-      link.href = this.darkMode
-        ? '/src/styles/dark-theme.css'
-        : '/src/styles/light-theme.css'
+    const link = document.createElement('link')
+    link.id = 'theme-style'
+    link.rel = 'stylesheet'
+    link.href = darkMode.value
+      ? '/src/styles/dark-theme.css'
+      : '/src/styles/light-theme.css'
 
-      document.head.appendChild(link)
-    }
-  },
+    document.head.appendChild(link)
+  }
 
-  persist: {
-    paths: ['darkMode'],
-    storage: localStorage
+  // 初始化时应用主题
+  applyTheme()
+
+  return {
+    darkMode,
+    toggleTheme,
+    applyTheme
   }
 })

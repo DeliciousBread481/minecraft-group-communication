@@ -14,7 +14,7 @@
     <el-button
       v-if="isMobile"
       class="mobile-menu-btn"
-      @click="$emit('toggle-menu')"
+      @click="emit('toggle-menu')"
     >
       <el-icon><Menu /></el-icon>
     </el-button>
@@ -70,6 +70,8 @@ import { useThemeStore } from '@/store/theme'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { Sunny, Moon, Menu } from '@element-plus/icons-vue'
+
+const emit = defineEmits(['toggle-menu'])
 
 const themeStore = useThemeStore()
 const userStore = useUserStore()

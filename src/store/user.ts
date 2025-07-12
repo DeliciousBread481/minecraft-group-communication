@@ -1,160 +1,154 @@
-// 导入Pinia的defineStore函数，用于创建状态存储
 import { defineStore } from 'pinia'
-// 导入Vue的响应式API
-import { ref, computed } from 'vue'
-// 导入用户相关的API接口函数
-import { login, register } from '@/api/user'
-// 导入Axios的响应类型
-import type { AxiosResponse } from 'axios'
-
-// 定义API响应数据的通用接口
-interface ApiResponse<T = unknown> {
-  code: number;        // 状态码
-  message: string;     // 响应消息
-  data: T;             // 响应数据（泛型）
-  success: boolean;    // 请求是否成功
-}
-
-// 定义用户信息接口
-interface User {
-  id: number;        // 用户ID
-  username: string;  // 用户名
-  email: string;     // 邮箱
-  avatar?: string;   // 头像（可选）
-}
-
-// 定义登录响应数据的接口
-interface LoginResponseData {
-  token: string;       // 认证令牌
-  refreshToken: string; // 刷新令牌
-  user: User;          // 用户信息对象
-}
+import { ref, computed, watch } from 'vue'
+import {
+  login,
+  register,
+  refreshToken,
+  getCurrentUser,
+  logout,
+  updateUser
+} from '@/api/user'
+import type {
+  LoginCredentials,
+  RegisterData,
+  UserInfo
+} from '@/api/user'
 
 // 创建并导出用户状态存储
 export const useUserStore = defineStore('user', () => {
-  // 使用ref创建响应式token状态，初始值从localStorage获取或为空字符串
+  // 初始化状态
   const token = ref(localStorage.getItem('token') || '')
-  const refreshToken = ref(localStorage.getItem('refreshToken') || '')
+  const refreshTokenValue = ref(localStorage.getItem('refreshToken') || '')
+  const userInfo = ref<UserInfo | null>(
+    JSON.parse(localStorage.getItem('userInfo') || 'null')
+  )
 
-  // 使用ref创建响应式用户信息状态，初始值从localStorage解析获取或为null
-  const userInfo = ref<User | null>(JSON.parse(localStorage.getItem('userInfo') || 'null'))
+  // 监听状态变化并保存到 localStorage
+  watch(token, (newToken) => {
+    if (newToken) localStorage.setItem('token', newToken)
+    else localStorage.removeItem('token')
+  })
 
-  // 计算属性：用户是否已认证（根据token是否存在）
+  watch(refreshTokenValue, (newRefreshToken) => {
+    if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken)
+    else localStorage.removeItem('refreshToken')
+  })
+
+  watch(userInfo, (newUserInfo) => {
+    if (newUserInfo) localStorage.setItem('userInfo', JSON.stringify(newUserInfo))
+    else localStorage.removeItem('userInfo')
+  }, { deep: true })
+
   const isAuthenticated = computed(() => !!token.value)
 
   // 用户登录方法
-  const userLogin = async (credentials: { username: string; password: string }) => {
+  const userLogin = async (credentials: LoginCredentials) => {
     try {
-      // 调用登录API，指定响应类型为ApiResponse<LoginResponseData>
-      const response = await login(credentials) as AxiosResponse<ApiResponse<LoginResponseData>>
+      const response = await login(credentials)
 
-      // 检查API响应是否成功
-      if (response.data.success) {
-        // 更新token和用户信息
-        token.value = response.data.data.token
-        refreshToken.value = response.data.data.refreshToken
-        userInfo.value = response.data.data.user
-
-        // 将token和用户信息持久化到localStorage
-        localStorage.setItem('token', token.value)
-        localStorage.setItem('refreshToken', refreshToken.value)
-        localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
-
-        // 登录成功返回true
+      if (response.success) {
+        token.value = response.data.token
+        refreshTokenValue.value = response.data.refreshToken
+        userInfo.value = response.data.user
         return true
       }
-      // API响应失败返回false
       return false
     } catch (error) {
-      // 捕获并记录登录过程中的错误
       console.error('登录失败:', error)
-      // 登录失败返回false
       return false
     }
   }
 
   // 用户注册方法
-  const userRegister = async (userData: { username: string; password: string; email: string }) => {
+  const userRegister = async (userData: RegisterData) => {
     try {
-      // 调用注册API
-      const response = await register(userData) as AxiosResponse<ApiResponse>
+      const response = await register(userData)
 
-      // 检查API响应是否成功
-      if (response.data.success) {
-        // 注册成功返回true
-        return true
-      }
-      // API响应失败返回false
-      return false
+      return response.success;
+
     } catch (error) {
-      // 捕获并记录注册过程中的错误
       console.error('注册失败:', error)
-      // 注册失败返回false
       return false
     }
   }
 
   // 用户注销方法
-  const userLogout = () => {
-    // 清空token和用户信息
-    token.value = ''
-    refreshToken.value = ''
-    userInfo.value = null
-
-    // 从localStorage中移除token和用户信息
-    localStorage.removeItem('token')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('userInfo')
+  const userLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('注销请求失败:', error)
+    } finally {
+      token.value = ''
+      refreshTokenValue.value = ''
+      userInfo.value = null
+    }
   }
 
   // 更新用户信息
-  const updateUserInfo = (newUserInfo: Partial<User>) => {
-    if (userInfo.value) {
-      userInfo.value = { ...userInfo.value, ...newUserInfo };
-      localStorage.setItem('userInfo', JSON.stringify(userInfo.value));
+  const updateUserInfo = async (newUserInfo: Partial<UserInfo>) => {
+    try {
+      const response = await updateUser(newUserInfo)
+
+      if (response.success && userInfo.value) {
+        // 合并更新用户信息
+        userInfo.value = { ...userInfo.value, ...newUserInfo }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('更新用户信息失败:', error)
+      return false
     }
-  };
+  }
 
   // 刷新令牌
   const refreshAuthToken = async () => {
     try {
-      if (!refreshToken.value) return false;
+      if (!refreshTokenValue.value) return false;
 
-      const response = await axios.post('/api/auth/refresh', {
-        refreshToken: refreshToken.value
-      }) as AxiosResponse<ApiResponse<{ token: string; refreshToken: string }>>;
+      const response = await refreshToken(refreshTokenValue.value)
 
-      if (response.data.success) {
-        token.value = response.data.data.token;
-        refreshToken.value = response.data.data.refreshToken;
-
-        localStorage.setItem('token', token.value);
-        localStorage.setItem('refreshToken', refreshToken.value);
-        return true;
+      if (response.success) {
+        token.value = response.data.token
+        refreshTokenValue.value = response.data.refreshToken
+        return true
       }
-      return false;
+      return false
     } catch (error) {
-      console.error('Token刷新失败:', error);
-      userLogout();
-      return false;
+      console.error('Token刷新失败:', error)
+      await userLogout()
+      return false
     }
-  };
+  }
+
+  // 获取当前用户信息
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await getCurrentUser()
+
+      if (response.success) {
+        userInfo.value = response.data
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      return false
+    }
+  }
 
   // 暴露状态和方法给组件使用
   return {
-    token,               // 认证令牌
-    refreshToken,        // 刷新令牌
-    userInfo,            // 用户信息对象
-    isAuthenticated,     // 认证状态计算属性
-    userLogin,           // 登录方法
-    userRegister,        // 注册方法
-    userLogout,          // 注销方法
-    updateUserInfo,      // 更新用户信息
-    refreshAuthToken     // 刷新令牌
-  }
-}, {
-  persist: {
-    paths: ['token', 'refreshToken', 'userInfo'],
-    storage: localStorage
+    token,
+    refreshToken: refreshTokenValue,
+    userInfo,
+    isAuthenticated,
+    userLogin,
+    userRegister,
+    userLogout,
+    updateUserInfo,
+    refreshAuthToken,
+    fetchCurrentUser
   }
 })

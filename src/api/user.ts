@@ -3,9 +3,6 @@ import type { AxiosError } from 'axios'
 
 /**
  * 登录凭证接口
- * @interface
- * @property {string} username - 用户名
- * @property {string} password - 密码
  */
 export interface LoginCredentials {
   username: string;
@@ -14,10 +11,6 @@ export interface LoginCredentials {
 
 /**
  * 用户注册数据接口
- * @interface
- * @property {string} username - 用户名
- * @property {string} password - 密码
- * @property {string} email - 电子邮箱
  */
 export interface RegisterData {
   username: string;
@@ -27,12 +20,7 @@ export interface RegisterData {
 
 /**
  * API 响应结构接口
- * @template T - 响应数据的类型（默认为 unknown）
- * @interface
- * @property {number} code - 状态码
- * @property {string} message - 响应消息
- * @property {T} data - 响应数据
- * @property {boolean} success - 请求是否成功
+ * @template T - 响应数据的类型
  */
 export interface ApiResponse<T = unknown> {
   code: number;
@@ -43,10 +31,6 @@ export interface ApiResponse<T = unknown> {
 
 /**
  * 用户登录响应数据结构
- * @interface
- * @property {string} token - 认证令牌
- * @property {string} refreshToken - 刷新令牌
- * @property {UserInfo} user - 用户信息
  */
 export interface LoginResponse {
   token: string;
@@ -56,11 +40,6 @@ export interface LoginResponse {
 
 /**
  * 用户信息接口
- * @interface
- * @property {number} id - 用户 ID
- * @property {string} username - 用户名
- * @property {string} email - 电子邮箱
- * @property {string} [avatar] - 头像 URL（可选）
  */
 export interface UserInfo {
   id: number;
@@ -71,10 +50,6 @@ export interface UserInfo {
 
 /**
  * API 错误对象接口
- * @interface
- * @property {string} message - 错误消息
- * @property {number} code - 错误代码（通常为 HTTP 状态码）
- * @property {AxiosError} originalError - 原始错误对象
  */
 export interface ApiError {
   message: string;
@@ -84,54 +59,41 @@ export interface ApiError {
 
 /**
  * 用户登录 API
- * @function
- * @param {LoginCredentials} credentials - 包含用户名和密码的登录凭证
- * @returns {Promise<ApiResponse<LoginResponse>>} - 返回 Promise 对象，解析为 ApiResponse<LoginResponse>
- * @throws {ApiError} - 当请求失败时抛出 ApiError 对象
  */
 export const login = async (
   credentials: LoginCredentials
 ): Promise<ApiResponse<LoginResponse>> => {
   try {
-    return await api.post<ApiResponse<LoginResponse>>('/auth/login', credentials)
+    return (await api.post('/auth/login', credentials)) as unknown as ApiResponse<LoginResponse>
   } catch (error) {
-    // 将错误转换为统一的 ApiError 格式
     throw error as ApiError
   }
 }
 
 /**
  * 用户注册 API
- * @function
- * @param {RegisterData} userData - 包含用户名、密码和邮箱的注册数据
- * @returns {Promise<ApiResponse>} - 返回 Promise 对象，解析为 ApiResponse
- * @throws {ApiError} - 当请求失败时抛出 ApiError 对象
  */
 export const register = async (
   userData: RegisterData
 ): Promise<ApiResponse> => {
   try {
-    return await api.post<ApiResponse>('/auth/register', userData)
+    return (await api.post('/auth/register', userData)) as unknown as ApiResponse
   } catch (error) {
-    // 将错误转换为统一的 ApiError 格式
     throw error as ApiError
   }
 }
 
 /**
  * 刷新访问令牌 API
- * @function
- * @param {string} refreshToken - 刷新令牌
- * @returns {Promise<ApiResponse<{ token: string; refreshToken: string }>>} - 返回 Promise 对象，解析为新的令牌
- * @throws {ApiError} - 当请求失败时抛出 ApiError 对象
  */
 export const refreshToken = async (
   refreshToken: string
 ): Promise<ApiResponse<{ token: string; refreshToken: string }>> => {
   try {
-    return await api.post<ApiResponse<{ token: string; refreshToken: string }>>('/auth/refresh', {
-      refreshToken,
-    })
+    return (await api.post('/auth/refresh', { refreshToken })) as unknown as ApiResponse<{
+      token: string
+      refreshToken: string
+    }>
   } catch (error) {
     throw error as ApiError
   }
@@ -139,13 +101,10 @@ export const refreshToken = async (
 
 /**
  * 获取当前用户信息 API
- * @function
- * @returns {Promise<ApiResponse<UserInfo>>} - 返回 Promise 对象，解析为当前用户信息
- * @throws {ApiError} - 当请求失败时抛出 ApiError 对象
  */
 export const getCurrentUser = async (): Promise<ApiResponse<UserInfo>> => {
   try {
-    return await api.get<ApiResponse<UserInfo>>('/user/me')
+    return (await api.get('/user/me')) as unknown as ApiResponse<UserInfo>
   } catch (error) {
     throw error as ApiError
   }
@@ -153,16 +112,12 @@ export const getCurrentUser = async (): Promise<ApiResponse<UserInfo>> => {
 
 /**
  * 更新用户信息 API
- * @function
- * @param {Partial<UserInfo>} userData - 要更新的用户信息
- * @returns {Promise<ApiResponse<UserInfo>>} - 返回 Promise 对象，解析为更新后的用户信息
- * @throws {ApiError} - 当请求失败时抛出 ApiError 对象
  */
 export const updateUser = async (
   userData: Partial<UserInfo>
 ): Promise<ApiResponse<UserInfo>> => {
   try {
-    return await api.patch<ApiResponse<UserInfo>>('/user/me', userData)
+    return (await api.patch('/user/me', userData)) as unknown as ApiResponse<UserInfo>
   } catch (error) {
     throw error as ApiError
   }
@@ -170,13 +125,10 @@ export const updateUser = async (
 
 /**
  * 用户注销 API
- * @function
- * @returns {Promise<ApiResponse>} - 返回 Promise 对象，解析为注销结果
- * @throws {ApiError} - 当请求失败时抛出 ApiError 对象
  */
 export const logout = async (): Promise<ApiResponse> => {
   try {
-    return await api.post<ApiResponse>('/auth/logout')
+    return (await api.post('/auth/logout')) as unknown as ApiResponse
   } catch (error) {
     throw error as ApiError
   }

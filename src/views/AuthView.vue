@@ -174,7 +174,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, type FormInstance } from 'element-plus';
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/store/user';
@@ -184,22 +184,33 @@ const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
 const activeTab = ref('login');
-const loginFormRef = ref();
-const registerFormRef = ref();
-const forgotPasswordFormRef = ref();
+const loginFormRef = ref<FormInstance>();
+const registerFormRef = ref<FormInstance>();
+const forgotPasswordFormRef = ref<FormInstance>();
 const errorMessage = ref('');
 
+interface LoginFormData extends LoginCredentials {
+  remember: boolean;
+}
+
+interface RegisterFormData extends RegisterData {
+  confirmPassword: string;
+  agreement: boolean;
+}
+
 // 表单数据
-const loginForm = reactive<LoginCredentials>({
+const loginForm = reactive<LoginFormData>({
   username: '',
   password: '',
+  remember: false,
 });
 
-const registerForm = reactive<RegisterData>({
+const registerForm = reactive<RegisterFormData>({
   username: '',
   email: '',
   password: '',
   confirmPassword: '',
+  agreement: false,
 });
 
 // 忘记密码表单
@@ -222,17 +233,13 @@ const forgotPasswordDialogVisible = ref(false);
 // 条款内容
 const termsContent = ref(`
   <h3>服务条款</h3>
-  <p>欢迎使用Minecraft疑难杂症交流群平台！</p>
-  <p>.</p>
 `);
 
 // 隐私政策内容
 const privacyContent = ref(`
   <h3>隐私政策</h3>
-  <p>隐私保护...</p>
 `);
 
-// 验证规则
 const loginRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -260,7 +267,8 @@ const registerRules = {
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
     {
-      validator: (rule: unknown, value: string, callback: (error?: Error) => void) => {
+      // 使用 _rule 参数名表示未使用
+      validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
         if (value !== registerForm.password) {
           callback(new Error('两次输入的密码不一致'));
         } else {
@@ -272,7 +280,8 @@ const registerRules = {
   ],
   agreement: [
     {
-      validator: (rule: unknown, value: boolean, callback: (error?: Error) => void) => {
+      // 使用 _rule 参数名表示未使用
+      validator: (_rule: unknown, value: boolean, callback: (error?: Error) => void) => {
         if (!value) {
           callback(new Error('请同意服务条款和隐私政策'));
         } else {
@@ -291,11 +300,10 @@ const forgotPasswordRules = {
   ]
 };
 
-// 提交登录
 const submitLogin = async () => {
   if (!loginFormRef.value) return;
 
-  loginFormRef.value.validate(async (valid: boolean) => {
+  await loginFormRef.value.validate(async (valid: boolean) => {
     if (valid) {
       loading.login = true;
       errorMessage.value = '';
@@ -306,7 +314,6 @@ const submitLogin = async () => {
           password: loginForm.password
         };
 
-        // 调用用户存储的登录方法
         const success = await userStore.userLogin(credentials);
 
         if (success) {
@@ -317,7 +324,6 @@ const submitLogin = async () => {
           errorMessage.value = '用户名或密码错误';
         }
       } catch (error: unknown) {
-        // 处理未知错误类型
         if (error instanceof Error) {
           errorMessage.value = error.message;
         } else {
@@ -331,11 +337,10 @@ const submitLogin = async () => {
   });
 };
 
-// 提交注册
 const submitRegister = async () => {
   if (!registerFormRef.value) return;
 
-  registerFormRef.value.validate(async (valid: boolean) => {
+  await registerFormRef.value.validate(async (valid: boolean) => {
     if (valid) {
       loading.register = true;
       errorMessage.value = '';
@@ -347,23 +352,18 @@ const submitRegister = async () => {
           password: registerForm.password
         };
 
-        // 调用用户存储的注册方法
         const success = await userStore.userRegister(userData);
 
         if (success) {
           ElMessage.success('注册成功，请登录');
-
-          // 自动填充登录表单
           loginForm.username = registerForm.email;
           activeTab.value = 'login';
 
-          // 重置注册表单
-          registerFormRef.value.resetFields();
+          registerFormRef.value?.resetFields();
         } else {
           errorMessage.value = '注册失败，请稍后再试';
         }
       } catch (error: unknown) {
-        // 处理未知错误类型
         if (error instanceof Error) {
           errorMessage.value = error.message;
         } else {
@@ -375,6 +375,36 @@ const submitRegister = async () => {
       }
     }
   });
+};
+
+const handleForgotPassword = async () => {
+  if (!forgotPasswordFormRef.value) return;
+
+  await forgotPasswordFormRef.value.validate(async (valid: boolean) => {
+    if (valid) {
+      loading.forgotPassword = true;
+
+      try {
+        ElMessage.success('密码重置邮件已发送，请检查您的邮箱');
+        forgotPasswordDialogVisible.value = false;
+      } catch (error: unknown) {
+        let errorMsg = '发送重置邮件失败，请稍后再试';
+        if (error instanceof Error) {
+          errorMsg = error.message;
+        }
+        ElMessage.error(errorMsg);
+        console.error('发送重置邮件失败:', error);
+      } finally {
+        loading.forgotPassword = false;
+      }
+    }
+  });
+};
+
+const resetForms = () => {
+  loginFormRef.value?.resetFields();
+  registerFormRef.value?.resetFields();
+  errorMessage.value = '';
 };
 
 // 显示服务条款
@@ -392,48 +422,12 @@ const showForgotPassword = () => {
   forgotPasswordDialogVisible.value = true;
 };
 
-// 处理忘记密码请求
-const handleForgotPassword = async () => {
-  if (!forgotPasswordFormRef.value) return;
-
-  forgotPasswordFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      loading.forgotPassword = true;
-
-      try {
-        // 调用API发送密码重置邮件
-        ElMessage.success('密码重置邮件已发送，请检查您的邮箱');
-        forgotPasswordDialogVisible.value = false;
-      } catch (error: unknown) {
-        // 处理未知错误类型
-        let errorMsg = '发送重置邮件失败，请稍后再试';
-        if (error instanceof Error) {
-          errorMsg = error.message;
-        }
-        ElMessage.error(errorMsg);
-        console.error('发送重置邮件失败:', error);
-      } finally {
-        loading.forgotPassword = false;
-      }
-    }
-  });
-};
-// 切换标签时重置表单
-const resetForms = () => {
-  if (loginFormRef.value) {
-    loginFormRef.value.resetFields();
-  }
-  if (registerFormRef.value) {
-    registerFormRef.value.resetFields();
-  }
-  errorMessage.value = '';
-};
-
 // 返回首页
 const goToHome = () => {
   router.push('/');
 };
 </script>
+
 
 <style scoped>
 .auth-view {
@@ -458,7 +452,7 @@ const goToHome = () => {
 
 .auth-header {
   text-align: center;
-  padding: 13px 20px 13px;
+  padding: 11px 20px 11px;
 }
 
 .auth-logo-container {
@@ -490,16 +484,6 @@ const goToHome = () => {
   margin-bottom: 20px;
 }
 
-.auth-input :deep(.el-input__wrapper) {
-  background-color: var(--input-bg);
-  border: 1px solid var(--border-color);
-  box-shadow: none;
-}
-
-.auth-input :deep(.el-input__wrapper:hover) {
-  border-color: var(--primary-color);
-}
-
 .submit-btn {
   width: 100%;
   height: 45px;
@@ -515,24 +499,6 @@ const goToHome = () => {
   font-size: 0.9rem;
 }
 
-.auth-divider {
-  position: relative;
-  margin: 25px 0;
-  text-align: center;
-  color: var(--text-secondary);
-}
-
-.auth-divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: var(--border-color);
-  z-index: 1;
-}
-
 .auth-divider span {
   position: relative;
   display: inline-block;
@@ -540,48 +506,6 @@ const goToHome = () => {
   background-color: var(--card-bg);
   color: var(--text-secondary);
   z-index: 2;
-}
-
-.social-auth {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.social-btn {
-  flex: 1;
-  height: 45px;
-  border-radius: 8px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
-
-.social-btn.github {
-  background-color: #333;
-  color: white;
-  border: none;
-}
-
-.social-btn.github:hover {
-  background-color: #444;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.social-btn.google {
-  background-color: #4285F4;
-  color: white;
-  border: none;
-}
-
-.social-btn.google:hover {
-  background-color: #5390f6;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .back-home {
@@ -604,8 +528,5 @@ const goToHome = () => {
     font-size: 1.4rem;
   }
 
-  .social-auth {
-    flex-direction: column;
-  }
 }
 </style>

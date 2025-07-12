@@ -1,7 +1,12 @@
 <template>
   <div class="solution-view">
     <div class="solution-header">
-      <h1>Minecraft 解决方案库</h1>
+      <div class="minecraft-title">
+        <div class="minecraft-icon">
+          <el-icon><Crop /></el-icon>
+        </div>
+        <h1>Minecraft 解决方案库</h1>
+      </div>
       <p>快速找到游戏问题的解决方法</p>
 
       <div class="search-container">
@@ -19,7 +24,7 @@
     </div>
 
     <div class="category-section">
-      <h2>问题分类</h2>
+      <h2><el-icon><FolderOpened /></el-icon> 问题分类</h2>
       <div class="category-grid">
         <div
           v-for="category in categories"
@@ -39,7 +44,7 @@
 
     <div class="solution-section">
       <div class="solution-header">
-        <h2>{{ activeCategoryName }} 解决方案</h2>
+        <h2><el-icon><Document /></el-icon> {{ activeCategoryName }} 解决方案</h2>
         <div class="result-count">{{ filteredSolutions.length }} 个解决方案</div>
       </div>
 
@@ -73,11 +78,11 @@
 
     <el-dialog
       v-model="solutionDialogVisible"
-      :title="selectedSolution.title"
+      :title="selectedSolution?.title || '解决方案详情'"
       width="80%"
       top="5vh"
     >
-      <div class="solution-detail">
+      <div v-if="selectedSolution" class="solution-detail">
         <div class="solution-meta">
           <el-tag type="info">{{ selectedSolution.category }}</el-tag>
           <el-tag :type="getDifficultyType(selectedSolution.difficulty)">
@@ -122,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, type Component } from 'vue'
 import {
   Search,
   Setting,
@@ -131,11 +136,36 @@ import {
   Cpu,
   VideoCamera,
   Files,
-  MagicStick
+  MagicStick,
+  Crop,
+  FolderOpened,
+  Document
 } from '@element-plus/icons-vue'
 
+// 定义类型
+interface Category {
+  id: string;
+  name: string;
+  icon: Component;
+  description: string;
+  color: string;
+}
+
+interface Solution {
+  id: string;
+  title: string;
+  category: string;
+  difficulty: string;
+  version: string;
+  updateTime: string;
+  description: string;
+  steps: string[];
+  notes?: string;
+  images?: string[];
+}
+
 // 问题分类数据
-const categories = ref([
+const categories = ref<Category[]>([
   {
     id: 'all',
     name: '全部问题',
@@ -188,7 +218,7 @@ const categories = ref([
 ])
 
 // 解决方案数据
-const solutions = ref([
+const solutions = ref<Solution[]>([
   {
     id: 's1',
     title: '游戏启动崩溃：Exit Code 1',
@@ -326,18 +356,7 @@ const solutions = ref([
 const searchQuery = ref('')
 const activeCategory = ref('all')
 const solutionDialogVisible = ref(false)
-const selectedSolution = ref({
-  id: '',
-  title: '',
-  category: '',
-  difficulty: '',
-  version: '',
-  updateTime: '',
-  description: '',
-  steps: [],
-  notes: '',
-  images: []
-})
+const selectedSolution = ref<Solution | null>(null)
 
 // 计算属性
 const activeCategoryName = computed(() => {
@@ -350,7 +369,10 @@ const filteredSolutions = computed(() => {
 
   // 分类过滤
   if (activeCategory.value !== 'all') {
-    result = result.filter(sol => sol.category === categories.value.find(c => c.id === activeCategory.value)?.name)
+    const categoryName = categories.value.find(c => c.id === activeCategory.value)?.name
+    if (categoryName) {
+      result = result.filter(sol => sol.category === categoryName)
+    }
   }
 
   // 搜索过滤
@@ -366,11 +388,11 @@ const filteredSolutions = computed(() => {
 })
 
 // 方法
-const selectCategory = (categoryId) => {
+const selectCategory = (categoryId: string) => {
   activeCategory.value = categoryId
 }
 
-const openSolution = (solution) => {
+const openSolution = (solution: Solution) => {
   selectedSolution.value = { ...solution }
   solutionDialogVisible.value = true
 }
@@ -380,16 +402,16 @@ const resetFilters = () => {
   searchQuery.value = ''
 }
 
-const truncateDescription = (text) => {
+const truncateDescription = (text: string) => {
   return text.length > 100 ? text.substring(0, 100) + '...' : text
 }
 
-const getCategoryColor = (categoryName) => {
+const getCategoryColor = (categoryName: string) => {
   const category = categories.value.find(c => c.name === categoryName)
   return category ? category.color : '#409EFF'
 }
 
-const getDifficultyType = (difficulty) => {
+const getDifficultyType = (difficulty: string) => {
   switch(difficulty) {
     case '简单': return 'success'
     case '中等': return 'warning'
@@ -417,6 +439,19 @@ onMounted(() => {
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ed 100%);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #dcdfe6;
+  position: relative;
+  overflow: hidden;
+}
+
+.solution-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #9c27b0, #409EFF, #67C23A, #E6A23C, #F56C6C);
 }
 
 .solution-header h1 {
@@ -439,12 +474,14 @@ onMounted(() => {
 .search-input {
   border-radius: 50px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-input :deep(.el-input__inner) {
   border-radius: 50px;
   padding-left: 20px;
   height: 50px;
+  font-size: 16px;
 }
 
 .category-section {
@@ -457,6 +494,9 @@ onMounted(() => {
   color: #2c3e50;
   position: relative;
   padding-left: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .category-section h2::before {
@@ -485,6 +525,8 @@ onMounted(() => {
   transition: all 0.3s ease;
   border: 2px solid #f0f2f5;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
 }
 
 .category-card:hover {
@@ -507,6 +549,11 @@ onMounted(() => {
   justify-content: center;
   margin: 0 auto 15px;
   color: white;
+  transition: transform 0.3s ease;
+}
+
+.category-card:hover .category-icon {
+  transform: scale(1.1);
 }
 
 .category-card h3 {
@@ -526,6 +573,7 @@ onMounted(() => {
   border-radius: 12px;
   padding: 25px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #ebeef5;
 }
 
 .solution-section .solution-header {
@@ -543,11 +591,18 @@ onMounted(() => {
   font-size: 1.6rem;
   color: #2c3e50;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .result-count {
   font-weight: bold;
   color: #409EFF;
+  background: #ecf5ff;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 14px;
 }
 
 .solution-grid {
@@ -565,6 +620,7 @@ onMounted(() => {
   border: 1px solid #f0f2f5;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .solution-card:hover {
@@ -583,12 +639,14 @@ onMounted(() => {
   color: white;
   font-size: 0.85rem;
   font-weight: bold;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
 }
 
 .solution-card h3 {
   font-size: 1.2rem;
   margin: 10px 0 15px;
   color: #2c3e50;
+  padding-right: 80px;
 }
 
 .solution-card p {
@@ -614,6 +672,8 @@ onMounted(() => {
 .no-results {
   text-align: center;
   padding: 40px 0;
+  background: #f8f9fa;
+  border-radius: 12px;
 }
 
 .solution-detail {
@@ -624,6 +684,8 @@ onMounted(() => {
 
 .solution-detail .solution-meta {
   margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #eee;
 }
 
 .solution-detail h3 {
@@ -648,10 +710,20 @@ onMounted(() => {
 .solution-steps {
   padding-left: 20px;
   line-height: 1.8;
+  margin-bottom: 20px;
 }
 
 .solution-steps li {
   margin-bottom: 10px;
+  position: relative;
+  padding-left: 10px;
+}
+
+.solution-steps li::before {
+  content: "▹";
+  position: absolute;
+  left: -15px;
+  color: #409EFF;
 }
 
 .solution-notes {
@@ -675,6 +747,12 @@ onMounted(() => {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ebeef5;
+  transition: transform 0.3s ease;
+}
+
+.solution-image:hover {
+  transform: scale(1.05);
 }
 
 @media (max-width: 768px) {
@@ -689,5 +767,35 @@ onMounted(() => {
   .solution-header h1 {
     font-size: 2rem;
   }
+
+  .solution-section .solution-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+.minecraft-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.minecraft-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #5cb85c, #3d8b3d);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+.minecraft-icon .el-icon {
+  color: white;
+  font-size: 28px;
 }
 </style>
