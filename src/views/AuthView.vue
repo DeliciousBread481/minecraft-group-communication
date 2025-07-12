@@ -458,7 +458,7 @@ const goToHome = () => {
 
 .auth-header {
   text-align: center;
-  padding: 30px 20px 20px;
+  padding: 13px 20px 13px;
 }
 
 .auth-logo-container {
