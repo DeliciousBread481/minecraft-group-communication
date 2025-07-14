@@ -44,7 +44,9 @@
 
     <div class="solution-section">
       <div class="solution-header">
-        <h2><el-icon><Document /></el-icon> {{ activeCategoryName }} 解决方案</h2>
+        <div class="solution-header-title">
+          <h2><el-icon><Document /></el-icon> {{ activeCategoryName }} 解决方案</h2>
+        </div>
         <div class="result-count">{{ filteredSolutions.length }} 个解决方案</div>
       </div>
 
@@ -467,6 +469,7 @@ onMounted(() => {
 }
 
 .search-container {
+  border-radius: 50px;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -482,6 +485,17 @@ onMounted(() => {
   padding-left: 20px;
   height: 50px;
   font-size: 16px;
+}
+
+/* 修复悬浮/聚焦状态下的圆角边框问题 */
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 50px;
+}
+
+.search-input :deep(.el-input__wrapper.is-focus),
+.search-input :deep(.el-input__wrapper:hover) {
+  border-radius: 50px;
+  box-shadow: 0 0 0 1px var(--el-input-hover-border-color) inset;
 }
 
 .category-section {
@@ -582,9 +596,15 @@ onMounted(() => {
   align-items: center;
   background: none;
   box-shadow: none;
-  padding: 0 0 20px 0;
+  padding: 15px 0; /* 上下均匀分配内边距，取消之前只有底部内边距的设置 */
   margin-bottom: 20px;
   border-bottom: 1px solid #eee;
+  min-height: 45px; /* 确保有足够高度 */
+}
+
+.solution-header-title {
+  display: flex;
+  align-items: center; /* 确保标题部分垂直居中 */
 }
 
 .solution-section h2 {
@@ -594,6 +614,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  line-height: 1.2; /* 添加行高控制，帮助文本垂直居中 */
 }
 
 .result-count {
@@ -603,6 +624,9 @@ onMounted(() => {
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 14px;
+  display: flex; /* 使用 flex 布局 */
+  align-items: center; /* 垂直居中 */
+  height: 28px; /* 设置固定高度，与标题高度协调 */
 }
 
 .solution-grid {
@@ -674,6 +698,10 @@ onMounted(() => {
   padding: 40px 0;
   background: #f8f9fa;
   border-radius: 12px;
+}
+
+.solution-header-title {
+  align-items: center;
 }
 
 .solution-detail {

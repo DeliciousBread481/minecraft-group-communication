@@ -11,14 +11,6 @@
       </div>
     </el-button>
 
-    <el-button
-      v-if="isMobile"
-      class="mobile-menu-btn"
-      @click="emit('toggle-menu')"
-    >
-      <el-icon><Menu /></el-icon>
-    </el-button>
-
     <div class="nav-right">
       <el-button
         v-for="button in buttons"
@@ -69,8 +61,9 @@ import { ref, onMounted } from 'vue'
 import { useThemeStore } from '@/store/theme'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { Sunny, Moon, Menu } from '@element-plus/icons-vue'
+import { Sunny, Moon } from '@element-plus/icons-vue'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits(['toggle-menu'])
 
 const themeStore = useThemeStore()
@@ -124,7 +117,7 @@ const buttons = [
   display: flex;
   align-items: center;
   height: 100%;
-  gap: 10px;
+  gap: 2px;
 }
 
 .logo-img {
@@ -157,12 +150,12 @@ const buttons = [
 }
 
 .nav-button:hover {
-  color: var(--warning-color);
+  color: var(--primary-color);
 }
 
 .mobile-menu-btn {
   display: none;
-  color: white;
+  color: rgba(255, 255, 255, 0.555);
   font-size: 1.5rem;
 }
 

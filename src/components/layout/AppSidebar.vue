@@ -5,7 +5,7 @@
         v-for="item in menuItems"
         :key="item.path"
         class="menu-item"
-        :class="{ 'active': $route.path.startsWith(item.path) }"
+        :class="{ 'active': item.path === '/' ? $route.path === '/' : $route.path.startsWith(item.path) }"
         @click="navigateTo(item.path)"
       >
         <el-tooltip effect="dark" :content="item.title" placement="right">
