@@ -280,7 +280,6 @@ const registerRules = {
   ],
   agreement: [
     {
-      // 使用 _rule 参数名表示未使用
       validator: (_rule: unknown, value: boolean, callback: (error?: Error) => void) => {
         if (!value) {
           callback(new Error('请同意服务条款和隐私政策'));
