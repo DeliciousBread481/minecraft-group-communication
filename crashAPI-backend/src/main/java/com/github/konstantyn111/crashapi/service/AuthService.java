@@ -5,16 +5,19 @@ import com.github.konstantyn111.crashapi.dto.LoginRequest;
 import com.github.konstantyn111.crashapi.dto.RefreshRequest;
 import com.github.konstantyn111.crashapi.dto.RegisterRequest;
 import com.github.konstantyn111.crashapi.entity.User;
+import com.github.konstantyn111.crashapi.exception.BusinessException;
 import com.github.konstantyn111.crashapi.mapper.RoleMapper;
 import com.github.konstantyn111.crashapi.mapper.UserMapper;
 import com.github.konstantyn111.crashapi.security.CustomUserDetails;
 import com.github.konstantyn111.crashapi.util.ApiResponse;
+import com.github.konstantyn111.crashapi.util.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,16 +44,16 @@ public class AuthService {
     public ApiResponse<AuthResponse> register(RegisterRequest request) {
         // 检查用户名唯一性
         if (userMapper.findByUsername(request.getUsername()).isPresent()) {
-            return ApiResponse.fail(HttpStatus.CONFLICT.value(),
-                    "用户名已被使用",
-                    null);
+            throw new BusinessException(ErrorCode.DUPLICATE_USERNAME,
+                    HttpStatus.CONFLICT,
+                    "用户名已被使用");
         }
 
         // 检查邮箱唯一性
         if (userMapper.findByEmail(request.getEmail()).isPresent()) {
-            return ApiResponse.fail(HttpStatus.CONFLICT.value(),
-                    "邮箱已被注册",
-                    null);
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL,
+                    HttpStatus.CONFLICT,
+                    "邮箱已被注册");
         }
 
         // 创建并保存用户
@@ -117,11 +120,17 @@ public class AuthService {
             );
 
             return ApiResponse.success(authResponse, "用户登录成功");
+        } catch (BadCredentialsException e) {
+            // 认证失败
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS,
+                    HttpStatus.UNAUTHORIZED,
+                    "用户名或密码错误");
         } catch (Exception e) {
+            // 其他异常
             logger.error("登录失败: {}", e.getMessage());
-            return ApiResponse.fail(HttpStatus.UNAUTHORIZED.value(),
-                    "用户名或密码错误",
-                    null);
+            throw new BusinessException(ErrorCode.AUTHENTICATION_FAILED,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "登录过程中发生错误");
         }
     }
 
@@ -132,25 +141,25 @@ public class AuthService {
 
             // 1. 基本验证
             if (!jwtService.isRefreshTokenValid(refreshToken)) {
-                return ApiResponse.fail(HttpStatus.UNAUTHORIZED.value(),
-                        "刷新令牌无效",
-                        null);
+                throw new BusinessException(ErrorCode.INVALID_TOKEN,
+                        HttpStatus.UNAUTHORIZED,
+                        "刷新令牌无效");
             }
 
             // 2. 提取用户名
             String username = jwtService.extractUsername(refreshToken);
             if (username == null) {
-                return ApiResponse.fail(HttpStatus.UNAUTHORIZED.value(),
-                        "无法从令牌中提取用户信息",
-                        null);
+                throw new BusinessException(ErrorCode.INVALID_TOKEN,
+                        HttpStatus.UNAUTHORIZED,
+                        "无法从令牌中提取用户信息");
             }
 
             // 3. 获取用户信息
             Optional<User> userOptional = userMapper.findByUsername(username);
             if (userOptional.isEmpty()) {
-                return ApiResponse.fail(HttpStatus.UNAUTHORIZED.value(),
-                        "用户不存在",
-                        null);
+                throw new BusinessException(ErrorCode.USER_NOT_FOUND,
+                        HttpStatus.UNAUTHORIZED,
+                        "用户不存在");
             }
 
             // 4. 创建UserDetails
@@ -158,16 +167,16 @@ public class AuthService {
 
             // 5. 验证令牌匹配
             if (!refreshToken.equals(userDetails.getRefreshToken())) {
-                return ApiResponse.fail(HttpStatus.UNAUTHORIZED.value(),
-                        "刷新令牌不匹配",
-                        null);
+                throw new BusinessException(ErrorCode.INVALID_TOKEN,
+                        HttpStatus.UNAUTHORIZED,
+                        "刷新令牌不匹配");
             }
 
             // 6. 检查令牌状态
             if (!userDetails.isRefreshTokenValid()) {
-                return ApiResponse.fail(HttpStatus.UNAUTHORIZED.value(),
-                        "刷新令牌已过期",
-                        null);
+                throw new BusinessException(ErrorCode.TOKEN_EXPIRED,
+                        HttpStatus.UNAUTHORIZED,
+                        "刷新令牌已过期");
             }
 
             // 7. 生成新令牌对
@@ -191,14 +200,17 @@ public class AuthService {
             return ApiResponse.success(authResponse, "令牌刷新成功");
 
         } catch (ExpiredJwtException ex) {
-            return ApiResponse.fail(HttpStatus.UNAUTHORIZED.value(),
-                    "刷新令牌已过期，请重新登录",
-                    null);
+            throw new BusinessException(ErrorCode.TOKEN_EXPIRED,
+                    HttpStatus.UNAUTHORIZED,
+                    "刷新令牌已过期，请重新登录");
+        } catch (BusinessException ex) {
+            // 直接重新抛出已处理的业务异常
+            throw ex;
         } catch (Exception ex) {
             logger.error("令牌刷新失败: {}", ex.getMessage());
-            return ApiResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "令牌刷新失败",
-                    null);
+            throw new BusinessException(ErrorCode.UNKNOWN_ERROR,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "令牌刷新失败");
         }
     }
 
@@ -213,8 +225,8 @@ public class AuthService {
             );
             return ApiResponse.success(null, "令牌已撤销");
         }
-        return ApiResponse.fail(HttpStatus.NOT_FOUND.value(),
-                "用户不存在",
-                null);
+        throw new BusinessException(ErrorCode.USER_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "用户不存在");
     }
 }

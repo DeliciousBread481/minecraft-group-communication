@@ -62,11 +62,7 @@ public record CustomUserDetails(User user) implements UserDetails {
         }
 
         Date now = new Date();
-        if (user.getRefreshTokenExpiry() != null && user.getRefreshTokenExpiry().before(now)) {
-            return false;
-        }
-
-        return true;
+        return user.getRefreshTokenExpiry() == null || !user.getRefreshTokenExpiry().before(now);
     }
 
     /**
