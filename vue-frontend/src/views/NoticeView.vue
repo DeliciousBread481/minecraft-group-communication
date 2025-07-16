@@ -48,6 +48,13 @@
               <h2>
                 <el-icon><Bottom /></el-icon>
                 选择符合具体情况的问题
+                <el-button v-if="selectedCategoryId === 'disconnect'"
+                  type="warning"
+                  @click="showDisconnectInfoManually"
+                  class="info-button">
+                  <el-icon><Warning /></el-icon>
+                  <span>注意事项</span>
+                </el-button>
                 <el-button text bg @click="backToCategories" class="back-button right-button">
                   <el-icon><ArrowLeftBold /></el-icon>
                   <h3 color="#409EFF">上一步</h3>
@@ -134,21 +141,78 @@
           </div>
 
           <div class="document-content" v-loading="isLoading">
+            <!-- 添加文档进度步骤 -->
+            <el-steps
+              :active="activeDocStep"
+              finish-status="success"
+              class="document-steps"
+            >
+              <el-step
+                v-for="(step, index) in documentSteps"
+                :key="index"
+                :title="step.title"
+                :description="step.description">
+                <template #icon>
+                  <el-icon><component :is="step.icon" /></el-icon>
+                </template>
+              </el-step>
+            </el-steps>
+
             <el-card class="markdown-card">
               <div class="markdown-body" v-html="markdownHtml"></div>
             </el-card>
           </div>
+          <!-- 可以在这里添加el-steps -->
         </div>
       </transition>
     </div>
+
+    <!-- 连接失败类弹窗 -->
+    <el-dialog
+      v-model="showDisconnectDialog"
+      title="连接失败类问题"
+      width="60%"
+      top="5vh"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+    >
+      <el-steps :active="activeStep" finish-status="success" class="dialog-steps">
+        <el-step
+          v-for="(step, index) in dialogSteps"
+          :key="index"
+          :title="step.title"
+          :description="step.description">
+          <template #icon>
+            <el-icon><component :is="step.icon" /></el-icon>
+          </template>
+        </el-step>
+      </el-steps>
+      <div class="markdown-body" v-html="disconnectInfoHtml" v-loading="isDialogLoading"></div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button
+            type="primary"
+            @click="closeDisconnectDialog"
+            :disabled="countdownValue > 0">
+            {{ countdownValue > 0 ? `请仔细阅读 等待 ${countdownValue} 秒` : '我已了解' }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
 <script setup lang="ts">
-import { Bottom, CircleCloseFilled, More, Switch, VideoPlay, QuestionFilled, WarningFilled, Close, Connection, Right, ArrowLeftBold } from "@element-plus/icons-vue";
-import { ref, reactive, type Component, onMounted, watch } from "vue";
+import { Bottom, Right, ArrowLeftBold, Warning, Loading, Document, InfoFilled, SuccessFilled } from "@element-plus/icons-vue";
+import { ref, reactive, type Component, onMounted, watch, onUnmounted } from "vue";
+import { categories } from "@/components/knowledge/ques"
 import { marked } from 'marked';
 import axios from 'axios';
+import { crashCategories } from "@/components/knowledge/crash";
+import { disconnectCategories } from "@/components/knowledge/disconnect";
+import { lauchercategories } from "@/components/knowledge/laucher";
+import { otherCategories } from "@/components/knowledge/other";
 
 const ques = ref("")
 const selectedCategoryId = ref("")
@@ -157,14 +221,60 @@ const markdownContent = ref("")
 const markdownHtml = ref("")
 const isLoading = ref(false)
 
-// 定义类型
-interface Category {
-  id: string;
-  name: string;
-  icon: Component;
-  description: string;
-  color: string;
-}
+// 弹窗相关
+const showDisconnectDialog = ref(false)
+const disconnectInfoContent = ref("")
+const disconnectInfoHtml = ref("")
+const isDialogLoading = ref(false)
+const countdownValue = ref(0)
+let countdownTimer: number | null = null
+// 已读状态记录
+const hasReadDisconnectInfo = ref(false)
+
+// 文档页进度条相关
+const activeDocStep = ref(0) // 文档页当前激活的步骤
+const documentSteps = ref([
+  {
+    title: "问题描述",
+    description: "了解问题的表现",
+    icon: "Document"
+  },
+  {
+    title: "原因分析",
+    description: "问题产生的原因",
+    icon: "InfoFilled"
+  },
+  {
+    title: "解决方案",
+    description: "可行的解决步骤",
+    icon: "Loading"
+  }
+])
+
+// 进度条相关
+const activeStep = ref(1) // 当前激活的步骤
+const dialogSteps = ref([
+  {
+    title: "阅读说明",
+    description: "了解连接失败的一般原因",
+    icon: "Document"
+  },
+  {
+    title: "排查问题",
+    description: "根据提示进行排查",
+    icon: "Loading"
+  },
+  {
+    title: "解决方案",
+    description: "选择合适的解决方案",
+    icon: "InfoFilled"
+  },
+  {
+    title: "完成",
+    description: "问题解决",
+    icon: "SuccessFilled"
+  }
+])
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface SubCategory {
@@ -176,151 +286,12 @@ interface SubCategory {
   docPath?: string;
 }
 
-const categories = ref<Category[]>([
-  {
-    id: 'crash',
-    name: '游戏崩溃类',
-    icon: CircleCloseFilled,
-    description: '游戏启动失败 游戏闪退 游戏崩溃等',
-    color: '#9c27b0'
-  },
-  {
-    id: 'disconnect',
-    name: '连接失败类',
-    icon: Switch,
-    description: '联机失败 连接服务器失败 单人存档被踢出等',
-    color: '#409EFF'
-  },
-  {
-    id: 'laucher',
-    name: '启动器问题',
-    icon: VideoPlay,
-    description: '启动器闪退 启动器崩溃 启动器无法启动等',
-    color: '#E6A23C'
-  },
-  {
-    id: 'other',
-    name: '其他问题',
-    icon: More,
-    description: '其他问题',
-    color: '#67C23A'
-  }
-])
-
 // 子分类数据
 const subCategories = reactive({
-  crash: [
-    {
-      id: 'crash_startup',
-      name: '启动崩溃',
-      icon: Close,
-      description: '游戏无法启动或启动过程中崩溃',
-      color: '#9c27b0',
-      docPath: '/docs/crash_startup.md'
-    },
-    {
-      id: 'crash_ingame',
-      name: '游戏内崩溃',
-      icon: CircleCloseFilled,
-      description: '游戏运行中突然崩溃或黑屏',
-      color: '#9c27b0',
-      docPath: '/docs/crash_ingame.md'
-    },
-    {
-      id: 'crash_mod',
-      name: 'MOD兼容性问题',
-      icon: WarningFilled,
-      description: 'MOD加载失败或MOD冲突导致崩溃',
-      color: '#9c27b0',
-      docPath: '/docs/crash_mod.md'
-    }
-  ],
-  disconnect: [
-    {
-      id: 'disconnect_server',
-      name: '服务器连接失败',
-      icon: Connection,
-      description: '无法连接到服务器或连接中断',
-      color: '#409EFF',
-      docPath: '/docs/disconnect_server.md'
-    },
-    {
-      id: 'disconnect_timeout',
-      name: '连接超时',
-      icon: Switch,
-      description: '连接服务器时超时',
-      color: '#409EFF',
-      docPath: '/docs/disconnect_timeout.md'
-    },
-    {
-      id: 'disconnect_kicked',
-      name: '被踢出服务器',
-      icon: Close,
-      description: '连接后被服务器踢出',
-      color: '#409EFF',
-      docPath: '/docs/disconnect_kicked.md'
-    },
-    {
-      id: 'disconnect_lan',
-      name: '局域网连接问题',
-      icon: Connection,
-      description: '无法通过局域网连接到其他玩家',
-      color: '#409EFF',
-      docPath: '/docs/disconnect_lan.md'
-    }
-  ],
-  laucher: [
-    {
-      id: 'launcher_crash',
-      name: '启动器崩溃',
-      icon: CircleCloseFilled,
-      description: '启动器无法打开或使用过程中崩溃',
-      color: '#E6A23C',
-      docPath: '/docs/launcher_crash.md'
-    },
-    {
-      id: 'launcher_login',
-      name: '账号登录问题',
-      icon: QuestionFilled,
-      description: '无法登录账号或认证失败',
-      color: '#E6A23C',
-      docPath: '/docs/launcher_login.md'
-    },
-    {
-      id: 'launcher_download',
-      name: '下载问题',
-      icon: WarningFilled,
-      description: '游戏文件或资源下载失败',
-      color: '#E6A23C',
-      docPath: '/docs/launcher_download.md'
-    }
-  ],
-  other: [
-    {
-      id: 'other_performance',
-      name: '性能问题',
-      icon: WarningFilled,
-      description: '游戏卡顿、FPS低或内存占用过高',
-      color: '#67C23A',
-      docPath: '/docs/other_performance.md'
-    },
-    {
-      id: 'other_graphics',
-      name: '画面问题',
-      icon: QuestionFilled,
-      description: '画面异常、材质错误或光影问题',
-      color: '#67C23A',
-      docPath: '/docs/other_graphics.md'
-    },
-    {
-      id: 'other_sound',
-      name: '声音问题',
-      icon: More,
-      description: '无声音、声音异常或音效缺失',
-      color: '#67C23A',
-      docPath: '/docs/other_sound.md'
-    }
-  ]
+  crash: crashCategories,
+  disconnect: disconnectCategories,
+  laucher: lauchercategories,
+  other: otherCategories,
 })
 
 // 监听子分类选择变化，加载对应的Markdown文档
@@ -335,6 +306,7 @@ const loadMarkdownDocument = async () => {
   if (!selectedSubCategoryId.value) return;
 
   isLoading.value = true;
+  activeDocStep.value = 0; // 重置文档步骤
   try {
     // 获取当前子分类
     const currentCategory = getCurrentSubCategory();
@@ -348,6 +320,11 @@ const loadMarkdownDocument = async () => {
     const response = await axios.get(currentCategory.docPath);
     markdownContent.value = response.data;
     markdownHtml.value = marked(response.data);
+
+    // 模拟文档阅读进度
+    setTimeout(() => { activeDocStep.value = 1; }, 1000);
+    setTimeout(() => { activeDocStep.value = 2; }, 2000);
+    setTimeout(() => { activeDocStep.value = 3; }, 3000);
   } catch (error) {
     console.error('加载Markdown文档失败:', error);
     markdownContent.value = "# 加载文档失败";
@@ -369,6 +346,11 @@ const selectCategory = (categoryId: string) => {
   ques.value = categoryId;
   selectedCategoryId.value = categoryId;
   selectedSubCategoryId.value = "";
+
+  // 当选择连接失败类时，如果没读过则显示弹窗
+  if (categoryId === "disconnect" && !hasReadDisconnectInfo.value) {
+    loadDisconnectInfoDialog(true); // true表示是自动弹出，需要倒计时
+  }
 }
 
 const selectSubCategory = (subCategoryId: string) => {
@@ -426,6 +408,101 @@ const getSelectedSubCategoryName = () => {
   const currentSubCategory = getCurrentSubCategory();
   return currentSubCategory ? currentSubCategory.name : "";
 }
+
+// 手动显示弹窗
+const showDisconnectInfoManually = () => {
+  loadDisconnectInfoDialog(false); // false表示手动点击，不需要倒计时
+};
+
+// 加载连接失败类弹窗内容
+const loadDisconnectInfoDialog = async (needCountdown: boolean = true) => {
+  showDisconnectDialog.value = true;
+  isDialogLoading.value = true;
+  countdownValue.value = needCountdown ? 8 : 0; // 只有需要倒计时时才设置8秒
+    // 重置进度条状态
+  activeStep.value = 1;
+
+  try {
+    // 加载markdown文件
+    const response = await axios.get('/docs/disconnect_info.md');
+    disconnectInfoContent.value = response.data;
+    disconnectInfoHtml.value = marked(response.data);
+
+    // 开始倒计时
+    startCountdown();
+
+    // 模拟进度条步骤更新
+    if (needCountdown) {
+      setTimeout(() => { activeStep.value = 2; }, 2000);
+      setTimeout(() => { activeStep.value = 3; }, 5000);
+      setTimeout(() => { activeStep.value = 4; }, 7000);
+    }
+  } catch (error) {
+    console.error('加载连接失败信息失败:', error);
+    disconnectInfoContent.value = "# 加载失败\n\n无法加载连接失败信息，请稍后再试。";
+    disconnectInfoHtml.value = marked(disconnectInfoContent.value);
+  } finally {
+    isDialogLoading.value = false;
+  }
+};
+
+// 倒计时逻辑
+const startCountdown = () => {
+  // 清除之前的定时器
+  if (countdownTimer !== null) {
+    clearInterval(countdownTimer);
+  }
+
+  // 设置新的定时器
+  countdownTimer = setInterval(() => {
+    if (countdownValue.value > 0) {
+      countdownValue.value--;
+    } else {
+      // 倒计时结束，清除定时器
+      if (countdownTimer !== null) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      // 确保进度条到达最后一步
+      activeStep.value = dialogSteps.value.length;
+    }
+  }, 1000) as unknown as number;
+};
+
+// 关闭弹窗
+const closeDisconnectDialog = () => {
+  showDisconnectDialog.value = false;
+  // 标记为已读
+  hasReadDisconnectInfo.value = true;
+  // 清除定时器
+  if (countdownTimer !== null) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+  // 重置步骤
+  activeStep.value = 1;
+};
+
+// 组件卸载时清除定时器
+onUnmounted(() => {
+  if (countdownTimer !== null) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+});
+
+// 动态设置文档页进度条步骤
+const setDocumentSteps = (steps: {title: string, description: string, icon: string}[], startStep: number = 0) => {
+  documentSteps.value = steps;
+  activeDocStep.value = startStep;
+};
+
+// 手动设置文档当前进度步骤
+const setActiveDocStep = (step: number) => {
+  if (step >= 0 && step <= documentSteps.value.length) {
+    activeDocStep.value = step;
+  }
+};
 
 // 初始化
 onMounted(() => {
@@ -586,6 +663,35 @@ onMounted(() => {
 
 .right-button .el-icon {
   color: white !important;
+}
+
+.info-button {
+  margin-left: 15px;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dialog-steps {
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+
+.document-steps {
+  margin: 10px 0 25px;
+  padding: 15px 0;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* 定制步骤条样式 */
+.el-step__title {
+  font-size: 14px !important;
+}
+
+.el-step__description {
+  font-size: 12px !important;
 }
 
 .category-card {
