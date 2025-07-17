@@ -22,7 +22,7 @@ public class ApiResponse<T> {
     private int status;
 
     /**
-     * 业务错误码
+     * 业务码
      */
     private Integer code;
 

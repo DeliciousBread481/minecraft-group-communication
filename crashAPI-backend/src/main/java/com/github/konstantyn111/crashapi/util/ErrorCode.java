@@ -23,7 +23,8 @@ public enum ErrorCode {
     USER_NOT_FOUND(30000, "User not found"),
     DUPLICATE_USERNAME(30001, "Duplicate username"),
     DUPLICATE_EMAIL(30002, "Duplicate email"),
-    INVALID_CREDENTIALS(30003, "Invalid credentials");
+    INVALID_CREDENTIALS(30003, "Invalid credentials"),
+    UNAUTHORIZED(30004, "Unauthorized" ),;
 
     private final int code;
     private final String message;

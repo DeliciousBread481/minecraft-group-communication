@@ -27,6 +27,11 @@ public class AuthController {
         return authService.login(request);
     }
 
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout() {
+        return authService.logout();
+    }
+
     @PostMapping("/refresh-token")
     public ApiResponse<AuthResponse> refreshToken(@Valid @RequestBody RefreshRequest request) {
         return authService.refreshToken(request);

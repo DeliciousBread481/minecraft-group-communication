@@ -229,4 +229,28 @@ public class AuthService {
                 HttpStatus.NOT_FOUND,
                 "用户不存在");
     }
+
+    @Transactional
+    public ApiResponse<Void> logout() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED,HttpStatus.UNAUTHORIZED,"用户未登录");
+        }
+        String username = authentication.getName();
+
+        Optional<User> userOptional = userMapper.findByUsername(username);
+        if (userOptional.isPresent()) {
+            userMapper.updateRefreshToken(
+                    userOptional.get().getId(),
+                    null,
+                    null
+            );
+        } else {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND,HttpStatus.NOT_FOUND, "用户不存在");
+        }
+
+        SecurityContextHolder.clearContext();
+        return ApiResponse.success(null,"退出登录成功");
+    }
 }
