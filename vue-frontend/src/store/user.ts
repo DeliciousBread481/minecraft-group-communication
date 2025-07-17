@@ -17,16 +17,16 @@ import type {
 // 创建并导出用户状态存储
 export const useUserStore = defineStore('user', () => {
   // 初始化状态
-  const token = ref(localStorage.getItem('token') || '')
+  const token = ref(localStorage.getItem('accessToken') || '')
   const refreshTokenValue = ref(localStorage.getItem('refreshToken') || '')
   const userInfo = ref<UserInfo | null>(
-    JSON.parse(localStorage.getItem('userInfo') || 'null')
+    JSON.parse(localStorage.getItem('user') || 'null')
   )
 
   // 监听状态变化并保存到 localStorage
   watch(token, (newToken) => {
-    if (newToken) localStorage.setItem('token', newToken)
-    else localStorage.removeItem('token')
+    if (newToken) localStorage.setItem('accessToken', newToken)
+    else localStorage.removeItem('accessToken')
   })
 
   watch(refreshTokenValue, (newRefreshToken) => {
@@ -35,8 +35,8 @@ export const useUserStore = defineStore('user', () => {
   })
 
   watch(userInfo, (newUserInfo) => {
-    if (newUserInfo) localStorage.setItem('userInfo', JSON.stringify(newUserInfo))
-    else localStorage.removeItem('userInfo')
+    if (newUserInfo) localStorage.setItem('user', JSON.stringify(newUserInfo))
+    else localStorage.removeItem('user')
   }, { deep: true })
 
   const isAuthenticated = computed(() => !!token.value)
@@ -47,7 +47,7 @@ export const useUserStore = defineStore('user', () => {
       const response = await login(credentials)
 
       if (response.success) {
-        token.value = response.data.token
+        token.value = response.data.accessToken
         refreshTokenValue.value = response.data.refreshToken
         userInfo.value = response.data.user
         return true
@@ -82,6 +82,10 @@ export const useUserStore = defineStore('user', () => {
       token.value = ''
       refreshTokenValue.value = ''
       userInfo.value = null
+      // 确保所有localStorage项被清除
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user')
     }
   }
 
@@ -107,10 +111,14 @@ export const useUserStore = defineStore('user', () => {
     try {
       if (!refreshTokenValue.value) return false;
 
-      const response = await refreshToken(refreshTokenValue.value)
+      // 确保localStorage中的refreshToken值是最新的
+      localStorage.setItem('refreshToken', refreshTokenValue.value);
+
+      // 不传参数调用refreshToken，它会从localStorage获取refreshToken
+      const response = await refreshToken()
 
       if (response.success) {
-        token.value = response.data.token
+        token.value = response.data.accessToken
         refreshTokenValue.value = response.data.refreshToken
         return true
       }

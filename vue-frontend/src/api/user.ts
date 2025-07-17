@@ -34,6 +34,7 @@ export interface RegisterData {
 export interface UserInfo {
   id: number;
   username: string;
+  nickname?: string;
   email: string;
   avatar?: string;
 }
@@ -167,7 +168,12 @@ export const register = async (
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
       } else {
-        throw new InvalidTokenFormatException('access or refresh');
+        // 判断哪个令牌格式无效并抛出相应异常
+        if (!isValidJwt(accessToken)) {
+          throw new InvalidTokenFormatException('access');
+        } else {
+          throw new InvalidTokenFormatException('refresh');
+        }
       }
     }
 

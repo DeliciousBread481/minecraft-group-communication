@@ -5,6 +5,7 @@ import AuthView from '@/views/AuthView.vue'
 import NoticeView from '@/views/NoticeView.vue'
 import SolutionView from '@/views/SolutionView.vue'
 import { useUserStore } from '@/store/user'
+// 设置页面使用懒加载方式导入
 
 const routes = [
   {
@@ -37,6 +38,15 @@ const routes = [
         name: 'solutions',
         component: SolutionView,
         meta: { title: '解决方案' }
+      },
+      {
+        path: '/settings',
+        name: 'settings',
+        component: () => import('@/views/SettingsView.vue'),
+        meta: { 
+          title: '个人设置',
+          requiresAuth: true 
+        }
       },
     ]
   }

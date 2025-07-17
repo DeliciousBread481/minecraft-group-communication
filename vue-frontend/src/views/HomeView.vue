@@ -6,35 +6,6 @@
       justify-content="center"
       alignment="center"
     >
-      <el-space
-        direction="vertical"
-        wrap :size="80"
-        justify-content="center"
-      >
-        <el-text class="main-text">
-          选择你要了解的内容
-        </el-text>
-        <el-card
-          style="width: 480px; background-color: var(--primary-color)"
-          shadow="hover"
-          @click="$router.push('/notice')"
-          class="action-card"
-        >
-          <el-text class="card-text">
-            群公告文档
-          </el-text>
-        </el-card>
-        <el-card
-          style="width: 480px; background-color: var(--primary-color)"
-          shadow="hover"
-          @click="$router.push('/solutions')"
-          class="action-card"
-        >
-          <el-text class="card-text">
-            解决方案
-          </el-text>
-        </el-card>
-      </el-space>
 
       <div class="home-content-container">
         <div class="content">

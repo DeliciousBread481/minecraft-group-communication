@@ -141,25 +141,50 @@
           </div>
 
           <div class="document-content" v-loading="isLoading">
-            <!-- 添加文档进度步骤 -->
-            <el-steps
-              :active="activeDocStep"
-              finish-status="success"
-              class="document-steps"
-            >
-              <el-step
-                v-for="(step, index) in documentSteps"
-                :key="index"
-                :title="step.title"
-                :description="step.description">
-                <template #icon>
-                  <el-icon><component :is="step.icon" /></el-icon>
-                </template>
-              </el-step>
-            </el-steps>
 
             <el-card class="markdown-card">
-              <div class="markdown-body" v-html="markdownHtml"></div>
+              <!-- 文档内容独立进度条 -->
+              <div class="document-progress">
+                <div class="progress-indicator">
+                  <div class="progress-step"
+                       v-for="(step, index) in getDocSteps(getSelectedSubCategoryName(), getSelectedCategoryName())"
+                       :key="index"
+                       :class="{
+                         'active': index === activeDocStep,
+                         'completed': index < activeDocStep
+                       }"
+                       @click="activeDocStep = index">
+                    <div class="step-number">{{ index + 1 }}</div>
+                    <div class="step-title">{{ step.title }}</div>
+                  </div>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" :style="{ width: progressWidth }"></div>
+                </div>
+              </div>
+
+              <div class="markdown-scroll-container">
+                <div class="markdown-body" v-html="markdownHtml"></div>
+              </div>
+
+              <!-- 文档导航按钮 -->
+              <div class="document-navigation">
+                <el-button
+                  @click="navigateDocStep(-1)"
+                  :disabled="activeDocStep === 0"
+                  type="primary"
+                  plain
+                >
+                  <el-icon><ArrowLeftBold /></el-icon> 上一步
+                </el-button>
+                <el-button
+                  @click="navigateDocStep(1)"
+                  :disabled="activeDocStep >= documentSteps.length - 1"
+                  type="primary"
+                >
+                  下一步 <el-icon><ArrowRightBold /></el-icon>
+                </el-button>
+              </div>
             </el-card>
           </div>
           <!-- 可以在这里添加el-steps -->
@@ -177,17 +202,7 @@
       :close-on-press-escape="false"
       :show-close="false"
     >
-      <el-steps :active="activeStep" finish-status="success" class="dialog-steps">
-        <el-step
-          v-for="(step, index) in dialogSteps"
-          :key="index"
-          :title="step.title"
-          :description="step.description">
-          <template #icon>
-            <el-icon><component :is="step.icon" /></el-icon>
-          </template>
-        </el-step>
-      </el-steps>
+
       <div class="markdown-body" v-html="disconnectInfoHtml" v-loading="isDialogLoading"></div>
       <template #footer>
         <span class="dialog-footer">
@@ -204,8 +219,8 @@
 </template>
 
 <script setup lang="ts">
-import { Bottom, Right, ArrowLeftBold, Warning, Loading, Document, InfoFilled, SuccessFilled } from "@element-plus/icons-vue";
-import { ref, reactive, type Component, onMounted, watch, onUnmounted } from "vue";
+import { Bottom, Right, ArrowLeftBold, ArrowRightBold, Warning, Loading, Document, InfoFilled, SuccessFilled } from "@element-plus/icons-vue";
+import { ref, reactive, type Component, onMounted, watch, onUnmounted, computed } from "vue";
 import { categories } from "@/components/knowledge/ques"
 import { marked } from 'marked';
 import axios from 'axios';
@@ -233,48 +248,22 @@ const hasReadDisconnectInfo = ref(false)
 
 // 文档页进度条相关
 const activeDocStep = ref(0) // 文档页当前激活的步骤
-const documentSteps = ref([
-  {
-    title: "问题描述",
-    description: "了解问题的表现",
-    icon: "Document"
-  },
-  {
-    title: "原因分析",
-    description: "问题产生的原因",
-    icon: "InfoFilled"
-  },
-  {
-    title: "解决方案",
-    description: "可行的解决步骤",
-    icon: "Loading"
+// 每个步骤对应一个独立的Markdown文档
+// 现在documentSteps会动态设置，这里只提供一个空的初始值
+const documentSteps = ref<{title: string, description: string, icon: string, docSuffix: string}[]>([])
+function getDocSteps(subcategoriesname: string, categoriesname: string): {title: string, description: string, icon: string, docSuffix: string}[] {
+  const subCategories = [crashCategories, disconnectCategories, lauchercategories, otherCategories]
+  for(let i=0; i<categories.value.length; i++) {
+    if(categoriesname === categories.value[i].name) {
+      for(let j=0; j<subCategories[i].length; j++) {
+        if(subcategoriesname === subCategories[i][j].name) {
+          return subCategories[i][j].docSteps;
+        }
+      }
+    }
   }
-])
-
-// 进度条相关
-const activeStep = ref(1) // 当前激活的步骤
-const dialogSteps = ref([
-  {
-    title: "阅读说明",
-    description: "了解连接失败的一般原因",
-    icon: "Document"
-  },
-  {
-    title: "排查问题",
-    description: "根据提示进行排查",
-    icon: "Loading"
-  },
-  {
-    title: "解决方案",
-    description: "选择合适的解决方案",
-    icon: "InfoFilled"
-  },
-  {
-    title: "完成",
-    description: "问题解决",
-    icon: "SuccessFilled"
-  }
-])
+  return [];
+}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface SubCategory {
@@ -284,14 +273,20 @@ interface SubCategory {
   description: string;
   color: string;
   docPath?: string;
+  docSteps?: {
+    title: string;
+    description: string;
+    icon: string;
+    docSuffix: string;
+  }[];
 }
 
 // 子分类数据
 const subCategories = reactive({
-  crash: crashCategories,
-  disconnect: disconnectCategories,
-  laucher: lauchercategories,
-  other: otherCategories,
+  crash: crashCategories as SubCategory[],
+  disconnect: disconnectCategories as SubCategory[],
+  laucher: lauchercategories as SubCategory[],
+  other: otherCategories as SubCategory[],
 })
 
 // 监听子分类选择变化，加载对应的Markdown文档
@@ -301,12 +296,27 @@ watch(selectedSubCategoryId, async (newVal) => {
   }
 });
 
+// 监听文档步骤变化，加载对应步骤的Markdown文档
+watch(activeDocStep, async () => {
+  if (selectedSubCategoryId.value) {
+    await loadMarkdownDocument();
+  }
+});
+
+// 计算文档进度条宽度
+const progressWidth = computed(() => {
+  if (documentSteps.value.length <= 1) return '100%';
+  // 计算完成的百分比
+  const totalSteps = documentSteps.value.length - 1; // 总步数减1（0到length-1）
+  const currentProgress = Math.min(activeDocStep.value, totalSteps); // 确保不超过最大步数
+  return `${(currentProgress / totalSteps) * 100}%`;
+});
+
 // 加载Markdown文档
 const loadMarkdownDocument = async () => {
   if (!selectedSubCategoryId.value) return;
 
   isLoading.value = true;
-  activeDocStep.value = 0; // 重置文档步骤
   try {
     // 获取当前子分类
     const currentCategory = getCurrentSubCategory();
@@ -316,15 +326,28 @@ const loadMarkdownDocument = async () => {
       return;
     }
 
+    // 获取当前步骤的文档后缀
+    const currentStep = documentSteps.value[activeDocStep.value];
+    const docSuffix = currentStep ? currentStep.docSuffix : "_desc"; // 默认为描述文档
+
+    // 确保docPath存在
+    if (!currentCategory.docPath) {
+      markdownContent.value = "# 文档路径未定义";
+      markdownHtml.value = "<h1>文档路径未定义</h1><p>该问题类型尚未配置文档路径</p>";
+      return;
+    }
+
+    // 构建文档路径，基础路径+后缀
+    // 从docPath中提取基本路径（不含.md扩展名）
+    const basePath = currentCategory.docPath.replace(/\.md$/, '');
+    const docPath = `${basePath}${docSuffix}.md`;
+
+    console.log('加载文档路径:', docPath); // 调试用，上线前可以移除
+
     // 加载文档
-    const response = await axios.get(currentCategory.docPath);
+    const response = await axios.get(docPath);
     markdownContent.value = response.data;
     markdownHtml.value = marked(response.data);
-
-    // 模拟文档阅读进度
-    setTimeout(() => { activeDocStep.value = 1; }, 1000);
-    setTimeout(() => { activeDocStep.value = 2; }, 2000);
-    setTimeout(() => { activeDocStep.value = 3; }, 3000);
   } catch (error) {
     console.error('加载Markdown文档失败:', error);
     markdownContent.value = "# 加载文档失败";
@@ -357,6 +380,54 @@ const selectSubCategory = (subCategoryId: string) => {
   selectedSubCategoryId.value = subCategoryId;
   // 记录已选的子分类
   console.log('选择了子分类:', subCategoryId);
+
+  // 获取当前选中的子分类
+  const currentSubCategory = getCurrentSubCategory();
+
+  // 如果子分类有自定义的文档步骤，使用它
+  if (currentSubCategory && 'docSteps' in currentSubCategory) {
+    // 使用自定义文档步骤
+    setDocumentSteps(currentSubCategory.docSteps as any[], 0);
+  } else {
+    // 使用默认步骤并重置文档步骤到第一步
+    setDocumentSteps([
+      {
+        title: "问题描述",
+        description: "了解问题的表现",
+        icon: "Document",
+        docSuffix: "_desc"
+      },
+      {
+        title: "原因分析",
+        description: "问题产生的原因",
+        icon: "InfoFilled",
+        docSuffix: "_cause"
+      },
+      {
+        title: "解决方案",
+        description: "可行的解决步骤",
+        icon: "Loading",
+        docSuffix: "_solution"
+      }
+    ], 0);
+  }
+}
+
+// 文档导航函数 - 上一步/下一步
+const navigateDocStep = async (step: number) => {
+  // 计算新的步骤索引
+  const newStepIndex = activeDocStep.value + step;
+
+  // 检查边界
+  if (newStepIndex < 0 || newStepIndex >= documentSteps.value.length) {
+    return;
+  }
+
+  // 更新当前步骤
+  activeDocStep.value = newStepIndex;
+
+  // 重新加载对应步骤的文档
+  await loadMarkdownDocument();
 }
 
 const backToCategories = () => {
@@ -419,8 +490,6 @@ const loadDisconnectInfoDialog = async (needCountdown: boolean = true) => {
   showDisconnectDialog.value = true;
   isDialogLoading.value = true;
   countdownValue.value = needCountdown ? 8 : 0; // 只有需要倒计时时才设置8秒
-    // 重置进度条状态
-  activeStep.value = 1;
 
   try {
     // 加载markdown文件
@@ -431,12 +500,7 @@ const loadDisconnectInfoDialog = async (needCountdown: boolean = true) => {
     // 开始倒计时
     startCountdown();
 
-    // 模拟进度条步骤更新
-    if (needCountdown) {
-      setTimeout(() => { activeStep.value = 2; }, 2000);
-      setTimeout(() => { activeStep.value = 3; }, 5000);
-      setTimeout(() => { activeStep.value = 4; }, 7000);
-    }
+
   } catch (error) {
     console.error('加载连接失败信息失败:', error);
     disconnectInfoContent.value = "# 加载失败\n\n无法加载连接失败信息，请稍后再试。";
@@ -463,8 +527,7 @@ const startCountdown = () => {
         clearInterval(countdownTimer);
         countdownTimer = null;
       }
-      // 确保进度条到达最后一步
-      activeStep.value = dialogSteps.value.length;
+      // 进度条已移除
     }
   }, 1000) as unknown as number;
 };
@@ -479,8 +542,7 @@ const closeDisconnectDialog = () => {
     clearInterval(countdownTimer);
     countdownTimer = null;
   }
-  // 重置步骤
-  activeStep.value = 1;
+  // 进度条已移除，不需要重置步骤
 };
 
 // 组件卸载时清除定时器
@@ -492,7 +554,7 @@ onUnmounted(() => {
 });
 
 // 动态设置文档页进度条步骤
-const setDocumentSteps = (steps: {title: string, description: string, icon: string}[], startStep: number = 0) => {
+const setDocumentSteps = (steps: {title: string, description: string, icon: string, docSuffix: string}[], startStep: number = 0) => {
   documentSteps.value = steps;
   activeDocStep.value = startStep;
 };
@@ -952,6 +1014,139 @@ onMounted(() => {
   opacity: 0;
 }
 
+/* 文档导航按钮样式 */
+.document-navigation {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  border-top: 1px solid #eaecef;
+  margin-top: 20px;
+}
+
+.document-navigation .el-button {
+  min-width: 110px;
+}
+
+/* 自定义进度条步骤样式 */
+:deep(.el-step__head.is-process) {
+  color: #409EFF;
+  border-color: #409EFF;
+}
+
+:deep(.el-step__title.is-process) {
+  color: #409EFF;
+}
+
+:deep(.el-step__description.is-process) {
+  color: #409EFF;
+}
+
+/* 文档内容独立进度条样式 */
+.document-progress {
+  margin-bottom: 20px;
+  padding: 15px 0;
+}
+
+.progress-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  width: 33.33%;
+  transition: all 0.3s;
+}
+
+.progress-step .step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #ebeef5;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 5px;
+  transition: all 0.3s;
+}
+
+.progress-step .step-title {
+  font-size: 14px;
+  color: #909399;
+  transition: all 0.3s;
+}
+
+.progress-step.active .step-number {
+  background-color: #409EFF;
+  color: white;
+}
+
+.progress-step.active .step-title {
+  color: #409EFF;
+  font-weight: bold;
+}
+
+.progress-step.completed .step-number {
+  background-color: #67C23A;
+  color: white;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: #ebeef5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #409EFF;
+  border-radius: 3px;
+  transition: width 0.4s ease-in-out;
+}
+
+/* 文档滚动容器样式 */
+.markdown-scroll-container {
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  padding: 0 5px;
+  margin-bottom: 15px;
+
+  /* 自定义滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: #C0C4CC #F2F6FC;
+}
+
+/* Webkit浏览器的滚动条样式 */
+.markdown-scroll-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.markdown-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #C0C4CC;
+  border-radius: 3px;
+}
+
+.markdown-scroll-container::-webkit-scrollbar-track {
+  background-color: #F2F6FC;
+  border-radius: 3px;
+}
+
+/* 悬停时的滚动条样式 */
+.markdown-scroll-container:hover::-webkit-scrollbar-thumb {
+  background-color: #909399;
+}
+
 @media (max-width: 768px) {
   .category-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -959,6 +1154,15 @@ onMounted(() => {
 
   .document-section {
     padding: 10px;
+  }
+
+  .document-navigation {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .document-navigation .el-button {
+    width: 100%;
   }
 }
 </style>

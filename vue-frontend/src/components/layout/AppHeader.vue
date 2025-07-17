@@ -34,13 +34,13 @@
       <el-button
         v-if="!userStore.isAuthenticated"
         text
-        class="nav-button"
+        class="nav-button"sw
         @click="goToAuthPage"
       >
         登录/注册
       </el-button>
 
-      <el-dropdown v-else>
+      <el-dropdown :size="30" v-else>
         <span class="user-info">
           <el-avatar :size="30" :src="userStore.userInfo?.avatar" />
           <span class="username">{{ userStore.userInfo?.username }}</span>
