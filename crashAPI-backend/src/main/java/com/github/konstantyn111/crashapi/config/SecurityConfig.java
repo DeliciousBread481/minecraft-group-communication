@@ -29,7 +29,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * </p>
  */
 @Configuration
-@EnableWebSecurity  // 启用Spring Security的Web安全支持
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 

@@ -8,14 +8,14 @@
         <result property="username" column="username" />
         <result property="email" column="email" />
         <result property="password" column="password" />
+        <result property="nickname" column="nickname" />
+        <result property="avatar" column="avatar" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
         <result property="enabled" column="enabled" />
-        <!-- 添加新字段映射 -->
         <result property="refreshToken" column="refresh_token"/>
         <result property="refreshTokenExpiry" column="refresh_token_expiry"/>
 
-        <!-- 修复角色集合映射 -->
         <collection property="roles" ofType="com.github.konstantyn111.crashapi.entity.Role">
             <id property="id" column="role_id" />
             <result property="name" column="role_name" />
@@ -60,7 +60,6 @@
         VALUES (#{userId}, #{roleId})
     </insert>
 
-    <!-- 添加更新刷新令牌的方法 -->
     <update id="updateRefreshToken">
         UPDATE users
         SET
@@ -68,4 +67,27 @@
             refresh_token_expiry = #{expiryDate}
         WHERE id = #{id}
     </update>
+
+    <update id="updateUserInfo" parameterType="com.github.konstantyn111.crashapi.entity.User">
+        UPDATE users
+        SET
+            email = #{email},
+            nickname = #{nickname},
+            avatar = #{avatar},
+            password = #{password},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findByIdWithRoles" resultMap="UserResultMap">
+        SELECT
+            u.*,
+            r.id AS role_id,
+            r.name AS role_name,
+            r.description AS role_description
+        FROM users u
+                 LEFT JOIN user_roles ur ON u.id = ur.user_id
+                 LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE u.id = #{id}
+    </select>
 </mapper>

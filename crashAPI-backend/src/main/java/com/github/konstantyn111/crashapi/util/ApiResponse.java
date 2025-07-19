@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 
 /**
  * 统一API响应封装类
+ * <p>
+ * 标准化API响应格式，包含操作状态、业务码和结构化数据
  *
  * @param <T> 响应数据的类型
  */
@@ -22,12 +24,12 @@ public class ApiResponse<T> {
     private int status;
 
     /**
-     * 业务码
+     * 业务状态码
      */
     private Integer code;
 
     /**
-     * 给客户端的消息（成功提示或错误信息）
+     * 消息提示（成功提示或错误信息）
      */
     private String message;
 
@@ -45,7 +47,10 @@ public class ApiResponse<T> {
     }
 
     /**
-     * 创建成功响应（包含数据）
+     * 创建成功响应（含数据）
+     * @param data 返回的业务数据
+     * @param message 成功提示信息
+     * @return 标准化成功响应
      */
     public static <T> ApiResponse<T> success(T data, String message) {
         return new ApiResponse<>(true, HttpStatus.OK.value(),
@@ -53,14 +58,20 @@ public class ApiResponse<T> {
     }
 
     /**
-     * 创建成功响应（不包含数据）
+     * 创建成功响应（无数据）
+     * @param message 成功提示信息
+     * @return 标准化成功响应
      */
     public static <T> ApiResponse<T> success(String message) {
         return success(null, message);
     }
 
     /**
-     * 创建失败响应（使用HTTP状态码和错误码）
+     * 创建失败响应
+     * @param httpStatus HTTP状态码
+     * @param errorCode 业务错误码
+     * @param message 自定义错误信息（为空时使用错误码默认信息）
+     * @return 标准化错误响应
      */
     public static <T> ApiResponse<T> fail(int httpStatus, ErrorCode errorCode, String message) {
         return new ApiResponse<>(false, httpStatus,
@@ -70,14 +81,19 @@ public class ApiResponse<T> {
     }
 
     /**
-     * 创建失败响应（使用HTTP状态码和错误码，带自定义消息）
+     * 创建失败响应（使用错误码默认信息）
+     * @param httpStatus HTTP状态码
+     * @param errorCode 业务错误码
+     * @return 标准化错误响应
      */
     public static <T> ApiResponse<T> fail(int httpStatus, ErrorCode errorCode) {
         return fail(httpStatus, errorCode, null);
     }
 
     /**
-     * 创建失败响应（使用业务异常）
+     * 从业务异常创建失败响应
+     * @param ex 业务异常实例
+     * @return 标准化错误响应
      */
     public static <T> ApiResponse<T> fail(BusinessException ex) {
         return new ApiResponse<>(false, ex.getHttpStatus().value(),

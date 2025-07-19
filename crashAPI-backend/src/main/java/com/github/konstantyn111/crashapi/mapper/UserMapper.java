@@ -18,4 +18,6 @@ public interface UserMapper {
             @Param("refreshToken") String refreshToken,
             @Param("expiryDate") Date expiryDate
     );
+    void updateUserInfo(User user);
+    Optional<User> findByIdWithRoles(@Param("id") Long id);
 }
