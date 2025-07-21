@@ -1,0 +1,45 @@
+@use '../variables' as var;
+@use '../mixins' as mix;
+
+.app-header {
+  background-color: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 12px 0 var(--shadow-color);
+
+  .logo .home-link-text {
+    color: var(--text-color);
+  }
+
+  .nav-button {
+    color: var(--text-color);
+
+    &:hover {
+      color: var(--primary-color);
+      background-color: var(--hover-color);
+    }
+  }
+
+  .user-info .username {
+    color: var(--text-color);
+  }
+}
+
+@include mix.responsive(tablet) {
+  .app-header {
+    padding: 0 var.$spacing-md;
+
+    .home-link-text {
+      font-size: var.$font-size-lg !important;
+    }
+
+    .nav-button:not(.mobile-menu-btn) {
+      display: none;
+    }
+  }
+}
+
+@include mix.responsive(phone) {
+  .app-header .home-link-text {
+    display: none;
+  }
+}

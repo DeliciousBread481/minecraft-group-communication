@@ -1,3 +1,4 @@
+<!-- src/views/SettingsView -->
 <template>
   <div class="settings-container">
     <h1 class="settings-title">个人设置</h1>

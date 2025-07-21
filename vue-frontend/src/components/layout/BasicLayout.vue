@@ -48,18 +48,18 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .layout-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background-color: var(--bg-color);
 }
 
 .header {
   height: 60px;
   flex-shrink: 0;
-  z-index: 100;
   position: fixed;
   width: 100%;
   top: 0;
@@ -81,31 +81,33 @@ onUnmounted(() => {
   border-right: 1px solid var(--border-color);
   background-color: var(--bg-color);
   transition: width 0.3s ease;
+
+  &.mobile-hidden {
+    transform: translateX(-100%);
+  }
 }
 
 .right-aside {
   flex: 1;
   display: flex;
   min-width: 0;
-  padding: 20px;
+  padding: 1.5rem;
   background-color: var(--bg-color);
   overflow: auto;
+
+  &.auth-mode {
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, var(--bg-secondary-color) 0%, var(--border-light-color) 100%);
+  }
 }
 
-/* 认证页面全屏模式 */
-.right-aside.auth-mode {
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-}
-
-.dark .right-aside.auth-mode {
+:deep(.dark) .right-aside.auth-mode {
   background: linear-gradient(135deg, #1a2b3c 0%, #2c3e50 100%);
 }
 
-/* 过渡动画 */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -116,7 +118,7 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .left-aside {
     width: 60px;
     position: fixed;
@@ -125,7 +127,7 @@ onUnmounted(() => {
   }
 
   .right-aside {
-    padding: 15px;
+    padding: 1rem;
   }
 }
 </style>

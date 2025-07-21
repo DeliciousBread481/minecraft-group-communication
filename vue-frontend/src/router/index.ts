@@ -1,3 +1,4 @@
+// src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
 import BasicLayout from '@/components/layout/BasicLayout.vue'
 import HomeView from '@/views/HomeView.vue'
@@ -5,7 +6,6 @@ import AuthView from '@/views/AuthView.vue'
 import NoticeView from '@/views/NoticeView.vue'
 import SolutionView from '@/views/SolutionView.vue'
 import { useUserStore } from '@/store/user'
-// 设置页面使用懒加载方式导入
 
 const routes = [
   {

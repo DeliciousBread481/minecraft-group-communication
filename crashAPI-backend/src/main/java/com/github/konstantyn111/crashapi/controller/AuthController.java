@@ -47,9 +47,7 @@ public class AuthController {
      * @return 操作结果（无数据返回）
      */
     @PostMapping("/logout")
-    public ApiResponse<Void> logout() {
-        return authService.logout();
-    }
+    public ApiResponse<Void> logout() { return authService.logout(); }
 
     /**
      * 刷新访问令牌

@@ -1,0 +1,31 @@
+$light-theme: (
+  // 基础颜色
+        bg-color: #ffffff,
+        bg-secondary-color: #f5f7fa,
+
+  // 文本颜色
+        text-color: #303133,
+        text-secondary-color: #606266,
+        heading-color: #1f2329,
+
+  // 边框颜色
+        border-color: #dcdfe6,
+        border-light-color: #ebeef5,
+
+  // 主色调
+        primary-color: #409eff,
+        primary-hover-color: #337ecc,
+
+  // 状态颜色
+        success-color: #67c23a,
+        warning-color: #e6a23c,
+        error-color: #f56c6c,
+        info-color: #909399,
+
+  // 交互元素
+        hover-color: #f5f7fa,
+        active-color: #ecf5ff,
+
+  // 阴影
+        shadow-color: rgba(0, 0, 0, 0.12)
+);

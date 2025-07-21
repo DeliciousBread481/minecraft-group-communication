@@ -1,0 +1,16 @@
+@use 'light-theme' as light;
+@use 'dark-theme' as dark;
+
+// 应用浅色主题变量
+:root {
+  @each $name, $value in light.$light-theme {
+    --#{$name}: #{$value};
+  }
+}
+
+// 应用深色主题变量
+:root.dark {
+  @each $name, $value in dark.$dark-theme {
+    --#{$name}: #{$value};
+  }
+}

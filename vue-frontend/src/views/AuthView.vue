@@ -143,7 +143,9 @@
 
     <!-- 条款对话框 -->
     <el-dialog v-model="termsDialogVisible" title="服务条款" width="80%">
-      <div v-html="termsContent"></div>
+      <div class="terms-content">
+        <h3>服务条款</h3>
+      </div>
       <template #footer>
         <el-button type="primary" @click="termsDialogVisible = false">关闭</el-button>
       </template>
@@ -151,7 +153,9 @@
 
     <!-- 隐私政策对话框 -->
     <el-dialog v-model="privacyDialogVisible" title="隐私政策" width="80%">
-      <div v-html="privacyContent"></div>
+      <div class="privacy-content">
+        <h3>隐私政策</h3>
+      </div>
       <template #footer>
         <el-button type="primary" @click="privacyDialogVisible = false">关闭</el-button>
       </template>
@@ -161,7 +165,11 @@
     <el-dialog v-model="forgotPasswordDialogVisible" title="找回密码" width="500px">
       <el-form :model="forgotPasswordForm" :rules="forgotPasswordRules" ref="forgotPasswordFormRef">
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="forgotPasswordForm.email" placeholder="请输入注册邮箱" />
+          <el-input
+            v-model="forgotPasswordForm.email"
+            placeholder="请输入注册邮箱"
+            prefix-icon="Message"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -178,7 +186,6 @@ import { ElMessage, type FormInstance } from 'element-plus';
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/store/user';
-import type { LoginCredentials, RegisterData } from '@/api/user';
 
 const router = useRouter();
 const route = useRoute();
@@ -189,11 +196,16 @@ const registerFormRef = ref<FormInstance>();
 const forgotPasswordFormRef = ref<FormInstance>();
 const errorMessage = ref('');
 
-interface LoginFormData extends LoginCredentials {
+interface LoginFormData {
+  username: string;
+  password: string;
   remember: boolean;
 }
 
-interface RegisterFormData extends RegisterData {
+interface RegisterFormData {
+  username: string;
+  email: string;
+  password: string;
   confirmPassword: string;
   agreement: boolean;
 }
@@ -230,16 +242,6 @@ const termsDialogVisible = ref(false);
 const privacyDialogVisible = ref(false);
 const forgotPasswordDialogVisible = ref(false);
 
-// 条款内容
-const termsContent = ref(`
-  <h3>服务条款</h3>
-`);
-
-// 隐私政策内容
-const privacyContent = ref(`
-  <h3>隐私政策</h3>
-`);
-
 const loginRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -267,8 +269,7 @@ const registerRules = {
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
     {
-      // 使用 _rule 参数名表示未使用
-      validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
+      validator: (_: unknown, value: string, callback: (error?: Error) => void) => {
         if (value !== registerForm.password) {
           callback(new Error('两次输入的密码不一致'));
         } else {
@@ -280,7 +281,7 @@ const registerRules = {
   ],
   agreement: [
     {
-      validator: (_rule: unknown, value: boolean, callback: (error?: Error) => void) => {
+      validator: (_: unknown, value: boolean, callback: (error?: Error) => void) => {
         if (!value) {
           callback(new Error('请同意服务条款和隐私政策'));
         } else {
@@ -308,7 +309,7 @@ const submitLogin = async () => {
       errorMessage.value = '';
 
       try {
-        const credentials: LoginCredentials = {
+        const credentials = {
           username: loginForm.username,
           password: loginForm.password
         };
@@ -345,7 +346,7 @@ const submitRegister = async () => {
       errorMessage.value = '';
 
       try {
-        const userData: RegisterData = {
+        const userData = {
           username: registerForm.username,
           email: registerForm.email,
           password: registerForm.password
@@ -384,6 +385,9 @@ const handleForgotPassword = async () => {
       loading.forgotPassword = true;
 
       try {
+        // 没写发送邮件呢，别急
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
         ElMessage.success('密码重置邮件已发送，请检查您的邮箱');
         forgotPasswordDialogVisible.value = false;
       } catch (error: unknown) {
@@ -427,37 +431,49 @@ const goToHome = () => {
 };
 </script>
 
-
-<style scoped>
+<style scoped lang="scss">
 .auth-view {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 100%;
-  padding: 20px;
-  background: var(--auth-bg);
+  min-height: 100vh;
+  padding: 1.5rem;
+  background: var(--bg-secondary-color);
 }
 
 .auth-card {
   width: 100%;
   max-width: 500px;
-  border-radius: 16px;
+  border-radius: 1rem;
   overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  background-color: var(--auth-card-bg);
-  border: 1px solid var(--auth-border);
+  box-shadow: 0 10px 30px var(--shadow-color);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s;
 }
 
 .auth-header {
   text-align: center;
-  padding: 11px 20px 11px;
+  padding: 1.5rem 1.5rem 1rem;
+
+  h2 {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-size: 1.5rem;
+  }
+
+  p {
+    color: var(--text-secondary-color);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 
 .auth-logo-container {
   width: 90px;
   height: 90px;
-  margin: 0 auto 15px;
+  margin: 0 auto 1rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -471,61 +487,110 @@ const goToHome = () => {
   height: 70px;
   border-radius: 50%;
   object-fit: cover;
+  background-color: white;
 }
 
-.auth-header h2 {
-  margin-bottom: 5px;
-  color: var(--text-color);
+.error-alert {
+  margin: 0 1.5rem 1rem;
 }
 
-.auth-header p {
-  color: var(--text-secondary);
-  margin-bottom: 20px;
+:deep(.el-tabs) {
+  padding: 0 1.5rem;
 }
 
-.submit-btn {
-  width: 100%;
-  height: 45px;
-  font-size: 16px;
-  margin-top: 10px;
-  font-weight: bold;
+.auth-input {
+  margin-bottom: 0.5rem;
+
+  :deep(.el-input__wrapper) {
+    padding: 0.8rem 1rem;
+    border-radius: 0.75rem;
+  }
 }
 
 .remember-forgot {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  align-items: center;
+  margin-bottom: 1.5rem;
   font-size: 0.9rem;
+  padding: 0 0.25rem;
 }
 
-.auth-divider span {
-  position: relative;
-  display: inline-block;
-  padding: 0 15px;
-  background-color: var(--card-bg);
-  color: var(--text-secondary);
-  z-index: 2;
+.submit-btn {
+  width: 100%;
+  height: 2.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  margin-top: 0.25rem;
 }
 
 .back-home {
-  margin-top: 25px;
+  margin-top: 1.5rem;
   text-align: center;
-  padding-top: 15px;
+  padding-top: 1.25rem;
   border-top: 1px solid var(--border-color);
+  color: var(--text-secondary-color);
+
+  .el-link {
+    font-size: 0.95rem;
+
+    .el-icon {
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+  }
+}
+
+.terms-content, .privacy-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 0.5rem 1rem;
+  line-height: 1.6;
+
+  h3 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+  }
+
+  h4 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+  }
+
+  p {
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary-color);
+  }
 }
 
 @media (max-width: 600px) {
   .auth-view {
-    padding: 10px;
+    padding: 1rem;
   }
 
   .auth-card {
-    border-radius: 12px;
+    border-radius: 0.875rem;
   }
 
   .auth-header h2 {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
 
+  .auth-logo-container {
+    width: 80px;
+    height: 80px;
+  }
+
+  .auth-logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  :deep(.el-tabs) {
+    padding: 0 1rem;
+  }
 }
 </style>

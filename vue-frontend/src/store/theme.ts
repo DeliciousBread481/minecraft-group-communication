@@ -1,37 +1,52 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 
 export const useThemeStore = defineStore('theme', () => {
-  const darkMode = ref(localStorage.getItem('darkMode') === "true" || false)
-  // 监听状态变化并保存到 localStorage
-  watch(darkMode, (newValue) => {
-    localStorage.setItem('darkMode', newValue.toString())
-  })
+  // 初始化主题状态
+  const darkMode = ref(false)
 
-  function toggleTheme() {
+  // 初始化函数
+  const initTheme = () => {
+    // 1. 从localStorage获取保存的主题
+    const savedTheme = localStorage.getItem('darkMode')
+    if (savedTheme) {
+      darkMode.value = savedTheme === 'true'
+      return
+    }
+
+    // 2. 如果没有保存的主题，使用系统偏好
+    darkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+
+    // 3. 保存初始主题状态
+    localStorage.setItem('darkMode', darkMode.value.toString())
+  }
+
+  // 切换主题函数
+  const toggleTheme = () => {
     darkMode.value = !darkMode.value
-    applyTheme()
+    localStorage.setItem('darkMode', darkMode.value.toString())
+    applyTheme(darkMode.value)
+    console.log('主题已切换:', darkMode.value ? '暗色' : '亮色')
   }
 
-  function applyTheme() {
-    document.getElementById('theme-style')?.remove()
-
-    const link = document.createElement('link')
-    link.id = 'theme-style'
-    link.rel = 'stylesheet'
-    link.href = darkMode.value
-      ? '/src/styles/dark-theme.css'
-      : '/src/styles/light-theme.css'
-
-    document.head.appendChild(link)
+  // 应用主题到DOM
+  const applyTheme = (isDark: boolean) => {
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
   }
 
-  // 初始化时应用主题
-  applyTheme()
+  // 初始化主题
+  onMounted(() => {
+    initTheme()
+    applyTheme(darkMode.value)
+    console.log('主题初始化完成:', darkMode.value ? '暗色' : '亮色')
+  })
 
   return {
     darkMode,
     toggleTheme,
-    applyTheme
   }
 })

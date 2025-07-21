@@ -1,0 +1,50 @@
+@use '../variables' as var;
+@use '../mixins' as mix;
+
+.app-sidebar {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+
+  .sidebar-menu .menu-item {
+    color: var(--text-color);
+
+    &:hover {
+      background-color: var(--hover-color);
+    }
+
+    &.active {
+      background-color: var(--primary-color);
+      color: white;
+
+      .menu-icon {
+        color: white;
+      }
+    }
+
+    .menu-icon {
+      color: var(--text-color);
+    }
+  }
+
+  .sidebar-footer {
+    border-top: 1px solid var(--border-color);
+
+    .feedback-btn {
+      color: var(--text-color);
+
+      &:hover {
+        color: var(--primary-color);
+      }
+    }
+  }
+}
+
+@include mix.responsive(tablet) {
+  .menu-title, .feedback-btn span {
+    display: none;
+  }
+
+  .sidebar-footer {
+    padding: var.$spacing-sm var.$spacing-xs;
+  }
+}

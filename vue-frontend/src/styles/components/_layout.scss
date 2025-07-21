@@ -1,0 +1,38 @@
+@use '../variables' as var;
+@use '../mixins' as mix;
+
+.layout-container {
+  background-color: var(--bg-color);
+}
+
+.header {
+  background-color: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.left-aside {
+  background-color: var(--bg-color);
+  border-right: 1px solid var(--border-color);
+}
+
+.right-aside {
+  background-color: var(--bg-color);
+
+  &.auth-mode {
+    background: linear-gradient(135deg, var(--bg-secondary-color) 0%, var(--border-light-color) 100%);
+  }
+}
+
+.dark .right-aside.auth-mode {
+  background: linear-gradient(135deg, #1a2b3c 0%, #2c3e50 100%);
+}
+
+@include mix.responsive(tablet) {
+  .left-aside {
+    width: 60px;
+  }
+
+  .right-aside {
+    padding: var.$spacing-md;
+  }
+}

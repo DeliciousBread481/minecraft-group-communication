@@ -1,0 +1,21 @@
+@use '../variables' as var;
+@use '../mixins' as mix;
+
+.el-button {
+  transition: all var.$transition-speed var.$transition-easing;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-color) 0 2px 8px 0px;
+  }
+
+  &--primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+
+    &:hover {
+      background-color: var(--primary-hover-color);
+      border-color: var(--primary-hover-color);
+    }
+  }
+}
