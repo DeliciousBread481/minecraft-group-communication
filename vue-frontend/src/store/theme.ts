@@ -1,3 +1,4 @@
+//store/theme.ts
 import { defineStore } from 'pinia'
 import { onMounted, ref } from 'vue'
 

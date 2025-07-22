@@ -1,162 +1,188 @@
-import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { defineStore } from 'pinia';
 import {
-  login,
-  register,
-  refreshToken,
-  getCurrentUser,
-  logout,
-  updateUser
-} from '@/api/user'
+  login as apiLogin,
+  logout as apiLogout,
+  refreshToken as apiRefreshToken,
+  register as apiRegister
+} from '@/api/auth';
+import { getCurrentUser } from '@/api/user';
 import type {
-  LoginCredentials,
-  RegisterData,
-  UserInfo
-} from '@/api/user'
+  LoginRequest,
+  RegisterRequest,
+  AuthApiResponse,
+  UserInfoApiResponse
+} from '@/types/api';
 
-// 创建并导出用户状态存储
-export const useUserStore = defineStore('user', () => {
-  // 初始化状态
-  const token = ref(localStorage.getItem('accessToken') || '')
-  const refreshTokenValue = ref(localStorage.getItem('refreshToken') || '')
-  const userInfo = ref<UserInfo | null>(
-    JSON.parse(localStorage.getItem('user') || 'null')
-  )
+interface UserState {
+  isAuthenticated: boolean;
+  accessToken: string | null;
+  refreshTokenValue: string | null;
+  userInfo: any | null;
+}
 
-  // 监听状态变化并保存到 localStorage
-  watch(token, (newToken) => {
-    if (newToken) localStorage.setItem('accessToken', newToken)
-    else localStorage.removeItem('accessToken')
-  })
+export const useUserStore = defineStore('user', {
+  state: (): UserState => ({
+    isAuthenticated: false,
+    accessToken: localStorage.getItem('accessToken') || null,
+    refreshTokenValue: localStorage.getItem('refreshToken') || null,
+    userInfo: JSON.parse(localStorage.getItem('userInfo') || 'null')
+  }),
 
-  watch(refreshTokenValue, (newRefreshToken) => {
-    if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken)
-    else localStorage.removeItem('refreshToken')
-  })
+  actions: {
+    /**
+     * 初始化用户状态
+     */
+    init() {
+      this.isAuthenticated = !!this.accessToken;
 
-  watch(userInfo, (newUserInfo) => {
-    if (newUserInfo) localStorage.setItem('user', JSON.stringify(newUserInfo))
-    else localStorage.removeItem('user')
-  }, { deep: true })
-
-  const isAuthenticated = computed(() => !!token.value)
-
-  // 用户登录方法
-  const userLogin = async (credentials: LoginCredentials) => {
-    try {
-      const response = await login(credentials)
-
-      if (response.success) {
-        token.value = response.data.accessToken
-        refreshTokenValue.value = response.data.refreshToken
-        userInfo.value = response.data.user
-        return true
+      // 自动获取用户信息
+      if (this.isAuthenticated && !this.userInfo) {
+        this.fetchUserInfo();
       }
-      return false
-    } catch (error) {
-      console.error('登录失败:', error)
-      return false
-    }
-  }
+    },
 
-  // 用户注册方法
-  const userRegister = async (userData: RegisterData) => {
-    try {
-      const response = await register(userData)
+    /**
+     * 用户登录
+     * @param credentials 登录凭据
+     */
+    async login(credentials: LoginRequest): Promise<boolean> {
+      try {
+        const response: AuthApiResponse = await apiLogin(credentials);
+        const authData = response.data;
+        const { accessToken, refreshToken } = authData;
 
-      return response.success;
+        // 保存令牌
+        this.accessToken = accessToken;
+        this.refreshTokenValue = refreshToken;
+        this.isAuthenticated = true;
 
-    } catch (error) {
-      console.error('注册失败:', error)
-      return false
-    }
-  }
+        // 保存到 localStorage
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
 
-  // 用户注销方法
-  const userLogout = async () => {
-    try {
-      await logout()
-    } catch (error) {
-      console.error('注销请求失败:', error)
-    } finally {
-      token.value = ''
-      refreshTokenValue.value = ''
-      userInfo.value = null
-      // 确保所有localStorage项被清除
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
-      localStorage.removeItem('user')
-    }
-  }
+        // 获取并保存用户信息
+        await this.fetchUserInfo();
 
-  // 更新用户信息
-  const updateUserInfo = async (newUserInfo: Partial<UserInfo>) => {
-    try {
-      const response = await updateUser(newUserInfo)
-
-      if (response.success && userInfo.value) {
-        // 合并更新用户信息
-        userInfo.value = { ...userInfo.value, ...newUserInfo }
-        return true
+        return true;
+      } catch (error) {
+        console.error('登录失败:', error);
+        this.clearLoginError();
+        return false;
       }
-      return false
-    } catch (error) {
-      console.error('更新用户信息失败:', error)
-      return false
-    }
-  }
+    },
 
-  // 刷新令牌
-  const refreshAuthToken = async () => {
-    try {
-      if (!refreshTokenValue.value) return false;
+    /**
+     * 用户注册
+     * @param userData 注册数据
+     */
+    async register(userData: RegisterRequest): Promise<boolean> {
+      try {
+        const response: AuthApiResponse = await apiRegister(userData);
+        const authData = response.data;
+        const { accessToken, refreshToken } = authData;
 
-      // 确保localStorage中的refreshToken值是最新的
-      localStorage.setItem('refreshToken', refreshTokenValue.value);
+        // 保存令牌
+        this.accessToken = accessToken;
+        this.refreshTokenValue = refreshToken;
+        this.isAuthenticated = true;
 
-      // 不传参数调用refreshToken，它会从localStorage获取refreshToken
-      const response = await refreshToken()
+        // 保存到 localStorage
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
 
-      if (response.success) {
-        token.value = response.data.accessToken
-        refreshTokenValue.value = response.data.refreshToken
-        return true
+        // 获取并保存用户信息
+        await this.fetchUserInfo();
+
+        return true;
+      } catch (error) {
+        console.error('注册失败:', error);
+        this.clearLoginError();
+        return false;
       }
-      return false
-    } catch (error) {
-      console.error('Token刷新失败:', error)
-      await userLogout()
-      return false
-    }
-  }
+    },
 
-  // 获取当前用户信息
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await getCurrentUser()
-
-      if (response.success) {
-        userInfo.value = response.data
-        return true
+    /**
+     * 获取用户信息
+     */
+    async fetchUserInfo(): Promise<void> {
+      try {
+        const response: UserInfoApiResponse = await getCurrentUser();
+        this.userInfo = response.data;
+        localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        this.clearUserData();
       }
-      return false
-    } catch (error) {
-      console.error('获取用户信息失败:', error)
-      return false
+    },
+
+    /**
+     * 刷新访问令牌
+     */
+    async refreshToken(): Promise<boolean> {
+      if (!this.refreshTokenValue) {
+        this.logout();
+        return false;
+      }
+
+      try {
+        const response: AuthApiResponse = await apiRefreshToken({
+          refreshToken: this.refreshTokenValue
+        });
+        const authData = response.data;
+        const { accessToken, refreshToken } = authData;
+
+        // 更新令牌
+        this.accessToken = accessToken;
+        this.refreshTokenValue = refreshToken;
+
+        // 保存到 localStorage
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+
+        return true;
+      } catch (error) {
+        console.error('刷新令牌失败:', error);
+        this.logout();
+        return false;
+      }
+    },
+
+    /**
+     * 用户登出
+     */
+    async logout(): Promise<void> {
+      try {
+        if (this.isAuthenticated) {
+          await apiLogout();
+        }
+      } catch (error) {
+        console.error('登出失败:', error);
+      } finally {
+        this.clearUserData();
+      }
+    },
+
+    /**
+     * 清除用户数据
+     */
+    clearUserData(): void {
+      this.isAuthenticated = false;
+      this.accessToken = null;
+      this.refreshTokenValue = null;
+      this.userInfo = null;
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userInfo');
+    },
+
+    /**
+     * 清除登录错误状态
+     */
+    clearLoginError(): void {
+      this.accessToken = null;
+      this.refreshTokenValue = null;
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     }
   }
-
-  // 暴露状态和方法给组件使用
-  return {
-    token,
-    refreshToken: refreshTokenValue,
-    userInfo,
-    isAuthenticated,
-    userLogin,
-    userRegister,
-    userLogout,
-    updateUserInfo,
-    refreshAuthToken,
-    fetchCurrentUser
-  }
-})
+});

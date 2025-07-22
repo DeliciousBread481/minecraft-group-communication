@@ -1,283 +1,123 @@
-import { apiRequest, isValidJwt } from './index'
-import type { ApiResponse } from './index'
-import {
-  AppException,
-  AuthException,
-  TokenException,
-  TokenRefreshException,
-  ApiBusinessException,
-  InvalidTokenFormatException,
-  TokenMissingException,
-  UserNotAuthenticatedException
-} from './exceptions'
+import api from '@/utils/api';
+import { handleResponse } from '@/utils/api';
+import type {
+  UserInfoApiResponse,
+  VoidApiResponse,
+  StringApiResponse,
+  UpdateUserInfo
+} from '@/types/api';
 
 /**
- * 登录凭证接口
+ * 获取当前登录用户信息
+ * GET /api/user/me
  */
-export interface LoginCredentials {
-  username: string;
-  password: string;
-}
+export const getCurrentUser = async (): Promise<UserInfoApiResponse> => {
+  try {
+    const response = await api.get('/user/me');
+    return handleResponse<UserInfoData>(response);
+  } catch (error: any) {
+    throw new Error('获取用户信息失败');
+  }
+};
 
 /**
- * 用户注册数据接口
+ * 更新当前用户信息
+ * PATCH /api/user/me
+ * @param updateData 更新数据 (UserInfo类型)
  */
-export interface RegisterData {
-  username: string;
-  password: string;
-  email: string;
-}
+export const updateUserInfo = async (updateData: UpdateUserInfo): Promise<UserInfoApiResponse> => {
+  try {
+    const response = await api.patch('/user/me', updateData);
+    return handleResponse<UserInfoData>(response);
+  } catch (error: any) {
+    throw new Error('更新用户信息失败');
+  }
+};
 
 /**
- * 用户信息接口
+ * 修改当前用户密码
+ * POST /api/user/me/password
+ * @param oldPassword 原密码
+ * @param newPassword 新密码
  */
-export interface UserInfo {
+export const updatePassword = async (
+  oldPassword: string,
+  newPassword: string
+): Promise<VoidApiResponse> => {
+  try {
+    const response = await api.post('/user/me/password', null, {
+      params: {
+        oldPassword,
+        newPassword
+      }
+    });
+    return handleResponse<void>(response);
+  } catch (error: any) {
+    throw new Error('修改密码失败');
+  }
+};
+
+/**
+ * 更新用户头像
+ * POST /api/user/me/avatar
+ * @param file 头像文件
+ */
+export const updateAvatar = async (file: File): Promise<StringApiResponse> => {
+  try {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await api.post('/user/me/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    return handleResponse<string>(response);
+  } catch (error: any) {
+    throw new Error('更新头像失败');
+  }
+};
+
+/**
+ * 根据ID获取用户信息（管理员）
+ * GET /api/user/{userId}
+ * @param userId 用户ID
+ */
+export const getUserById = async (userId: number): Promise<UserInfoApiResponse> => {
+  try {
+    const response = await api.get(`/user/${userId}`);
+    return handleResponse<UserInfoData>(response);
+  } catch (error: any) {
+    throw new Error('获取用户信息失败');
+  }
+};
+
+/**
+ * 更新用户角色（管理员）
+ * PUT /api/user/{userId}/role
+ * @param userId 用户ID
+ * @param role 角色标识
+ */
+export const updateUserRole = async (userId: number, role: string): Promise<VoidApiResponse> => {
+  try {
+    const response = await api.put(`/user/${userId}/role`, null, {
+      params: { role }
+    });
+    return handleResponse<void>(response);
+  } catch (error: any) {
+    throw new Error('更新用户角色失败');
+  }
+};
+
+interface UserInfoData {
   id: number;
   username: string;
-  nickname?: string;
   email: string;
+  nickname?: string;
   avatar?: string;
+  createdAt: string;
+  updatedAt: string;
+  enabled: boolean;
+  roles?: string[];
 }
-
-/**
- * 认证令牌接口
- */
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  message: string;
-}
-
-/**
- * 用户登录响应数据结构
- */
-export interface LoginResponse extends AuthTokens {
-  user: UserInfo;
-}
-
-/**
- * 刷新令牌请求接口
- */
-export interface RefreshRequest {
-  refreshToken: string;
-}
-
-/**
- * 用户登录 API
- */
-export const login = async (
-  credentials: LoginCredentials
-): Promise<ApiResponse<LoginResponse>> => {
-  try {
-    const response = await apiRequest<LoginResponse>({
-      method: 'POST',
-      url: '/auth/login',
-      data: credentials
-    });
-
-    if (response.success) {
-      const { accessToken, refreshToken } = response.data;
-
-      if (!isValidJwt(accessToken)) {
-        throw new InvalidTokenFormatException('access');
-      }
-
-      if (!isValidJwt(refreshToken)) {
-        throw new InvalidTokenFormatException('refresh');
-      }
-
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-
-      if (response.data.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-      }
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof TokenException) {
-      throw new AuthException('Authentication failed due to invalid token', error);
-    }
-    throw error;
-  }
-};
-
-/**
- * 刷新访问令牌 API
- */
-export const refreshToken = async (): Promise<ApiResponse<AuthTokens>> => {
-  try {
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!refreshToken) {
-      throw new TokenMissingException('refresh');
-    }
-
-    if (!isValidJwt(refreshToken)) {
-      throw new InvalidTokenFormatException('refresh');
-    }
-
-    const response = await apiRequest<AuthTokens>({
-      method: 'POST',
-      url: '/auth/refresh-token',
-      data: { refreshToken } as RefreshRequest
-    });
-
-    if (response.success) {
-      const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-      if (!isValidJwt(accessToken)) {
-        throw new InvalidTokenFormatException('access');
-      }
-
-      if (!isValidJwt(newRefreshToken)) {
-        throw new InvalidTokenFormatException('refresh');
-      }
-
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', newRefreshToken);
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof TokenException) {
-      throw new TokenRefreshException('Token refresh failed', error);
-    }
-    throw error;
-  }
-};
-
-/**
- * 用户注册 API
- */
-export const register = async (
-  userData: RegisterData
-): Promise<ApiResponse<AuthTokens>> => {
-  try {
-    const response = await apiRequest<AuthTokens>({
-      method: 'POST',
-      url: '/auth/register',
-      data: userData
-    });
-
-    if (response.success) {
-      const { accessToken, refreshToken } = response.data;
-
-      if (isValidJwt(accessToken) && isValidJwt(refreshToken)) {
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-      } else {
-        // 判断哪个令牌格式无效并抛出相应异常
-        if (!isValidJwt(accessToken)) {
-          throw new InvalidTokenFormatException('access');
-        } else {
-          throw new InvalidTokenFormatException('refresh');
-        }
-      }
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof ApiBusinessException) {
-      throw new AppException(`Registration failed: ${error.message}`, error.code, error);
-    }
-    throw error;
-  }
-};
-
-/**
- * 令牌撤销 API
- */
-export const revokeToken = async (): Promise<ApiResponse> => {
-  try {
-    const user = localStorage.getItem('user');
-    if (!user) throw new UserNotAuthenticatedException();
-
-    const username = JSON.parse(user).username;
-    const response = await apiRequest({
-      method: 'POST',
-      url: '/auth/revoke-token',
-      params: { username }
-    });
-
-    if (response.success) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof AuthException) {
-      throw new AppException('Token revocation failed', 401, error);
-    }
-    throw error;
-  }
-};
-
-/**
- * 获取当前用户信息 API
- */
-export const getCurrentUser = async (): Promise<ApiResponse<UserInfo>> => {
-  try {
-    return await apiRequest<UserInfo>({
-      method: 'GET',
-      url: '/user/me'
-    });
-  } catch (error) {
-    if (error instanceof ApiBusinessException) {
-      throw new AppException('Failed to fetch user information', error.code, error);
-    }
-    throw error;
-  }
-};
-
-/**
- * 更新用户信息 API
- */
-export const updateUser = async (
-  userData: Partial<UserInfo>
-): Promise<ApiResponse<UserInfo>> => {
-  try {
-    return await apiRequest<UserInfo>({
-      method: 'PATCH',
-      url: '/user/me',
-      data: userData
-    });
-  } catch (error) {
-    if (error instanceof ApiBusinessException) {
-      throw new AppException('Failed to update user information', error.code, error);
-    }
-    throw error;
-  }
-};
-
-/**
- * 用户注销 API
- */
-export const logout = async (): Promise<void> => {
-  try {
-    try {
-      await revokeToken();
-    } catch (revokeError) {
-      console.warn('Token revocation failed during logout:', revokeError);
-    }
-
-    try {
-      await apiRequest({
-        method: 'POST',
-        url: '/auth/logout',
-      });
-    } catch (logoutError) {
-      console.warn('Logout API call failed:', logoutError);
-    }
-  } catch (error) {
-    console.error('Logout process encountered an error:', error);
-    throw new AppException('Logout failed', 0, error as Error);
-  } finally {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-  }
-};

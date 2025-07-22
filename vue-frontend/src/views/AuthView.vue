@@ -9,21 +9,12 @@
         <p>登录或注册仅供管理员用户使用</p>
       </div>
 
-      <el-alert
-        v-if="errorMessage"
-        :title="errorMessage"
-        type="error"
-        show-icon
-        closable
-        class="error-alert"
-        @close="errorMessage = ''"
-      />
-
       <el-tabs v-model="activeTab" stretch @tab-click="resetForms">
-        <el-tab-pane label="登录" name="login"></el-tab-pane>
-        <el-tab-pane label="注册" name="register"></el-tab-pane>
+        <el-tab-pane label="登录" name="login" />
+        <el-tab-pane label="注册" name="register" />
       </el-tabs>
 
+      <!-- 登录表单 -->
       <div v-if="activeTab === 'login'">
         <el-form
           :model="loginForm"
@@ -54,7 +45,13 @@
 
           <div class="remember-forgot">
             <el-checkbox v-model="loginForm.remember">记住我</el-checkbox>
-            <el-link type="primary" :underline="false" @click="showForgotPassword">忘记密码?</el-link>
+            <el-link
+              type="primary"
+              :underline="false"
+              @click="showForgotPassword"
+            >
+              忘记密码?
+            </el-link>
           </div>
 
           <el-button
@@ -68,6 +65,7 @@
         </el-form>
       </div>
 
+      <!-- 注册表单 -->
       <div v-if="activeTab === 'register'">
         <el-form
           :model="registerForm"
@@ -119,7 +117,10 @@
 
           <el-form-item prop="agreement">
             <el-checkbox v-model="registerForm.agreement">
-              我已阅读并同意 <el-link type="primary" @click="showTermsDialog">服务条款</el-link> 和 <el-link type="primary" @click="showPrivacyDialog">隐私政策</el-link>
+              我已阅读并同意
+              <el-link type="primary" @click="showTermsDialog">服务条款</el-link>
+              和
+              <el-link type="primary" @click="showPrivacyDialog">隐私政策</el-link>
             </el-checkbox>
           </el-form-item>
 
@@ -134,6 +135,7 @@
         </el-form>
       </div>
 
+      <!-- 返回首页链接 -->
       <div class="back-home">
         <el-link type="primary" :underline="false" @click="goToHome">
           <el-icon><ArrowLeft /></el-icon> 返回首页
@@ -141,10 +143,16 @@
       </div>
     </el-card>
 
-    <!-- 条款对话框 -->
-    <el-dialog v-model="termsDialogVisible" title="服务条款" width="80%">
+    <!-- 服务条款对话框 -->
+    <el-dialog
+      v-model="termsDialogVisible"
+      title="服务条款"
+      width="80%"
+      :close-on-click-modal="false"
+    >
       <div class="terms-content">
         <h3>服务条款</h3>
+        <!-- 条款内容 -->
       </div>
       <template #footer>
         <el-button type="primary" @click="termsDialogVisible = false">关闭</el-button>
@@ -152,9 +160,15 @@
     </el-dialog>
 
     <!-- 隐私政策对话框 -->
-    <el-dialog v-model="privacyDialogVisible" title="隐私政策" width="80%">
+    <el-dialog
+      v-model="privacyDialogVisible"
+      title="隐私政策"
+      width="80%"
+      :close-on-click-modal="false"
+    >
       <div class="privacy-content">
         <h3>隐私政策</h3>
+        <!-- 隐私政策内容 -->
       </div>
       <template #footer>
         <el-button type="primary" @click="privacyDialogVisible = false">关闭</el-button>
@@ -162,8 +176,17 @@
     </el-dialog>
 
     <!-- 忘记密码对话框 -->
-    <el-dialog v-model="forgotPasswordDialogVisible" title="找回密码" width="500px">
-      <el-form :model="forgotPasswordForm" :rules="forgotPasswordRules" ref="forgotPasswordFormRef">
+    <el-dialog
+      v-model="forgotPasswordDialogVisible"
+      title="找回密码"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        :model="forgotPasswordForm"
+        :rules="forgotPasswordRules"
+        ref="forgotPasswordFormRef"
+      >
         <el-form-item label="邮箱" prop="email">
           <el-input
             v-model="forgotPasswordForm.email"
@@ -174,28 +197,37 @@
       </el-form>
       <template #footer>
         <el-button @click="forgotPasswordDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleForgotPassword">发送重置邮件</el-button>
+        <el-button
+          type="primary"
+          @click="handleForgotPassword"
+          :loading="loading.forgotPassword"
+        >
+          发送重置邮件
+        </el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { ElMessage, type FormInstance } from 'element-plus';
-import { ArrowLeft } from '@element-plus/icons-vue'
+import { ref, reactive, onMounted } from 'vue';
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
+import { ArrowLeft } from '@element-plus/icons-vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/store/user';
+import type { LoginRequest, RegisterRequest } from '@/types/api';
 
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
+
+// 状态管理
 const activeTab = ref('login');
 const loginFormRef = ref<FormInstance>();
 const registerFormRef = ref<FormInstance>();
 const forgotPasswordFormRef = ref<FormInstance>();
-const errorMessage = ref('');
 
+// 表单数据
 interface LoginFormData {
   username: string;
   password: string;
@@ -210,7 +242,6 @@ interface RegisterFormData {
   agreement: boolean;
 }
 
-// 表单数据
 const loginForm = reactive<LoginFormData>({
   username: '',
   password: '',
@@ -225,7 +256,6 @@ const registerForm = reactive<RegisterFormData>({
   agreement: false,
 });
 
-// 忘记密码表单
 const forgotPasswordForm = reactive({
   email: ''
 });
@@ -242,7 +272,8 @@ const termsDialogVisible = ref(false);
 const privacyDialogVisible = ref(false);
 const forgotPasswordDialogVisible = ref(false);
 
-const loginRules = {
+// 表单验证规则
+const loginRules: FormRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '长度在3到20个字符', trigger: 'blur' }
@@ -253,7 +284,7 @@ const loginRules = {
   ]
 };
 
-const registerRules = {
+const registerRules: FormRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '长度在3到20个字符', trigger: 'blur' }
@@ -293,141 +324,195 @@ const registerRules = {
   ]
 };
 
-const forgotPasswordRules = {
+const forgotPasswordRules: FormRules = {
   email: [
     { required: true, message: '请输入邮箱地址', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
   ]
 };
 
+// 生命周期钩子
+onMounted(() => {
+  // 检查URL中是否有redirect参数
+  if (route.query.redirect) {
+    ElMessage.info('请先登录以继续访问');
+  }
+
+  // 尝试从本地存储恢复记住的用户名
+  const rememberedUsername = localStorage.getItem('rememberedUsername');
+  if (rememberedUsername) {
+    loginForm.username = rememberedUsername;
+    loginForm.remember = true;
+  }
+});
+
+// 表单提交方法
 const submitLogin = async () => {
   if (!loginFormRef.value) return;
 
-  await loginFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      loading.login = true;
-      errorMessage.value = '';
+  const valid = await loginFormRef.value.validate();
+  if (!valid) return;
 
-      try {
-        const credentials = {
-          username: loginForm.username,
-          password: loginForm.password
-        };
+  try {
+    loading.login = true;
 
-        const success = await userStore.userLogin(credentials);
+    const credentials: LoginRequest = {
+      username: loginForm.username,
+      password: loginForm.password
+    };
 
-        if (success) {
-          ElMessage.success('登录成功');
-          const redirect = route.query.redirect?.toString() || '/';
-          await router.push(redirect);
-        } else {
-          errorMessage.value = '用户名或密码错误';
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          errorMessage.value = error.message;
-        } else {
-          errorMessage.value = '登录失败，请稍后再试';
-        }
-        console.error('登录错误:', error);
-      } finally {
-        loading.login = false;
+    const success = await userStore.login(credentials);
+
+    if (success) {
+      // 处理"记住我"选项
+      if (loginForm.remember) {
+        localStorage.setItem('rememberedUsername', loginForm.username);
+      } else {
+        localStorage.removeItem('rememberedUsername');
       }
+
+      ElMessage.success('登录成功');
+      handleLoginRedirect();
+    } else {
+      ElMessage.error('用户名或密码错误');
     }
-  });
+  } catch (error: any) {
+    handleLoginError(error);
+  } finally {
+    loading.login = false;
+  }
 };
 
 const submitRegister = async () => {
   if (!registerFormRef.value) return;
 
-  await registerFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      loading.register = true;
-      errorMessage.value = '';
+  const valid = await registerFormRef.value.validate();
+  if (!valid) return;
 
-      try {
-        const userData = {
-          username: registerForm.username,
-          email: registerForm.email,
-          password: registerForm.password
-        };
+  try {
+    loading.register = true;
 
-        const success = await userStore.userRegister(userData);
+    const userData: RegisterRequest = {
+      username: registerForm.username,
+      email: registerForm.email,
+      password: registerForm.password
+    };
 
-        if (success) {
-          ElMessage.success('注册成功，请登录');
-          loginForm.username = registerForm.email;
-          activeTab.value = 'login';
+    const success = await userStore.register(userData);
 
-          registerFormRef.value?.resetFields();
-        } else {
-          errorMessage.value = '注册失败，请稍后再试';
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          errorMessage.value = error.message;
-        } else {
-          errorMessage.value = '注册失败，请检查输入信息';
-        }
-        console.error('注册错误:', error);
-      } finally {
-        loading.register = false;
-      }
+    if (success) {
+      ElMessage.success('注册成功，请登录');
+      handlePostRegistration();
+    } else {
+      ElMessage.error('注册失败，请稍后再试');
     }
-  });
+  } catch (error: any) {
+    handleRegistrationError(error);
+  } finally {
+    loading.register = false;
+  }
 };
 
 const handleForgotPassword = async () => {
   if (!forgotPasswordFormRef.value) return;
 
-  await forgotPasswordFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      loading.forgotPassword = true;
+  const valid = await forgotPasswordFormRef.value.validate();
+  if (!valid) return;
 
-      try {
-        // 没写发送邮件呢，别急
-        await new Promise(resolve => setTimeout(resolve, 1500));
+  try {
+    loading.forgotPassword = true;
 
-        ElMessage.success('密码重置邮件已发送，请检查您的邮箱');
-        forgotPasswordDialogVisible.value = false;
-      } catch (error: unknown) {
-        let errorMsg = '发送重置邮件失败，请稍后再试';
-        if (error instanceof Error) {
-          errorMsg = error.message;
-        }
-        ElMessage.error(errorMsg);
-        console.error('发送重置邮件失败:', error);
-      } finally {
-        loading.forgotPassword = false;
-      }
-    }
-  });
+    //发送不了一点邮件
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    ElMessage.success('密码重置邮件已发送，请检查您的邮箱');
+    forgotPasswordDialogVisible.value = false;
+  } catch (error: any) {
+    handleForgotPasswordError(error);
+  } finally {
+    loading.forgotPassword = false;
+  }
 };
 
+// 辅助方法
 const resetForms = () => {
   loginFormRef.value?.resetFields();
   registerFormRef.value?.resetFields();
-  errorMessage.value = '';
 };
 
-// 显示服务条款
 const showTermsDialog = () => {
   termsDialogVisible.value = true;
 };
 
-// 显示隐私政策
 const showPrivacyDialog = () => {
   privacyDialogVisible.value = true;
 };
 
-// 显示忘记密码对话框
 const showForgotPassword = () => {
   forgotPasswordDialogVisible.value = true;
 };
 
-// 返回首页
 const goToHome = () => {
   router.push('/');
+};
+
+const handleLoginRedirect = () => {
+  const redirectPath = route.query.redirect?.toString() || '/';
+  router.push(redirectPath);
+};
+
+const handlePostRegistration = () => {
+  // 保存邮箱用于登录表单
+  const registeredEmail = registerForm.email;
+
+  // 重置注册表单
+  registerFormRef.value?.resetFields();
+
+  // 切换到登录标签页
+  activeTab.value = 'login';
+
+  // 填充登录表单的用户名/邮箱字段
+  loginForm.username = registeredEmail;
+};
+
+// 错误处理方法
+const handleLoginError = (error: any) => {
+  let errorMsg = '登录失败，请稍后再试';
+
+  if (error.response?.data?.message) {
+    errorMsg = error.response.data.message;
+  } else if (error.message) {
+    errorMsg = error.message;
+  }
+
+  ElMessage.error(errorMsg);
+  console.error('登录错误:', error);
+};
+
+const handleRegistrationError = (error: any) => {
+  let errorMsg = '注册失败，请检查输入信息';
+
+  if (error.response?.data?.message) {
+    errorMsg = error.response.data.message;
+  } else if (error.message) {
+    errorMsg = error.message;
+  }
+
+  ElMessage.error(errorMsg);
+  console.error('注册错误:', error);
+};
+
+const handleForgotPasswordError = (error: any) => {
+  let errorMsg = '发送重置邮件失败，请稍后再试';
+
+  if (error.response?.data?.message) {
+    errorMsg = error.response.data.message;
+  } else if (error.message) {
+    errorMsg = error.message;
+  }
+
+  ElMessage.error(errorMsg);
+  console.error('发送重置邮件失败:', error);
 };
 </script>
 
@@ -488,10 +573,6 @@ const goToHome = () => {
   border-radius: 50%;
   object-fit: cover;
   background-color: white;
-}
-
-.error-alert {
-  margin: 0 1.5rem 1rem;
 }
 
 :deep(.el-tabs) {

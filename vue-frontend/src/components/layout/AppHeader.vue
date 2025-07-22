@@ -28,19 +28,10 @@
         :active-action-icon="Moon"
         :inactive-action-icon="Sunny"
         @change="toggleTheme"
-
       />
-<!--      <el-button-->
-<!--        class="theme-toggle"-->
-<!--        @click="toggleTheme"-->
-<!--        :icon="darkMode ? Sunny : Moon"-->
-<!--        style="&#45;&#45;el-switch-on-color: #304156;"-->
-<!--      >-->
-<!--        {{ darkMode ? '亮色模式' : '暗色模式' }}-->
-<!--      </el-button>-->
 
       <el-button
-        v-if="!userStore.isAuthenticated"
+        v-if="!isAuthenticated"
         text
         class="nav-button"
         @click="goToAuthPage"
@@ -48,7 +39,7 @@
         登录/注册
       </el-button>
 
-      <el-dropdown :size="30" v-else>
+      <el-dropdown :size="30" v-if="isAuthenticated">
         <span class="user-info">
           <el-avatar :size="30" :src="userStore.userInfo?.avatar" />
           <span class="username">{{ userStore.userInfo?.username }}</span>
@@ -56,7 +47,7 @@
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="$router.push('/settings')">个人设置</el-dropdown-item>
-            <el-dropdown-item @click="userStore.userLogout">退出登录</el-dropdown-item>
+            <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -70,30 +61,47 @@ import { useThemeStore } from '@/store/theme'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { Sunny, Moon } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus';
 
 const themeStore = useThemeStore()
 const userStore = useUserStore()
 const router = useRouter()
 
+// 添加计算属性检查认证状态
+const isAuthenticated = computed(() => userStore.isAuthenticated)
+
 const darkMode = computed(() => themeStore.darkMode)
 
 const toggleTheme = () => {
   themeStore.toggleTheme()
-  console.log('主题切换按钮被点击')
 }
 
 const goToAuthPage = () => {
   router.push('/auth')
 }
 
+// 添加登出处理方法
+const handleLogout = async () => {
+  try {
+    await userStore.logout();
+    await router.push('/');
+    ElMessage.success('您已成功退出登录');
+  } catch (error) {
+    console.error('登出失败:', error);
+    ElMessage.error('登出失败，请重试');
+  }
+};
+
 const buttons = [
   { type: 'default', text: '群公告文档', path: '/notice' },
   { type: 'default', text: '解决方案', path: '/solutions' },
 ]
 
-// 添加调试信息
 onMounted(() => {
-  console.log('组件挂载完成，当前主题:', darkMode.value ? '暗色' : '亮色')
+  // 初始化时检查用户认证状态
+  if (userStore.isAuthenticated) {
+    userStore.fetchUserInfo();
+  }
 })
 </script>
 
