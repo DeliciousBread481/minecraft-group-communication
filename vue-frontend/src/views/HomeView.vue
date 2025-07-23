@@ -68,7 +68,7 @@
           </div>
         </template>
 
-        <el-table :data="tableData" style="width: 100%" height="300">
+        <el-table :data="tableData" style="width: 100%; background-color: var(--bg-color)" height="300">
           <el-table-column prop="date" label="日期" width="120" />
           <el-table-column prop="problem" label="问题描述" />
           <el-table-column prop="solution" label="解决方案" />
@@ -92,24 +92,24 @@ const features = [
   {
     icon: Document,
     title: "群公告文档",
-    description: "最新群规、重要通知和活动信息，及时掌握社区动态"
+    description: "Text1"
   },
   {
     icon: Collection,
     title: "解决方案库",
-    description: "收集整理了数百个常见问题的解决方案，分类清晰便于查找"
+    description: "Text2"
   },
   {
     icon: QuestionFilled,
     title: "常见问题",
-    description: "新手常见问题快速解答，助你快速入门Minecraft"
+    description: "Text3"
   }
 ]
 
 const stats = [
   { value: "---", label: "已解决问题" },
   { value: "1,546", label: "社区成员" },
-  { value: "1000%", label: "解决率" },
+  { value: "100%", label: "解决率" },
   { value: "36小时", label: "平均解决时间" }
 ]
 
@@ -123,6 +123,7 @@ const tableData = [
 </script>
 
 <style scoped lang="scss">
+//fuck Element
 .home-view {
   width: 100%;
   padding: 20px;
@@ -131,46 +132,72 @@ const tableData = [
 }
 
 .hero-banner {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover-color) 100%);
-  border-radius: 16px;
-  padding: 60px 40px;
-  margin-bottom: 40px;
+  padding: var(--spacing-xxl) 0;
   text-align: center;
+  background: linear-gradient(135deg,
+    rgba(var(--primary-color-rgb), 0.9) 0%,
+    rgba(var(--primary-hover-color-rgb), 0.8) 100%
+  );
   color: white;
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 
-  .hero-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  &::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 70%
+    );
+    z-index: -1;
   }
 
-  .hero-subtitle {
-    font-size: 1.25rem;
-    max-width: 700px;
-    margin: 0 auto 30px;
+  h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    margin-bottom: var(--spacing-md);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  p {
+    color: var(--text-color);
+    font-size: clamp(1.1rem, 2vw, 1.25rem);
+    max-width: 800px;
+    margin: 0 auto var(--spacing-lg);
     opacity: 0.9;
+    font-weight: 300;
   }
+}
 
-  .hero-actions {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
 
-    .el-button {
-      min-width: 160px;
-      height: 48px;
-      font-size: 1.1rem;
-      font-weight: 500;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      transition: all 0.3s ease;
+  .el-button {
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--border-radius-lg);
+    font-weight: 600;
+    font-size: var(--font-size-md);
+    transition: all var(--transition-speed);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 
-      &:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-      }
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      transform: translateY(1px);
     }
   }
 }
@@ -326,11 +353,11 @@ const tableData = [
   .hero-banner {
     padding: 50px 30px;
 
-    .hero-title {
+    h1 {
       font-size: 2rem;
     }
 
-    .hero-subtitle {
+    p {
       font-size: 1.1rem;
     }
   }
@@ -346,11 +373,11 @@ const tableData = [
   .hero-banner {
     padding: 40px 20px;
 
-    .hero-title {
+    h1 {
       font-size: 1.7rem;
     }
 
-    .hero-subtitle {
+    p {
       font-size: 1rem;
       margin-bottom: 25px;
     }
@@ -383,7 +410,7 @@ const tableData = [
     padding: 30px 15px;
     border-radius: 12px;
 
-    .hero-title {
+    h1 {
       font-size: 1.5rem;
     }
   }

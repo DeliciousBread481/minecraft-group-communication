@@ -1,0 +1,86 @@
+$dark-theme: (
+  // ========== 基础颜色 ==========
+        bg-color: #141414,
+        bg-secondary-color: #1d1d1d,
+        bg-tertiary-color: #2a2a2a,
+
+  // ========== 文本颜色 ==========
+        text-color: #e5eaf3,
+        text-secondary-color: #a3a6ad,
+        text-tertiary-color: #8d99a8,
+        heading-color: #ffffff,
+
+  // ========== 输入框颜色 ==========
+        input-bg-color: #1f1f1f,
+        input-border-color: #434343,
+        input-placeholder-color: #6b7280,
+        input-hover-border-color: #555555,
+        input-focus-border-color: #165dff,
+
+  // ========== 卡片颜色 ==========
+        card-bg-color: #1f1f1f,
+        card-border-color: #303030,
+        card-shadow-color: rgba(0, 0, 0, 0.3),
+
+  // ========== 边框颜色 ==========
+        border-color: #434343,
+        border-light-color: #303030,
+
+  // ========== 主色调 ==========
+        primary-color: #165dff,
+        primary-hover-color: #0e42c0,
+        primary-light-color: #1f3d5c,
+
+  // ========== 状态颜色 ==========
+        success-color: #4eb85f,
+        warning-color: #cf9d3d,
+        error-color: #f35b63,
+        info-color: #8d99a8,
+
+  // ========== 交互元素 ==========
+        hover-color: #2a2a2a,
+        active-color: #1f3d5c,
+        disabled-bg-color: #2a2a2a,
+        disabled-text-color: #6b7280,
+
+  // ========== 阴影 ==========
+        shadow-color: rgba(0, 0, 0, 0.24),
+
+  // ========== 特定组件颜色 ==========
+        menu-bg-color: #1d1d1d,
+        menu-active-bg-color: #2a2a2a,
+        menu-hover-bg-color: #333333,
+        menu-text-color: #a3a6ad,
+        menu-active-text-color: #165dff,
+
+  // ========== 基础间距 ==========
+        spacing-xs: 4px,
+        spacing-sm: 8px,
+        spacing-md: 16px,
+        spacing-lg: 24px,
+        spacing-xl: 32px,
+        spacing-xxl: 48px,
+
+  // ========== 字体大小 ==========
+        font-size-xs: 12px,
+        font-size-sm: 14px,
+        font-size-md: 16px,
+        font-size-lg: 18px,
+        font-size-xl: 20px,
+        font-size-xxl: 24px,
+
+  // ========== 边框半径 ==========
+        border-radius-sm: 4px,
+        border-radius-md: 8px,
+        border-radius-lg: 12px,
+        border-radius-circle: 50%,
+
+  // ========== 过渡 ==========
+        transition-speed: 0.3s,
+        transition-easing: ease-in-out,
+
+  // ========== RGB颜色值 ==========
+        primary-color-rgb: rgb(22, 93, 255),
+        error-color-rgb: rgb(243, 91, 99),
+        success-color-rgb: rgb(78, 184, 95)
+);

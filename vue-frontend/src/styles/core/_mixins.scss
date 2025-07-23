@@ -1,0 +1,25 @@
+@use './variables' as var;
+
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == phone {
+    @media (max-width: var.$breakpoint-phone) { @content; }
+  }
+  @if $breakpoint == tablet {
+    @media (max-width: var.$breakpoint-tablet) { @content; }
+  }
+  @if $breakpoint == desktop {
+    @media (min-width: var.$breakpoint-desktop) { @content; }
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,50 +1,94 @@
-@use '../variables' as var;
-@use '../mixins' as mix;
+@use '@/styles/core/mixins' as mix;
+@use '@/styles/core/variables' as var;
 
 .app-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   background-color: var(--bg-color);
   color: var(--text-color);
+  transition: background-color var(--transition-speed);
 
-  .sidebar-menu .menu-item {
-    color: var(--text-color);
+  .sidebar-menu {
+    flex: 1;
+    padding: var.$spacing-md 0;
 
-    &:hover {
-      background-color: var(--hover-color);
-    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: var.$spacing-md var.$spacing-lg;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      margin: var.$spacing-xs var.$spacing-md;
+      border-radius: var.$border-radius-md;
 
-    &.active {
-      background-color: var(--primary-color);
-      color: white;
+      &:hover {
+        background-color: var(--hover-color);
+      }
+
+      &.active {
+        background-color: var(--primary-color);
+        color: white;
+
+        .menu-icon {
+          color: white;
+        }
+      }
 
       .menu-icon {
-        color: white;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-color);
+        transition: color var(--transition-speed);
       }
-    }
 
-    .menu-icon {
-      color: var(--text-color);
+      .menu-title {
+        font-size: var.$font-size-sm;
+        font-weight: 500;
+        margin-left: var.$spacing-sm;
+        transition: color var(--transition-speed);
+      }
     }
   }
 
   .sidebar-footer {
+    padding: var.$spacing-md;
     border-top: 1px solid var(--border-color);
+    transition: border-color var(--transition-speed);
 
     .feedback-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: var(--text-color);
+      padding: var.$spacing-sm;
+      transition: color var(--transition-speed);
 
       &:hover {
         color: var(--primary-color);
       }
+
+      span {
+        margin-left: var.$spacing-xs;
+      }
     }
   }
-}
 
-@include mix.responsive(tablet) {
-  .menu-title, .feedback-btn span {
-    display: none;
-  }
+  @include mix.respond-to(tablet) {
+    .menu-title, .feedback-btn span {
+      display: none;
+    }
 
-  .sidebar-footer {
-    padding: var.$spacing-sm var.$spacing-xs;
+    .menu-icon {
+      margin: 0 auto;
+    }
+
+    .sidebar-footer {
+      padding: var.$spacing-sm var.$spacing-xs;
+    }
   }
 }

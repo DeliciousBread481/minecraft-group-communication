@@ -469,11 +469,8 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/variables';
-@import '@/styles/base';
-
 .settings-container {
-  padding: 30px;
+  padding: var(--spacing-xl);
   max-width: 1200px;
   margin: 0 auto;
   background-color: var(--bg-color);
@@ -482,75 +479,72 @@ onMounted(async () => {
 
 .settings-title {
   text-align: center;
-  margin-bottom: 30px;
-  font-size: 2rem;
+  margin-bottom: var(--spacing-xl);
+  font-size: var(--font-size-xxl);
   font-weight: 600;
   color: var(--heading-color);
 }
 
 .flat-menu {
   display: flex;
-  background: var(--bg-secondary-color);
-  border-radius: 12px;
-  padding: 8px;
-  margin-bottom: 30px;
+  background: var(--menu-bg-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
   box-shadow: 0 4px 6px var(--shadow-color);
+}
 
-  .menu-item {
-    flex: 1;
-    text-align: center;
-    padding: 14px 20px;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text-secondary-color);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 8px;
+.menu-item {
+  flex: 1;
+  text-align: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--menu-text-color);
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  border-radius: var(--border-radius-sm);
 
-    &:hover {
-      background-color: var(--hover-color);
-      color: var(--text-color);
-    }
+  &:hover {
+    background-color: var(--menu-hover-bg-color);
+    color: var(--text-color);
+  }
 
-    &.active {
-      background: var(--bg-color);
-      color: var(--primary-color);
-      box-shadow: 0 4px 6px rgba(var(--primary-color-rgb), 0.12);
-      font-weight: 600;
-    }
+  &.active {
+    background: var(--menu-active-bg-color);
+    color: var(--menu-active-text-color);
+    box-shadow: 0 4px 6px rgba(var(--primary-color-rgb), 0.12);
+    font-weight: 600;
   }
 }
 
 .settings-content {
-  background: var(--bg-color);
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 10px 25px -5px var(--shadow-color);
-  border: 1px solid var(--border-color);
+  background: var(--card-bg-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: 0 10px 25px -5px var(--card-shadow-color);
+  border: 1px solid var(--card-border-color);
 }
 
 .settings-section {
-  padding: 10px;
+  padding: var(--spacing-md);
 }
 
 .settings-form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-
-  .form-group:last-child {
-    grid-column: 1 / -1;
-  }
+  gap: var(--spacing-lg);
 }
 
 .form-group {
-  margin-bottom: 22px;
+  margin-bottom: var(--spacing-lg);
 
   label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: var(--spacing-sm);
     font-weight: 500;
     color: var(--text-color);
+    font-size: var(--font-size-sm);
   }
 }
 
@@ -558,12 +552,12 @@ onMounted(async () => {
   cursor: pointer;
 
   .masked-userid {
-    padding: 13px 16px;
+    padding: var(--spacing-md) var(--spacing-lg);
     background: var(--bg-secondary-color);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--border-radius-sm);
     color: var(--text-secondary-color);
-    transition: background 0.3s;
+    transition: background var(--transition-speed);
     font-family: monospace;
 
     &:hover {
@@ -574,14 +568,34 @@ onMounted(async () => {
 
 .text-muted {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--spacing-xs);
   color: var(--text-secondary-color);
-  font-size: 0.85rem;
+  font-size: var(--font-size-xs);
+}
+
+.form-control {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--input-bg-color);
+  border: 1px solid var(--input-border-color);
+  color: var(--text-color);
+  transition: border-color var(--transition-speed);
+  font-size: var(--font-size-md);
+
+  &:hover {
+    border-color: var(--input-hover-border-color);
+  }
+
+  &:focus {
+    border-color: var(--input-focus-border-color);
+    outline: none;
+  }
 }
 
 .avatar-layout {
   display: flex;
-  gap: 20px;
+  gap: var(--spacing-lg);
   align-items: center;
 
   .avatar-preview-container {
@@ -590,7 +604,7 @@ onMounted(async () => {
     .avatar-preview, .avatar-placeholder {
       width: 120px;
       height: 120px;
-      border-radius: 12px;
+      border-radius: var(--border-radius-circle);
       border: 1px solid var(--border-color);
       background: var(--bg-secondary-color);
       display: flex;
@@ -611,16 +625,16 @@ onMounted(async () => {
   grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
-  gap: 15px;
-  margin-top: 20px;
-  padding-top: 20px;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
   border-top: 1px solid var(--border-color);
 }
 
 .invalid-feedback {
   color: var(--error-color);
-  font-size: 0.85rem;
-  margin-top: 5px;
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
 }
 
 .is-invalid {
@@ -630,38 +644,41 @@ onMounted(async () => {
 }
 
 .form-title {
-  font-size: 1.4rem;
-  margin-bottom: 10px;
-  padding-bottom: 15px;
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
   border-bottom: 1px solid var(--border-color);
   color: var(--heading-color);
 }
 
 .btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-sm);
   font-weight: 500;
-  transition: all 0.3s;
+  transition: all var(--transition-speed);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  border: 1px solid transparent;
 
-  &-primary {
+  &--primary {
     background-color: var(--primary-color);
     color: white;
-    border: none;
 
     &:hover {
       background-color: var(--primary-hover-color);
     }
 
     &:disabled {
-      background-color: rgba(var(--primary-color-rgb), 0.5);
+      background-color: var(--disabled-bg-color);
+      color: var(--disabled-text-color);
       cursor: not-allowed;
     }
   }
 
-  &-secondary {
+  &--secondary {
     background-color: transparent;
     color: var(--text-color);
-    border: 1px solid var(--border-color);
+    border-color: var(--border-color);
 
     &:hover {
       background-color: var(--hover-color);
@@ -677,7 +694,7 @@ onMounted(async () => {
 
 @media (max-width: 600px) {
   .settings-container {
-    padding: 20px 15px;
+    padding: var(--spacing-md);
   }
 
   .avatar-layout {
@@ -687,8 +704,8 @@ onMounted(async () => {
 
   .flat-menu {
     .menu-item {
-      padding: 12px 16px;
-      font-size: 0.95rem;
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: var(--font-size-sm);
     }
   }
 
@@ -697,7 +714,7 @@ onMounted(async () => {
 
     .btn {
       width: 100%;
-      margin-bottom: 10px;
+      margin-bottom: var(--spacing-sm);
     }
   }
 }

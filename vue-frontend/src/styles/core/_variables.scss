@@ -23,3 +23,8 @@ $border-radius-circle: 50%;
 // 过渡
 $transition-speed: 0.3s;
 $transition-easing: ease-in-out;
+
+// 响应式断点
+$breakpoint-phone: 600px;
+$breakpoint-tablet: 900px;
+$breakpoint-desktop: 1200px;

@@ -6,8 +6,7 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 // import { initThemeCheck } from '@/utils/themeUtils'
-import '@/styles/theme.scss'
-import '@/styles/base.scss'
+import "@/styles/main.scss"
 
 const app = createApp(App)
 const pinia = createPinia()
