@@ -2,11 +2,25 @@ $light-theme: (
   // 基础颜色
         bg-color: #ffffff,
         bg-secondary-color: #f5f7fa,
+        bg-tertiary-color: #f0f2f5,
 
   // 文本颜色
         text-color: #303133,
         text-secondary-color: #606266,
+        text-tertiary-color: #909399,
         heading-color: #1f2329,
+
+  // 输入框颜色
+        input-bg-color: #ffffff,
+        input-border-color: #dcdfe6,
+        input-placeholder-color: #c0c4cc,
+        input-hover-border-color: #c0c4cc,
+        input-focus-border-color: #409eff,
+
+  // 卡片颜色
+        card-bg-color: #ffffff,
+        card-border-color: #ebeef5,
+        card-shadow-color: rgba(0, 0, 0, 0.1),
 
   // 边框颜色
         border-color: #dcdfe6,
@@ -15,6 +29,7 @@ $light-theme: (
   // 主色调
         primary-color: #409eff,
         primary-hover-color: #337ecc,
+        primary-light-color: #ecf5ff,
 
   // 状态颜色
         success-color: #67c23a,
@@ -25,7 +40,16 @@ $light-theme: (
   // 交互元素
         hover-color: #f5f7fa,
         active-color: #ecf5ff,
+        disabled-bg-color: #f5f7fa,
+        disabled-text-color: #c0c4cc,
 
   // 阴影
-        shadow-color: rgba(0, 0, 0, 0.12)
+        shadow-color: rgba(0, 0, 0, 0.12),
+
+  // 新增特定组件颜色
+        menu-bg-color: #f7f9fc,
+        menu-active-bg-color: #ffffff,
+        menu-hover-bg-color: #edf2f7,
+        menu-text-color: #4a5568,
+        menu-active-text-color: #4361ee,
 );

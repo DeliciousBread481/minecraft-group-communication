@@ -1,13 +1,42 @@
 @use 'variables' as var;
+@use 'light-theme' as light;
+@use 'dark-theme' as dark;
 
 :root {
-  // 定义默认值，避免变量未定义
-  --bg-color: #ffffff;
-  --text-color: #303133;
-  --border-color: #dcdfe6;
-  --primary-color: #409eff;
-  --hover-color: #f5f7fa;
-  --shadow-color: rgba(0, 0, 0, 0.12);
+  // 基础变量
+  --spacing-xs: #{var.$spacing-xs};
+  --spacing-sm: #{var.$spacing-sm};
+  --spacing-md: #{var.$spacing-md};
+  --spacing-lg: #{var.$spacing-lg};
+  --spacing-xl: #{var.$spacing-xl};
+  --spacing-xxl: #{var.$spacing-xxl};
+
+  --font-size-xs: #{var.$font-size-xs};
+  --font-size-sm: #{var.$font-size-sm};
+  --font-size-md: #{var.$font-size-md};
+  --font-size-lg: #{var.$font-size-lg};
+  --font-size-xl: #{var.$font-size-xl};
+  --font-size-xxl: #{var.$font-size-xxl};
+
+  --border-radius-sm: #{var.$border-radius-sm};
+  --border-radius-md: #{var.$border-radius-md};
+  --border-radius-lg: #{var.$border-radius-lg};
+  --border-radius-circle: #{var.$border-radius-circle};
+
+  --transition-speed: #{var.$transition-speed};
+  --transition-easing: #{var.$transition-easing};
+
+  // 亮色主题默认变量
+  @each $key, $value in light.$light-theme {
+    --#{$key}: #{$value};
+  }
+}
+
+.dark-theme {
+  // 覆盖为暗色主题变量
+  @each $key, $value in dark.$dark-theme {
+    --#{$key}: #{$value};
+  }
 }
 
 *,
@@ -20,7 +49,7 @@
 
 html {
   height: 100%;
-  font-size: var.$font-size-md;
+  font-size: var(--font-size-md);
 }
 
 body {
@@ -28,7 +57,7 @@ body {
   line-height: 1.5;
   font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
   'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-  transition: background-color var.$transition-speed, color var.$transition-speed;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
   background-color: var(--bg-color);
   color: var(--text-color);
 }
@@ -51,5 +80,5 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 var.$spacing-md;
+  padding: 0 var(--spacing-md);
 }

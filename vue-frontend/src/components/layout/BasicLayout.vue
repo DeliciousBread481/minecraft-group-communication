@@ -89,7 +89,6 @@ onUnmounted(() => {
 
 .right-aside {
   flex: 1;
-  display: flex;
   min-width: 0;
   padding: 1.5rem;
   background-color: var(--bg-color);

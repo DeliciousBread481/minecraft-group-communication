@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
 -- 插入初始角色数据
 INSERT IGNORE INTO roles (name, description)
 VALUES
+    ('ROLE_DEV','开发者'),
     ('ROLE_ADMIN', '系统管理员'),
     ('ROLE_USER', '普通用户');
 
@@ -69,3 +70,6 @@ ALTER TABLE users
 
 ALTER TABLE users
     ADD COLUMN avatar VARCHAR(512) DEFAULT NULL COMMENT '用户头像URL';
+
+INSERT INTO roles
+VALUES (3,'ROLE_DEV','开发者')
