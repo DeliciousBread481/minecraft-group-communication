@@ -22,7 +22,7 @@ export default defineConfig({
       '/crashAPI': {
         target: 'http://localhost:9090',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/crashAPI/, '/crashAPI')
+        rewrite: (path) => path.replace(/^\/crashapi/, '/crashapi')
       }
     }
   },

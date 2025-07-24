@@ -5,7 +5,7 @@ import router from '@/router';
 
 // 创建 Axios 实例
 const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/crashAPI/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/crashapi/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
