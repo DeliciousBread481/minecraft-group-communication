@@ -9,7 +9,7 @@ import com.github.konstantyn111.crashapi.exception.BusinessException;
 import com.github.konstantyn111.crashapi.mapper.RoleMapper;
 import com.github.konstantyn111.crashapi.mapper.UserMapper;
 import com.github.konstantyn111.crashapi.security.CustomUserDetails;
-import com.github.konstantyn111.crashapi.util.ApiResponse;
+import com.github.konstantyn111.crashapi.util.RestResponse;
 import com.github.konstantyn111.crashapi.util.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     @Transactional
-    public ApiResponse<AuthResponse> register(RegisterRequest request) {
+    public RestResponse<AuthResponse> register(RegisterRequest request) {
         // 检查用户名唯一性
         if (userMapper.findByUsername(request.getUsername()).isPresent()) {
             throw new BusinessException(ErrorCode.DUPLICATE_USERNAME,
@@ -84,10 +84,10 @@ public class AuthService {
                 "注册成功"
         );
 
-        return ApiResponse.success(authResponse, "用户注册成功");
+        return RestResponse.success(authResponse, "用户注册成功");
     }
 
-    public ApiResponse<AuthResponse> login(LoginRequest request) {
+    public RestResponse<AuthResponse> login(LoginRequest request) {
         try {
             // 使用Spring Security进行认证
             Authentication authentication = authenticationManager.authenticate(
@@ -119,7 +119,7 @@ public class AuthService {
                     "登录成功"
             );
 
-            return ApiResponse.success(authResponse, "用户登录成功");
+            return RestResponse.success(authResponse, "用户登录成功");
         } catch (BadCredentialsException e) {
             // 认证失败
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS,
@@ -135,7 +135,7 @@ public class AuthService {
     }
 
     @Transactional
-    public ApiResponse<AuthResponse> refreshToken(RefreshRequest request) {
+    public RestResponse<AuthResponse> refreshToken(RefreshRequest request) {
         try {
             String refreshToken = request.getRefreshToken();
 
@@ -197,14 +197,13 @@ public class AuthService {
                     "令牌刷新成功"
             );
 
-            return ApiResponse.success(authResponse, "令牌刷新成功");
+            return RestResponse.success(authResponse, "令牌刷新成功");
 
         } catch (ExpiredJwtException ex) {
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED,
                     HttpStatus.UNAUTHORIZED,
                     "刷新令牌已过期，请重新登录");
         } catch (BusinessException ex) {
-            // 直接重新抛出已处理的业务异常
             throw ex;
         } catch (Exception ex) {
             logger.error("令牌刷新失败: {}", ex.getMessage());
@@ -215,7 +214,7 @@ public class AuthService {
     }
 
     @Transactional
-    public ApiResponse<Void> revokeToken(String username) {
+    public RestResponse<Void> revokeToken(String username) {
         Optional<User> userOptional = userMapper.findByUsername(username);
         if (userOptional.isPresent()) {
             userMapper.updateRefreshToken(
@@ -223,7 +222,7 @@ public class AuthService {
                     null,
                     null
             );
-            return ApiResponse.success(null, "令牌已撤销");
+            return RestResponse.success(null, "令牌已撤销");
         }
         throw new BusinessException(ErrorCode.USER_NOT_FOUND,
                 HttpStatus.NOT_FOUND,
@@ -231,7 +230,7 @@ public class AuthService {
     }
 
     @Transactional
-    public ApiResponse<Void> logout() {
+    public RestResponse<Void> logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
@@ -251,6 +250,6 @@ public class AuthService {
         }
 
         SecurityContextHolder.clearContext();
-        return ApiResponse.success(null,"退出登录成功");
+        return RestResponse.success(null,"退出登录成功");
     }
 }

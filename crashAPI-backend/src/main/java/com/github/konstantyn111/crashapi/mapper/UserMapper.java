@@ -1,10 +1,12 @@
 package com.github.konstantyn111.crashapi.mapper;
 
+import com.github.konstantyn111.crashapi.entity.Role;
 import com.github.konstantyn111.crashapi.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Mapper
@@ -20,4 +22,11 @@ public interface UserMapper {
     );
     void updateUserInfo(User user);
     Optional<User> findByIdWithRoles(@Param("id") Long id);
+    Optional<Role> findRoleByName(@Param("roleName") String roleName);
+    void deleteUserRolesByUserId(@Param("userId") Long userId);
+    Optional<User> findById(@Param("id") Long id);
+    List<User> findAllWithRolesPaged(@Param("limit") int limit, @Param("offset") int offset);
+    long countAllUsers();
+
+    boolean hasRole(@Param("userId") Long userId, @Param("roleName") String roleName);
 }

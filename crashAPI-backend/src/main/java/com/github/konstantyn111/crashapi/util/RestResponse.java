@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
  * @param <T> 响应数据的类型
  */
 @Data
-public class ApiResponse<T> {
+public class RestResponse<T> {
     /**
      * 操作是否成功
      */
@@ -38,7 +38,7 @@ public class ApiResponse<T> {
      */
     private T data;
 
-    private ApiResponse(boolean success, int status, Integer code, String message, T data) {
+    private RestResponse(boolean success, int status, Integer code, String message, T data) {
         this.success = success;
         this.status = status;
         this.code = code;
@@ -52,8 +52,8 @@ public class ApiResponse<T> {
      * @param message 成功提示信息
      * @return 标准化成功响应
      */
-    public static <T> ApiResponse<T> success(T data, String message) {
-        return new ApiResponse<>(true, HttpStatus.OK.value(),
+    public static <T> RestResponse<T> success(T data, String message) {
+        return new RestResponse<>(true, HttpStatus.OK.value(),
                 ErrorCode.SUCCESS.getCode(), message, data);
     }
 
@@ -62,7 +62,7 @@ public class ApiResponse<T> {
      * @param message 成功提示信息
      * @return 标准化成功响应
      */
-    public static <T> ApiResponse<T> success(String message) {
+    public static <T> RestResponse<T> success(String message) {
         return success(null, message);
     }
 
@@ -73,8 +73,8 @@ public class ApiResponse<T> {
      * @param message 自定义错误信息（为空时使用错误码默认信息）
      * @return 标准化错误响应
      */
-    public static <T> ApiResponse<T> fail(int httpStatus, ErrorCode errorCode, String message) {
-        return new ApiResponse<>(false, httpStatus,
+    public static <T> RestResponse<T> fail(int httpStatus, ErrorCode errorCode, String message) {
+        return new RestResponse<>(false, httpStatus,
                 errorCode.getCode(),
                 message != null ? message : errorCode.getMessage(),
                 null);
@@ -86,7 +86,7 @@ public class ApiResponse<T> {
      * @param errorCode 业务错误码
      * @return 标准化错误响应
      */
-    public static <T> ApiResponse<T> fail(int httpStatus, ErrorCode errorCode) {
+    public static <T> RestResponse<T> fail(int httpStatus, ErrorCode errorCode) {
         return fail(httpStatus, errorCode, null);
     }
 
@@ -95,8 +95,8 @@ public class ApiResponse<T> {
      * @param ex 业务异常实例
      * @return 标准化错误响应
      */
-    public static <T> ApiResponse<T> fail(BusinessException ex) {
-        return new ApiResponse<>(false, ex.getHttpStatus().value(),
+    public static <T> RestResponse<T> fail(BusinessException ex) {
+        return new RestResponse<>(false, ex.getHttpStatus().value(),
                 ex.getErrorCode().getCode(),
                 ex.getMessage(),
                 null);

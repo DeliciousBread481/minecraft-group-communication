@@ -2,17 +2,19 @@ package com.github.konstantyn111.crashapi.controller;
 
 import com.github.konstantyn111.crashapi.dto.UserInfo;
 import com.github.konstantyn111.crashapi.service.UserService;
-import com.github.konstantyn111.crashapi.util.ApiResponse;
+import com.github.konstantyn111.crashapi.util.RestResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
 
-/**
- * 用户信息控制器
- * 处理当前用户信息管理及管理员用户操作
- */
+@Tag(name = "用户管理", description = "普通用户操作接口")
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -20,74 +22,104 @@ public class UserController {
 
     private final UserService userService;
 
-    /**
-     * 获取当前登录用户信息
-     * @return 包含用户详细信息的响应
-     */
+    @Operation(
+            summary = "获取当前用户信息",
+            description = "获取当前登录用户的详细信息",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "成功获取用户信息",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = UserInfo.class)
+                            )
+                    )
+            }
+    )
     @GetMapping("/me")
-    public ApiResponse<UserInfo> getCurrentUser() {
+    public RestResponse<UserInfo> getCurrentUser() {
         return userService.getCurrentUserInfo();
     }
 
-    /**
-     * 更新当前用户信息
-     * @param updateData 待更新的用户数据
-     * @return 更新后的用户信息
-     */
+    @Operation(
+            summary = "更新用户信息",
+            description = "更新当前登录用户的基本信息",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "用户信息更新成功",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = UserInfo.class))),
+                    @ApiResponse(responseCode = "400", description = "邮箱已被使用")
+            }
+    )
     @PatchMapping("/me")
-    public ApiResponse<UserInfo> updateUser(@RequestBody UserInfo updateData) {
+    public RestResponse<UserInfo> updateUser(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "用户更新数据",
+                    required = true,
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserInfo.class)
+                    )
+            )
+            @RequestBody UserInfo updateData) {
         return userService.updateUserInfo(updateData);
     }
 
-    /**
-     * 修改当前用户密码
-     * @param oldPassword 原密码
-     * @param newPassword 新密码
-     * @return 操作结果（无数据返回）
-     */
+    @Operation(
+            summary = "修改密码",
+            description = "修改当前登录用户的密码",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "密码更新成功"),
+                    @ApiResponse(responseCode = "401", description = "旧密码不正确")
+            }
+    )
     @PostMapping("/me/password")
-    public ApiResponse<Void> updatePassword(
+    public RestResponse<Void> updatePassword(
+            @Parameter(name = "oldPassword", description = "旧密码", required = true, in = ParameterIn.QUERY)
             @RequestParam("oldPassword") String oldPassword,
+            @Parameter(name = "newPassword", description = "新密码", required = true, in = ParameterIn.QUERY)
             @RequestParam("newPassword") String newPassword) {
         return userService.updatePassword(oldPassword, newPassword);
     }
 
-    /**
-     * 更新用户头像
-     * @param file 上传的头像文件
-     * @return 包含新头像URL的响应
-     */
+    @Operation(
+            summary = "更新头像",
+            description = "上传并更新当前用户的头像",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "头像更新成功",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "400", description = "无效的文件类型")
+            }
+    )
     @PostMapping("/me/avatar")
-    public ApiResponse<String> updateAvatar(@RequestParam("avatar") MultipartFile file) {
+    public RestResponse<String> updateAvatar(
+            @Parameter(
+                    name = "avatar",
+                    description = "头像图片文件",
+                    required = true,
+                    content = @Content(mediaType = "multipart/form-data",
+                            schema = @Schema(type = "string", format = "binary")
+                    )
+            )
+            @RequestParam("avatar") MultipartFile file) {
         return userService.updateAvatar(file);
     }
 
-    // ============= 管理员功能（尚未实现） =============
-
-    /**
-     * 根据ID获取用户信息（管理员）
-     * @param userId 目标用户ID
-     * @return 未实现的功能提示
-     */
-    @GetMapping("/{userId}")
-    public ApiResponse<UserInfo> getUserById(@PathVariable Long userId) {
-        return ApiResponse.fail(HttpStatus.NOT_IMPLEMENTED.value(),
-                ErrorCode.FEATURE_NOT_IMPLEMENTED,
-                "功能尚未实现");
-    }
-
-    /**
-     * 更新用户角色（管理员）
-     * @param userId 目标用户ID
-     * @param role 新角色标识
-     * @return 未实现的功能提示
-     */
-    @PutMapping("/{userId}/role")
-    public ApiResponse<Void> updateUserRole(
-            @PathVariable Long userId,
-            @RequestParam String role) {
-        return ApiResponse.fail(HttpStatus.NOT_IMPLEMENTED.value(),
-                ErrorCode.FEATURE_NOT_IMPLEMENTED,
-                "功能尚未实现");
+    @Operation(
+            summary = "申请管理员权限",
+            description = "提交管理员权限申请",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "申请提交成功"),
+                    @ApiResponse(responseCode = "400", description = "已是管理员或已有待处理申请")
+            }
+    )
+    @PostMapping("/apply-for-admin")
+    public RestResponse<Void> applyForAdmin(
+            @Parameter(name = "reason", description = "申请理由", required = true, in = ParameterIn.QUERY)
+            @RequestParam("reason") String reason) {
+        return userService.applyForAdminRole(reason);
     }
 }

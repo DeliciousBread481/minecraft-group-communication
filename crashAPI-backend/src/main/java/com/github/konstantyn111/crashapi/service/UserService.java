@@ -1,12 +1,14 @@
 package com.github.konstantyn111.crashapi.service;
 
 import com.github.konstantyn111.crashapi.dto.UserInfo;
-import com.github.konstantyn111.crashapi.entity.Role;
+import com.github.konstantyn111.crashapi.entity.AdminApplication;
 import com.github.konstantyn111.crashapi.entity.User;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
+import com.github.konstantyn111.crashapi.mapper.AdminApplicationMapper;
 import com.github.konstantyn111.crashapi.mapper.UserMapper;
-import com.github.konstantyn111.crashapi.util.ApiResponse;
+import com.github.konstantyn111.crashapi.util.RestResponse;
 import com.github.konstantyn111.crashapi.util.ErrorCode;
+import com.github.konstantyn111.crashapi.util.UserConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -21,20 +23,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-/**
- * 用户信息服务
- * <p>
- * 处理用户信息管理、密码修改和头像更新等操作
- */
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserMapper userMapper;
+    private final AdminApplicationMapper adminApplicationMapper;
     private final PasswordEncoder passwordEncoder;
 
     // 文件存储配置
@@ -42,13 +40,57 @@ public class UserService {
     private final String cdnBaseUrl = "https://cdn.example.com/avatars/";
 
     /**
+     * 申请管理员权限
+     */
+    @Transactional
+    public RestResponse<Void> applyForAdminRole(String reason) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+
+            User currentUser = userMapper.findByUsername(username)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
+                            HttpStatus.NOT_FOUND,
+                            "用户不存在"));
+
+            // 检查是否已经是管理员
+            if (userMapper.hasRole(currentUser.getId(), "ROLE_ADMIN")) {
+                throw new BusinessException(ErrorCode.ALREADY_ADMIN,
+                        HttpStatus.BAD_REQUEST,
+                        "您已经是管理员");
+            }
+
+            // 检查是否有待处理的申请
+            if (adminApplicationMapper.hasPendingApplication(currentUser.getId())) {
+                throw new BusinessException(ErrorCode.PENDING_APPLICATION_EXISTS,
+                        HttpStatus.CONFLICT,
+                        "您已提交过申请，请等待处理");
+            }
+
+            // 创建新申请
+            AdminApplication application = new AdminApplication();
+            application.setUserId(currentUser.getId());
+            application.setStatus("PENDING");
+            application.setReason(reason);
+            application.setCreatedAt(LocalDateTime.now());
+
+            adminApplicationMapper.insert(application);
+
+            return RestResponse.success("管理员申请已提交，请等待审核");
+        } catch (BusinessException ex) {
+            return RestResponse.fail(ex);
+        } catch (Exception ex) {
+            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    ErrorCode.INTERNAL_SERVER_ERROR,
+                    "提交申请失败: " + ex.getMessage());
+        }
+    }
+
+    /**
      * 获取当前登录用户信息
-     * <p>从安全上下文中提取用户信息并转换为DTO格式</p>
-     *
-     * @return 用户信息响应
      */
     @Transactional(readOnly = true)
-    public ApiResponse<UserInfo> getCurrentUserInfo() {
+    public RestResponse<UserInfo> getCurrentUserInfo() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -61,14 +103,15 @@ public class UserService {
             String username = authentication.getName();
 
             Optional<User> userOpt = userMapper.findByUsername(username);
-            return userOpt.map(user -> ApiResponse.success(convertToUserInfo(user), "获取用户信息成功")).orElseGet(() -> ApiResponse.fail(HttpStatus.NOT_FOUND.value(),
-                    ErrorCode.USER_NOT_FOUND,
-                    "用户不存在"));
+            return userOpt.map(user -> RestResponse.success(UserConvertUtil.convertToUserInfo(user), "获取用户信息成功"))
+                    .orElseGet(() -> RestResponse.fail(HttpStatus.NOT_FOUND.value(),
+                            ErrorCode.USER_NOT_FOUND,
+                            "用户不存在"));
 
         } catch (BusinessException ex) {
-            return ApiResponse.fail(ex);
+            return RestResponse.fail(ex);
         } catch (Exception ex) {
-            return ApiResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ErrorCode.INTERNAL_SERVER_ERROR,
                     "获取用户信息失败: " + ex.getMessage());
         }
@@ -76,13 +119,9 @@ public class UserService {
 
     /**
      * 更新当前用户信息
-     * <p>允许更新昵称、邮箱等基本信息</p>
-     *
-     * @param updateData 更新数据
-     * @return 更新后的用户信息
      */
     @Transactional
-    public ApiResponse<UserInfo> updateUserInfo(UserInfo updateData) {
+    public RestResponse<UserInfo> updateUserInfo(UserInfo updateData) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -111,11 +150,11 @@ public class UserService {
                             HttpStatus.NOT_FOUND,
                             "用户不存在"));
 
-            return ApiResponse.success(convertToUserInfo(updatedUser), "用户信息更新成功");
+            return RestResponse.success(UserConvertUtil.convertToUserInfo(updatedUser), "用户信息更新成功");
         } catch (BusinessException ex) {
-            return ApiResponse.fail(ex);
+            return RestResponse.fail(ex);
         } catch (Exception ex) {
-            return ApiResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ErrorCode.INTERNAL_SERVER_ERROR,
                     "更新用户信息失败: " + ex.getMessage());
         }
@@ -123,14 +162,9 @@ public class UserService {
 
     /**
      * 修改当前用户密码
-     * <p>验证旧密码后更新为新密码</p>
-     *
-     * @param oldPassword 原密码
-     * @param newPassword 新密码
-     * @return 操作结果
      */
     @Transactional
-    public ApiResponse<Void> updatePassword(String oldPassword, String newPassword) {
+    public RestResponse<Void> updatePassword(String oldPassword, String newPassword) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -151,11 +185,11 @@ public class UserService {
             existingUser.setPassword(passwordEncoder.encode(newPassword));
             userMapper.updateUserInfo(existingUser);
 
-            return ApiResponse.success("密码更新成功");
+            return RestResponse.success("密码更新成功");
         } catch (BusinessException ex) {
-            return ApiResponse.fail(ex);
+            return RestResponse.fail(ex);
         } catch (Exception ex) {
-            return ApiResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ErrorCode.INTERNAL_SERVER_ERROR,
                     "更新密码失败: " + ex.getMessage());
         }
@@ -163,13 +197,9 @@ public class UserService {
 
     /**
      * 更新用户头像
-     * <p>处理头像文件上传并更新用户头像URL</p>
-     *
-     * @param file 头像文件
-     * @return 包含新头像URL的响应
      */
     @Transactional
-    public ApiResponse<String> updateAvatar(MultipartFile file) {
+    public RestResponse<String> updateAvatar(MultipartFile file) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -186,11 +216,11 @@ public class UserService {
             existingUser.setAvatar(fileUrl);
             userMapper.updateUserInfo(existingUser);
 
-            return ApiResponse.success(fileUrl, "头像更新成功");
+            return RestResponse.success(fileUrl, "头像更新成功");
         } catch (BusinessException ex) {
-            return ApiResponse.fail(ex);
+            return RestResponse.fail(ex);
         } catch (Exception ex) {
-            return ApiResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ErrorCode.INTERNAL_SERVER_ERROR,
                     "更新头像失败: " + ex.getMessage());
         }
@@ -198,9 +228,6 @@ public class UserService {
 
     /**
      * 验证邮箱唯一性
-     * @param email 待验证邮箱
-     * @param currentUserId 当前用户ID
-     * @throws BusinessException 邮箱已被其他用户使用时抛出
      */
     private void validateEmailUniqueness(String email, Long currentUserId) {
         Optional<User> userByEmail = userMapper.findByEmail(email);
@@ -213,12 +240,6 @@ public class UserService {
 
     /**
      * 存储头像文件
-     * <p>保存上传文件到本地目录并返回访问URL</p>
-     *
-     * @param file 上传文件
-     * @param userId 用户ID
-     * @return 文件访问URL
-     * @throws IOException 文件操作失败时抛出
      */
     private String storeAvatarFile(MultipartFile file, Long userId) throws IOException {
         // 确保上传目录存在
@@ -239,33 +260,5 @@ public class UserService {
 
         // 返回访问URL
         return cdnBaseUrl + fileName;
-    }
-
-    /**
-     * 用户实体转DTO
-     * <p>提取用户核心信息并转换角色集合</p>
-     *
-     * @param user 用户实体
-     * @return 用户信息DTO
-     */
-    private UserInfo convertToUserInfo(User user) {
-        UserInfo userInfo = new UserInfo();
-        userInfo.setId(user.getId());
-        userInfo.setUsername(user.getUsername());
-        userInfo.setEmail(user.getEmail());
-        userInfo.setNickname(user.getNickname());
-        userInfo.setAvatar(user.getAvatar());
-        userInfo.setCreatedAt(user.getCreatedAt());
-        userInfo.setUpdatedAt(user.getUpdatedAt());
-        userInfo.setEnabled(user.isEnabled());
-
-        // 转换角色
-        if (user.getRoles() != null) {
-            userInfo.setRoles(user.getRoles().stream()
-                    .map(Role::getName)
-                    .collect(Collectors.toSet()));
-        }
-
-        return userInfo;
     }
 }

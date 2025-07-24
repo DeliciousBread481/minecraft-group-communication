@@ -5,7 +5,7 @@ import com.github.konstantyn111.crashapi.dto.LoginRequest;
 import com.github.konstantyn111.crashapi.dto.RefreshRequest;
 import com.github.konstantyn111.crashapi.dto.RegisterRequest;
 import com.github.konstantyn111.crashapi.service.AuthService;
-import com.github.konstantyn111.crashapi.util.ApiResponse;
+import com.github.konstantyn111.crashapi.util.RestResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class AuthController {
      * @return 包含认证响应（令牌等）的通用响应体
      */
     @PostMapping("/register")
-    public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public RestResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
     }
 
@@ -38,7 +38,7 @@ public class AuthController {
      * @return 包含认证响应（访问令牌、刷新令牌）的通用响应体
      */
     @PostMapping("/login")
-    public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public RestResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
     }
 
@@ -47,7 +47,7 @@ public class AuthController {
      * @return 操作结果（无数据返回）
      */
     @PostMapping("/logout")
-    public ApiResponse<Void> logout() { return authService.logout(); }
+    public RestResponse<Void> logout() { return authService.logout(); }
 
     /**
      * 刷新访问令牌
@@ -55,7 +55,7 @@ public class AuthController {
      * @return 包含新令牌对的通用响应体
      */
     @PostMapping("/refresh-token")
-    public ApiResponse<AuthResponse> refreshToken(@Valid @RequestBody RefreshRequest request) {
+    public RestResponse<AuthResponse> refreshToken(@Valid @RequestBody RefreshRequest request) {
         return authService.refreshToken(request);
     }
 
@@ -65,7 +65,7 @@ public class AuthController {
      * @return 操作结果（无数据返回）
      */
     @PostMapping("/revoke-token")
-    public ApiResponse<Void> revokeToken(@RequestParam String username) {
+    public RestResponse<Void> revokeToken(@RequestParam String username) {
         return authService.revokeToken(username);
     }
 }

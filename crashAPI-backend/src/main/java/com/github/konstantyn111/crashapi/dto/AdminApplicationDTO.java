@@ -2,17 +2,15 @@ package com.github.konstantyn111.crashapi.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Data
-public class UserInfo {
+public class AdminApplicationDTO {
     private Long id;
+    private Long userId;
     private String username;
     private String email;
-    private String nickname;
-    private String avatar;
+    private String status;
+    private String processorUsername;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private boolean enabled;
-    private Set<String> roles;
+    private LocalDateTime processedAt;
 }

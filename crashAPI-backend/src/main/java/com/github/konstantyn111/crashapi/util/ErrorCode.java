@@ -4,8 +4,6 @@ import lombok.Getter;
 
 /**
  * 业务错误码枚举
- * <p>
- * 标准化错误代码体系，按功能模块分组管理，每个错误码包含唯一编码和默认提示信息
  */
 @Getter
 public enum ErrorCode {
@@ -51,17 +49,29 @@ public enum ErrorCode {
     /** 用户不存在 */
     USER_NOT_FOUND(30000, "User not found"),
 
+    ROLE_NOT_FOUND(30001,"角色不存在" ),
+
     /** 用户名重复 */
-    DUPLICATE_USERNAME(30001, "Duplicate username"),
+    DUPLICATE_USERNAME(30002, "Duplicate username"),
 
     /** 邮箱已被注册 */
-    DUPLICATE_EMAIL(30002, "Duplicate email"),
+    DUPLICATE_EMAIL(30003, "Duplicate email"),
 
     /** 用户凭证错误 */
-    INVALID_CREDENTIALS(30003, "Invalid credentials"),
+    INVALID_CREDENTIALS(30004, "Invalid credentials"),
 
     /** 未授权的操作 */
-    UNAUTHORIZED(30004, "Unauthorized"),
+    UNAUTHORIZED(30005, "Unauthorized"),
+
+    APPLICATION_NOT_FOUND(30006, "Application not found" ),
+
+    INVALID_APPLICATION_STATUS(30007, "Invalid application status" ),
+
+    OPERATION_FAILED(30008, "Operation failed" ),
+
+    ALREADY_ADMIN(30009,"您已是管理员"),
+
+    PENDING_APPLICATION_EXISTS(30010,"已提交审核"),
 
     // ===================== 文件相关错误码 (40000-49999) =====================
 
@@ -69,7 +79,7 @@ public enum ErrorCode {
     FILE_UPLOAD_FAILED(40000, "文件上传失败"),
 
     /** 文件大小超限 */
-    FILE_SIZE_EXCEEDED(40001, "文件大小超过限制");
+    FILE_SIZE_EXCEEDED(40001, "文件大小超过限制"),;
 
     /** 业务错误码（全局唯一） */
     private final int code;

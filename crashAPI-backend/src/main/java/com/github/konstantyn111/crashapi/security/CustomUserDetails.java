@@ -1,13 +1,15 @@
 package com.github.konstantyn111.crashapi.security;
 
+import com.github.konstantyn111.crashapi.entity.Role;
 import com.github.konstantyn111.crashapi.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -27,9 +29,11 @@ public record CustomUserDetails(User user) implements UserDetails {
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
             return Collections.emptyList();
         }
+
         return user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toList());
+                .map(Role::getName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -53,6 +57,7 @@ public record CustomUserDetails(User user) implements UserDetails {
      */
     @Override
     public boolean isAccountNonExpired() {
+        // 没有过期时间字段，默认永不过期
         return true;
     }
 
@@ -61,6 +66,7 @@ public record CustomUserDetails(User user) implements UserDetails {
      */
     @Override
     public boolean isAccountNonLocked() {
+        // 没有锁定字段，默认未锁定
         return true;
     }
 
@@ -69,6 +75,7 @@ public record CustomUserDetails(User user) implements UserDetails {
      */
     @Override
     public boolean isCredentialsNonExpired() {
+        // 没有凭证过期时间字段，默认永不过期
         return true;
     }
 
@@ -93,8 +100,14 @@ public record CustomUserDetails(User user) implements UserDetails {
             return false;
         }
 
-        Date now = new Date();
-        return user.getRefreshTokenExpiry() == null || !user.getRefreshTokenExpiry().before(now);
+        // 如果没有设置过期时间，视为永久有效
+        if (user.getRefreshTokenExpiry() == null) {
+            return true;
+        }
+
+        // 检查令牌是否过期
+        LocalDateTime now = LocalDateTime.now();
+        return !now.isAfter(user.getRefreshTokenExpiry());
     }
 
     /**
@@ -107,8 +120,60 @@ public record CustomUserDetails(User user) implements UserDetails {
     /**
      * 获取刷新令牌过期时间
      */
-    public Date getRefreshTokenExpiry() {
+    public LocalDateTime getRefreshTokenExpiry() {
         return user.getRefreshTokenExpiry();
+    }
+
+    /**
+     * 获取用户ID
+     */
+    public Long getUserId() {
+        return user.getId();
+    }
+
+    /**
+     * 获取用户邮箱
+     */
+    public String getEmail() {
+        return user.getEmail();
+    }
+
+    /**
+     * 获取用户角色名称集合
+     */
+    public Set<String> getRoleNames() {
+        if (user.getRoles() == null) {
+            return Collections.emptySet();
+        }
+        return user.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * 检查用户是否拥有指定角色
+     * @param roleName 角色名称 (如 "ROLE_ADMIN")
+     */
+    public boolean hasRole(String roleName) {
+        if (user.getRoles() == null) {
+            return false;
+        }
+        return user.getRoles().stream()
+                .anyMatch(role -> role.getName().equals(roleName));
+    }
+
+    /**
+     * 获取用户创建时间
+     */
+    public LocalDateTime getCreatedAt() {
+        return user.getCreatedAt();
+    }
+
+    /**
+     * 获取用户最后更新时间
+     */
+    public LocalDateTime getUpdatedAt() {
+        return user.getUpdatedAt();
     }
 
     /**
