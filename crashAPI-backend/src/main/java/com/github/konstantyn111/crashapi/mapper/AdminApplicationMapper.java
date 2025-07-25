@@ -12,7 +12,7 @@ public interface AdminApplicationMapper {
     void insert(AdminApplication application);
     void update(AdminApplication application);
     Optional<AdminApplication> findById(@Param("id") Long id);
-    Optional<AdminApplication> findByIdWithUserInfo(@Param("id") Long id); // 重命名方法
+    Optional<AdminApplication> findByIdWithUserInfo(@Param("id") Long id);
     boolean hasPendingApplication(@Param("userId") Long userId);
     List<AdminApplication> findPendingApplications(
             @Param("limit") int limit,

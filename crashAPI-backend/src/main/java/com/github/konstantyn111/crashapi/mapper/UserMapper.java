@@ -2,6 +2,7 @@ package com.github.konstantyn111.crashapi.mapper;
 
 import com.github.konstantyn111.crashapi.entity.Role;
 import com.github.konstantyn111.crashapi.entity.User;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -29,4 +30,7 @@ public interface UserMapper {
     long countAllUsers();
 
     boolean hasRole(@Param("userId") Long userId, @Param("roleName") String roleName);
+
+    @Delete("DELETE FROM user_roles WHERE user_id = #{userId} AND role_id = #{roleId}")
+    void removeRoleFromUser(@Param("userId") Long userId, @Param("roleId") Long roleId);
 }

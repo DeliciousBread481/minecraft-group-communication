@@ -1,24 +1,15 @@
 package com.github.konstantyn111.crashapi.controller.admin;
 
-import com.github.konstantyn111.crashapi.dto.AdminApplicationDTO;
-import com.github.konstantyn111.crashapi.dto.UserInfo;
+import com.github.konstantyn111.crashapi.dto.*;
+import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
 import com.github.konstantyn111.crashapi.service.admin.DeveloperService;
 import com.github.konstantyn111.crashapi.util.RestResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "开发者管理", description = "开发者专用管理接口")
 @RestController
 @RequestMapping("/api/developer")
 @RequiredArgsConstructor
@@ -26,95 +17,108 @@ public class DeveloperController {
 
     private final DeveloperService developerService;
 
-    @Operation(
-            summary = "获取所有用户",
-            description = "获取系统所有用户的分页列表（开发者专用）",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "成功获取用户列表",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = Page.class)
-                            )
-                    )
-            }
-    )
+    /**
+     * 获取所有用户信息
+     * @param pageable 分页参数
+     * @return 用户信息分页响应
+     */
     @GetMapping("/users")
     @PreAuthorize("hasRole('ROLE_DEV')")
-    public RestResponse<Page<UserInfo>> getAllUsers(
-            @ParameterObject
-            Pageable pageable) {
+    public RestResponse<Page<UserInfo>> getAllUsers(Pageable pageable) {
         return developerService.getAllUsers(pageable);
     }
 
-    @Operation(
-            summary = "提升用户为管理员",
-            description = "直接将用户提升为系统管理员（开发者专用）",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "用户权限提升成功"),
-                    @ApiResponse(responseCode = "404", description = "用户不存在")
-            }
-    )
+    /**
+     * 将普通用户提升为管理员
+     * @param userId 目标用户ID
+     * @return 操作结果
+     */
     @PutMapping("/users/{userId}/promote-to-admin")
     @PreAuthorize("hasRole('ROLE_DEV')")
-    public RestResponse<Void> promoteToAdmin(
-            @Parameter(name = "userId", description = "用户ID", required = true, in = ParameterIn.PATH)
-            @PathVariable Long userId) {
+    public RestResponse<Void> promoteToAdmin(@PathVariable Long userId) {
         return developerService.promoteToAdmin(userId);
     }
 
-    @Operation(
-            summary = "获取待处理申请",
-            description = "获取所有待处理的管理员申请（开发者专用）",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "成功获取申请列表",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = Page.class)))
-            }
-    )
+    /**
+     * 撤销用户的管理员权限
+     * @param userId 目标用户ID
+     * @return 操作结果
+     */
+    @PutMapping("/users/{userId}/revoke-admin")
+    @PreAuthorize("hasRole('ROLE_DEV')")
+    public RestResponse<Void> revokeAdminRole(@PathVariable Long userId) {
+        return developerService.revokeAdminRole(userId);
+    }
+
+    /**
+     * 获取待处理的管理员申请列表
+     * @param pageable 分页参数
+     * @return 申请列表
+     */
     @GetMapping("/admin-applications/pending")
     @PreAuthorize("hasRole('ROLE_DEV')")
-    public RestResponse<Page<AdminApplicationDTO>> getPendingApplications(
-            @ParameterObject // 替代 @ApiIgnore
-            Pageable pageable) {
+    public RestResponse<Page<AdminApplicationDTO>> getPendingApplications(Pageable pageable) {
         return developerService.getPendingApplications(pageable);
     }
 
-    @Operation(
-            summary = "批准管理员申请",
-            description = "批准用户的管理员权限申请（开发者专用）",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "申请已批准"),
-                    @ApiResponse(responseCode = "400", description = "申请状态无效"),
-                    @ApiResponse(responseCode = "404", description = "申请不存在")
-            }
-    )
+    /**
+     * 批准管理员申请
+     * @param applicationId 申请ID
+     * @return 操作结果
+     */
     @PutMapping("/admin-applications/{applicationId}/approve")
     @PreAuthorize("hasRole('ROLE_DEV')")
-    public RestResponse<Void> approveAdminApplication(
-            @Parameter(name = "applicationId", description = "申请ID", required = true, in = ParameterIn.PATH)
-            @PathVariable Long applicationId) {
+    public RestResponse<Void> approveAdminApplication(@PathVariable Long applicationId) {
         return developerService.approveApplication(applicationId);
     }
 
-    @Operation(
-            summary = "拒绝管理员申请",
-            description = "拒绝用户的管理员权限申请（开发者专用）",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "申请已拒绝"),
-                    @ApiResponse(responseCode = "400", description = "申请状态无效"),
-                    @ApiResponse(responseCode = "404", description = "申请不存在")
-            }
-    )
+    /**
+     * 拒绝管理员申请
+     * @param applicationId 申请ID
+     * @param reason 拒绝理由
+     * @return 操作结果
+     */
     @PutMapping("/admin-applications/{applicationId}/reject")
     @PreAuthorize("hasRole('ROLE_DEV')")
     public RestResponse<Void> rejectAdminApplication(
-            @Parameter(name = "applicationId", description = "申请ID", required = true, in = ParameterIn.PATH)
             @PathVariable Long applicationId,
-            @Parameter(name = "reason", description = "拒绝理由", required = true, in = ParameterIn.QUERY)
-            @RequestParam("reason") String reason) {
+            @RequestParam(required = false) String reason) {
         return developerService.rejectApplication(applicationId, reason);
+    }
+
+    /**
+     * 获取待审核的解决方案
+     * @param pageable 分页参数
+     * @return 解决方案列表
+     */
+    @GetMapping("/solutions/pending")
+    @PreAuthorize("hasRole('ROLE_DEV')")
+    public RestResponse<Page<SolutionDTO>> getPendingSolutions(Pageable pageable) {
+        return developerService.getPendingSolutions(pageable);
+    }
+
+    /**
+     * 批准解决方案
+     * @param solutionId 解决方案ID
+     * @return 操作结果
+     */
+    @PutMapping("/solutions/{solutionId}/approve")
+    @PreAuthorize("hasRole('ROLE_DEV')")
+    public RestResponse<Void> approveSolution(@PathVariable String solutionId) {
+        return developerService.approveSolution(solutionId);
+    }
+
+    /**
+     * 拒绝解决方案
+     * @param solutionId 解决方案ID
+     * @param reason 拒绝理由
+     * @return 操作结果
+     */
+    @PutMapping("/solutions/{solutionId}/reject")
+    @PreAuthorize("hasRole('ROLE_DEV')")
+    public RestResponse<Void> rejectSolution(
+            @PathVariable String solutionId,
+            @RequestParam String reason) {
+        return developerService.rejectSolution(solutionId, reason);
     }
 }
