@@ -3,7 +3,7 @@ package com.github.konstantyn111.crashapi.util;
 import lombok.Getter;
 
 /**
- * 业务错误码枚举（全中文消息）
+ * 业务错误码枚举
  */
 @Getter
 public enum ErrorCode {

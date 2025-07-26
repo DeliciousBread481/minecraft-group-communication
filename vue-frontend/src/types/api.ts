@@ -62,3 +62,79 @@ export type AuthApiResponse = ApiResponse<AuthResponseData>;
 export type UserInfoApiResponse = ApiResponse<UserInfoData>;
 export type VoidApiResponse = ApiResponse<void>;
 export type StringApiResponse = ApiResponse<string>;
+
+// ===================== 解决方案相关类型 =====================
+export interface SolutionDTO {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  title: string;
+  difficulty: string;
+  version: string;
+  description: string;
+  notes: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  steps: string[];
+  imageUrls: string[];
+}
+
+export interface SolutionCreateDTO {
+  categoryId: string;
+  title: string;
+  difficulty: string;
+  version: string;
+  description: string;
+  notes: string;
+  steps: string[];
+  imageUrls: string[];
+}
+
+export interface SolutionUpdateDTO {
+  title: string;
+  difficulty: string;
+  version: string;
+  description: string;
+  notes: string;
+  steps: string[];
+  imageUrls: string[];
+}
+
+export interface CategoryDTO {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  color: string;
+}
+
+// ===================== 管理员申请相关类型 =====================
+export interface AdminApplicationDTO {
+  id: number;
+  userId: number;
+  username: string;
+  email: string;
+  status: string;
+  processorUsername: string;
+  createdAt: string;
+  processedAt: string;
+}
+
+// ===================== API响应类型 =====================
+export type SolutionApiResponse = ApiResponse<SolutionDTO>;
+export type SolutionListApiResponse = ApiResponse<PageData<SolutionDTO>>;
+export type CategoryListApiResponse = ApiResponse<CategoryDTO[]>;
+export type AdminApplicationListApiResponse = ApiResponse<PageData<AdminApplicationDTO>>;
+export type AdminApplicationPageApiResponse = ApiResponse<PageData<AdminApplicationDTO>>;
+export type SolutionPageApiResponse = ApiResponse<PageData<SolutionDTO>>;
+export type UserPageApiResponse = ApiResponse<PageData<UserInfoData>>;
+
+// 分页数据结构
+export interface PageData<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  pageNumber: number;
+  pageSize: number;
+}

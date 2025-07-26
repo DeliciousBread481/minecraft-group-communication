@@ -135,9 +135,6 @@ import {
   Setting,
   Warning,
   Connection,
-  Cpu,
-  VideoCamera,
-  Files,
   MagicStick,
   Crop,
   FolderOpened,
@@ -196,27 +193,6 @@ const categories = ref<Category[]>([
     description: '服务器连接、联机问题',
     color: '#67C23A'
   },
-  {
-    id: 'performance',
-    name: '性能问题',
-    icon: Cpu,
-    description: '卡顿、帧数低等问题',
-    color: '#F56C6C'
-  },
-  {
-    id: 'graphics',
-    name: '画面问题',
-    icon: VideoCamera,
-    description: '画面显示异常、渲染问题',
-    color: '#909399'
-  },
-  {
-    id: 'resource',
-    name: '资源问题',
-    icon: Files,
-    description: '材质包、数据包问题',
-    color: '#9c27b0'
-  }
 ])
 
 // 解决方案数据
@@ -266,29 +242,6 @@ const solutions = ref<Solution[]>([
     ]
   },
   {
-    id: 's3',
-    title: '游戏帧数低、卡顿',
-    category: '性能问题',
-    difficulty: '中等',
-    version: '1.18+',
-    updateTime: '2023-10-10',
-    description: '游戏运行时帧数低，出现卡顿现象，尤其是在加载新区块或使用光影时。',
-    steps: [
-      '在视频设置中降低渲染距离（建议8-12区块）',
-      '关闭精美图像和云层选项',
-      '安装性能优化模组（如OptiFine、Sodium或Lithium）',
-      '更新显卡驱动程序到最新版本',
-      '在启动器中分配更多内存（但不要超过系统可用内存的70%）',
-      '关闭后台运行的其他程序释放系统资源',
-      '使用低分辨率资源包'
-    ],
-    notes: '对于1.18+版本，建议至少分配4GB内存，使用SSD硬盘可显著提升区块加载速度',
-    images: [
-      'https://via.placeholder.com/600x300/4a86e8/ffffff?text=Performance+Settings',
-      'https://via.placeholder.com/600x300/4a86e8/ffffff?text=Memory+Allocation'
-    ]
-  },
-  {
     id: 's4',
     title: '模组加载后游戏崩溃',
     category: '模组问题',
@@ -309,50 +262,6 @@ const solutions = ref<Solution[]>([
       'https://via.placeholder.com/600x300/4a86e8/ffffff?text=Mod+Loader'
     ]
   },
-  {
-    id: 's5',
-    title: '游戏画面闪烁或出现异常',
-    category: '画面问题',
-    difficulty: '中等',
-    version: '1.19+',
-    updateTime: '2023-09-28',
-    description: '游戏画面出现闪烁、纹理错误或显示异常。',
-    steps: [
-      '更新显卡驱动程序到最新版本',
-      '在视频设置中关闭抗锯齿和各向异性过滤',
-      '尝试不同的图形模式（如从Fancy切换到Fast）',
-      '重置视频设置到默认值',
-      '删除或更换当前使用的资源包',
-      '检查是否安装了不兼容的光影或模组'
-    ],
-    notes: '如果使用光影包，请尝试更换为其他光影或更新光影包版本',
-    images: [
-      'https://via.placeholder.com/600x300/4a86e8/ffffff?text=Graphics+Error',
-      'https://via.placeholder.com/600x300/4a86e8/ffffff?text=Video+Settings'
-    ]
-  },
-  {
-    id: 's6',
-    title: '材质包无法加载',
-    category: '资源问题',
-    difficulty: '简单',
-    version: '全版本',
-    updateTime: '2023-09-20',
-    description: '材质包无法正确加载，游戏内显示默认材质。',
-    steps: [
-      '检查材质包是否与当前Minecraft版本兼容',
-      '确认材质包文件格式正确（应为.zip文件）',
-      '将材质包放入resourcepacks文件夹',
-      '在游戏内资源包选项中启用该材质包',
-      '检查材质包是否依赖其他资源',
-      '尝试使用其他材质包测试'
-    ],
-    notes: '高分辨率材质包可能需要安装OptiFine才能正确加载',
-    images: [
-      'https://via.placeholder.com/600x300/4a86e8/ffffff?text=Resource+Pack',
-      'https://via.placeholder.com/600x300/4a86e8/ffffff?text=Texture+Settings'
-    ]
-  }
 ])
 
 const searchQuery = ref('')

@@ -4,8 +4,8 @@ import type {
   UserInfoApiResponse,
   VoidApiResponse,
   StringApiResponse,
-  UpdateUserInfo
-} from '@/types/api';
+  UpdateUserInfo, UserInfoData
+} from '@/types/api'
 
 /**
  * 获取当前登录用户信息
@@ -80,44 +80,31 @@ export const updateAvatar = async (file: File): Promise<StringApiResponse> => {
 };
 
 /**
+ * 申请成为管理员
+ * POST /api/user/apply-for-admin
+ * @param reason 申请理由
+ */
+export const applyForAdminRole = async (reason: string): Promise<VoidApiResponse> => {
+  try {
+    const response = await api.post('/user/apply-for-admin', null, {
+      params: { reason }
+    });
+    return handleResponse<void>(response);
+  } catch (error: any) {
+    throw new Error('申请成为管理员失败');
+  }
+};
+
+/**
  * 根据ID获取用户信息（管理员）
- * GET /api/user/{userId}
+ * GET /api/admin/users/{userId}
  * @param userId 用户ID
  */
 export const getUserById = async (userId: number): Promise<UserInfoApiResponse> => {
   try {
-    const response = await api.get(`/user/${userId}`);
+    const response = await api.get(`/admin/users/${userId}`);
     return handleResponse<UserInfoData>(response);
   } catch (error: any) {
     throw new Error('获取用户信息失败');
   }
 };
-
-/**
- * 更新用户角色（管理员）
- * PUT /api/user/{userId}/role
- * @param userId 用户ID
- * @param role 角色标识
- */
-export const updateUserRole = async (userId: number, role: string): Promise<VoidApiResponse> => {
-  try {
-    const response = await api.put(`/user/${userId}/role`, null, {
-      params: { role }
-    });
-    return handleResponse<void>(response);
-  } catch (error: any) {
-    throw new Error('更新用户角色失败');
-  }
-};
-
-interface UserInfoData {
-  id: number;
-  username: string;
-  email: string;
-  nickname?: string;
-  avatar?: string;
-  createdAt: string;
-  updatedAt: string;
-  enabled: boolean;
-  roles?: string[];
-}
