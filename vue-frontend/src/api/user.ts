@@ -94,17 +94,3 @@ export const applyForAdminRole = async (reason: string): Promise<VoidApiResponse
     throw new Error('申请成为管理员失败');
   }
 };
-
-/**
- * 根据ID获取用户信息（管理员）
- * GET /api/admin/users/{userId}
- * @param userId 用户ID
- */
-export const getUserById = async (userId: number): Promise<UserInfoApiResponse> => {
-  try {
-    const response = await api.get(`/admin/users/${userId}`);
-    return handleResponse<UserInfoData>(response);
-  } catch (error: any) {
-    throw new Error('获取用户信息失败');
-  }
-};

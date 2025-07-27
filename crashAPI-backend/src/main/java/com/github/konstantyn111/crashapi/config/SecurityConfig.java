@@ -35,6 +35,8 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/refresh-token",
+
+            //用不了留着看
             "/swagger-ui",
             "/v3/api-docs",
             "/swagger-resources"
@@ -60,13 +62,14 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS.toArray(new String[0])).permitAll()
 
                         // 开发者角色专属端点
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").hasRole("DEV")
                         .requestMatchers("/api/developer/**").hasRole("DEV")
+                        //用不了留着看
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").hasRole("DEV")
 
                         // 管理员角色专属端点
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // 其他所有请求需要认证
+                        //其他请求都需要认证
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

@@ -35,6 +35,17 @@ public class AdminController {
         return adminService.getUserInfoById(userId);
     }
 
+    /**
+     * 撤销指定用户的所有令牌
+     * @param username 需要撤销令牌的用户名
+     * @return 操作结果（无数据返回）
+     */
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/revoke-token")
+    public RestResponse<Void> revokeToken(@RequestParam String username) {
+        return adminService.revokeToken(username);
+    }
+
     // ===================== 解决方案管理接口 =====================
 
     /**
@@ -71,6 +82,17 @@ public class AdminController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public RestResponse<Void> deleteSolution(@PathVariable String solutionId) {
         return adminService.deleteSolution(solutionId);
+    }
+
+    /**
+     * 撤回已发布的解决方案
+     * @param solutionId 解决方案ID
+     * @return 操作结果
+     */
+    @PostMapping("/solutions/{solutionId}/withdraw")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public RestResponse<Void> withdrawSolution(@PathVariable String solutionId) {
+        return adminService.withdrawSolution(solutionId);
     }
 
     /**

@@ -58,14 +58,4 @@ public class AuthController {
     public RestResponse<AuthResponse> refreshToken(@Valid @RequestBody RefreshRequest request) {
         return authService.refreshToken(request);
     }
-
-    /**
-     * 撤销指定用户的所有令牌
-     * @param username 需要撤销令牌的用户名
-     * @return 操作结果（无数据返回）
-     */
-    @PostMapping("/revoke-token")
-    public RestResponse<Void> revokeToken(@RequestParam String username) {
-        return authService.revokeToken(username);
-    }
 }

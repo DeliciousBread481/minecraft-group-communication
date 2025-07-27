@@ -1,4 +1,3 @@
-// SolutionMapper.java
 package com.github.konstantyn111.crashapi.mapper.solution;
 
 import com.github.konstantyn111.crashapi.entity.solution.Solution;

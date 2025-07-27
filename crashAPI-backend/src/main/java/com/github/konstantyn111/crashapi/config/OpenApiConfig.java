@@ -11,6 +11,7 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+//用不了不兼容，留着好看
 @Configuration
 public class OpenApiConfig {
 

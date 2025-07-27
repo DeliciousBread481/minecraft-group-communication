@@ -165,7 +165,7 @@ public enum ErrorCode {
     /** 解决方案分类不匹配 */
     SOLUTION_CATEGORY_MISMATCH(50013, "解决方案分类不匹配");
 
-    /** 业务错误码（全局唯一） */
+    /** 业务错误码 */
     private final int code;
 
     /** 默认错误提示信息（中文） */

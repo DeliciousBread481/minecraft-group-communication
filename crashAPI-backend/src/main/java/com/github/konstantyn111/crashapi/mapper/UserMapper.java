@@ -24,7 +24,6 @@ public interface UserMapper {
     void updateUserInfo(User user);
     Optional<User> findByIdWithRoles(@Param("id") Long id);
     Optional<Role> findRoleByName(@Param("roleName") String roleName);
-    void deleteUserRolesByUserId(@Param("userId") Long userId);
     Optional<User> findById(@Param("id") Long id);
     List<User> findAllWithRolesPaged(@Param("limit") int limit, @Param("offset") int offset);
     long countAllUsers();

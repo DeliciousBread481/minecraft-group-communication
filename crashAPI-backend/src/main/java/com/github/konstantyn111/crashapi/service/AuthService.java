@@ -214,22 +214,6 @@ public class AuthService {
     }
 
     @Transactional
-    public RestResponse<Void> revokeToken(String username) {
-        Optional<User> userOptional = userMapper.findByUsername(username);
-        if (userOptional.isPresent()) {
-            userMapper.updateRefreshToken(
-                    userOptional.get().getId(),
-                    null,
-                    null
-            );
-            return RestResponse.success(null, "令牌已撤销");
-        }
-        throw new BusinessException(ErrorCode.USER_NOT_FOUND,
-                HttpStatus.NOT_FOUND,
-                "用户不存在");
-    }
-
-    @Transactional
     public RestResponse<Void> logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

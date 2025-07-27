@@ -2,6 +2,7 @@ package com.github.konstantyn111.crashapi.controller.admin;
 
 import com.github.konstantyn111.crashapi.dto.*;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
+import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;
 import com.github.konstantyn111.crashapi.service.admin.DeveloperService;
 import com.github.konstantyn111.crashapi.util.RestResponse;
 import lombok.RequiredArgsConstructor;
@@ -120,5 +121,19 @@ public class DeveloperController {
             @PathVariable String solutionId,
             @RequestParam String reason) {
         return developerService.rejectSolution(solutionId, reason);
+    }
+
+    /**
+     * 更新解决方案
+     * @param solutionId 解决方案ID
+     * @param updateDTO 更新数据
+     * @return 更新后的解决方案
+     */
+    @PutMapping("/solutions/{solutionId}")
+    @PreAuthorize("hasRole('ROLE_DEV')")
+    public RestResponse<SolutionDTO> updateSolution(
+            @PathVariable String solutionId,
+            @RequestBody SolutionUpdateDTO updateDTO) {
+        return developerService.updateSolution(solutionId, updateDTO);
     }
 }

@@ -1,26 +1,22 @@
 package com.github.konstantyn111.crashapi.service.admin;
 
-import com.github.konstantyn111.crashapi.dto.*;
+import com.github.konstantyn111.crashapi.dto.UserInfo;
 import com.github.konstantyn111.crashapi.dto.solution.CategoryDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionCreateDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;
-import com.github.konstantyn111.crashapi.entity.*;
+import com.github.konstantyn111.crashapi.entity.User;
 import com.github.konstantyn111.crashapi.entity.solution.Category;
 import com.github.konstantyn111.crashapi.entity.solution.Solution;
-import com.github.konstantyn111.crashapi.entity.solution.SolutionImage;
-import com.github.konstantyn111.crashapi.entity.solution.SolutionStep;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
-import com.github.konstantyn111.crashapi.mapper.*;
+import com.github.konstantyn111.crashapi.mapper.UserMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.CategoryMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionImageMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionStepMapper;
-import com.github.konstantyn111.crashapi.util.RestResponse;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
-import com.github.konstantyn111.crashapi.util.SolutionConvertUtil;
-import com.github.konstantyn111.crashapi.util.UserConvertUtil;
+import com.github.konstantyn111.crashapi.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -33,8 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminService {
@@ -45,8 +43,9 @@ public class AdminService {
     private final SolutionImageMapper solutionImageMapper;
     private final CategoryMapper categoryMapper;
 
-    // 管理员角色常量
     private static final String ADMIN_ROLE = "ROLE_ADMIN";
+
+    // ===================== 用户管理接口 =====================
 
     /**
      * 根据用户ID获取用户信息
@@ -72,6 +71,24 @@ public class AdminService {
                     "获取用户信息失败: " + ex.getMessage());
         }
     }
+
+    @Transactional
+    public RestResponse<Void> revokeToken(String username) {
+        Optional<User> userOptional = userMapper.findByUsername(username);
+        if (userOptional.isPresent()) {
+            userMapper.updateRefreshToken(
+                    userOptional.get().getId(),
+                    null,
+                    null
+            );
+            return RestResponse.success(null, "令牌已撤销");
+        }
+        throw new BusinessException(ErrorCode.USER_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "用户不存在");
+    }
+
+    // ===================== 解决方案管理接口 =====================
 
     /**
      * 创建解决方案（管理员）
@@ -105,27 +122,12 @@ public class AdminService {
 
             solutionMapper.insert(solution);
 
-            // 添加步骤
-            if (createDTO.getSteps() != null && !createDTO.getSteps().isEmpty()) {
-                for (int i = 0; i < createDTO.getSteps().size(); i++) {
-                    SolutionStep step = new SolutionStep();
-                    step.setSolutionId(solution.getId());
-                    step.setStepOrder(i + 1);
-                    step.setContent(createDTO.getSteps().get(i));
-                    solutionStepMapper.insert(step);
-                }
-            }
-
-            // 添加图片
-            if (createDTO.getImageUrls() != null && !createDTO.getImageUrls().isEmpty()) {
-                for (int i = 0; i < createDTO.getImageUrls().size(); i++) {
-                    SolutionImage image = new SolutionImage();
-                    image.setSolutionId(solution.getId());
-                    image.setImageOrder(i + 1);
-                    image.setImageUrl(createDTO.getImageUrls().get(i));
-                    solutionImageMapper.insert(image);
-                }
-            }
+            SolutionUpdateUtil.createSolutionStepsAndImages(
+                    solution,
+                    createDTO,
+                    solutionStepMapper,
+                    solutionImageMapper
+            );
 
             // 使用SolutionConvertUtil转换解决方案
             SolutionDTO dto = SolutionConvertUtil.convertToSolutionDTO(solution);
@@ -162,50 +164,21 @@ public class AdminService {
                         "只能修改自己创建的解决方案");
             }
 
-            // 验证状态（只能修改草稿状态）
-            if (!"草稿".equals(solution.getStatus())) {
+            // 验证状态
+            if (!"草稿".equals(solution.getStatus()) && !"已发布".equals(solution.getStatus())) {
                 throw new BusinessException(ErrorCode.INVALID_SOLUTION_STATUS,
                         HttpStatus.BAD_REQUEST,
-                        "只能修改草稿状态的解决方案");
+                        "只能修改草稿或已撤回的解决方案");
             }
+            SolutionUpdateUtil.updateSolutionCore(
+                    solution,
+                    updateDTO,
+                    solutionMapper,
+                    solutionStepMapper,
+                    solutionImageMapper
+            );
 
-            // 更新解决方案
-            solution.setTitle(updateDTO.getTitle());
-            solution.setDifficulty(updateDTO.getDifficulty());
-            solution.setVersion(updateDTO.getVersion());
-            solution.setDescription(updateDTO.getDescription());
-            solution.setNotes(updateDTO.getNotes());
-            solution.setUpdatedAt(LocalDateTime.now());
-
-            solutionMapper.update(solution);
-
-            // 删除现有步骤和图片
-            solutionStepMapper.deleteBySolutionId(solutionId);
-            solutionImageMapper.deleteBySolutionId(solutionId);
-
-            // 添加新步骤
-            if (updateDTO.getSteps() != null && !updateDTO.getSteps().isEmpty()) {
-                for (int i = 0; i < updateDTO.getSteps().size(); i++) {
-                    SolutionStep step = new SolutionStep();
-                    step.setSolutionId(solutionId);
-                    step.setStepOrder(i + 1);
-                    step.setContent(updateDTO.getSteps().get(i));
-                    solutionStepMapper.insert(step);
-                }
-            }
-
-            // 添加新图片
-            if (updateDTO.getImageUrls() != null && !updateDTO.getImageUrls().isEmpty()) {
-                for (int i = 0; i < updateDTO.getImageUrls().size(); i++) {
-                    SolutionImage image = new SolutionImage();
-                    image.setSolutionId(solutionId);
-                    image.setImageOrder(i + 1);
-                    image.setImageUrl(updateDTO.getImageUrls().get(i));
-                    solutionImageMapper.insert(image);
-                }
-            }
-
-            // 使用SolutionConvertUtil转换解决方案
+            // 转换并返回结果
             SolutionDTO dto = SolutionConvertUtil.convertToSolutionDTO(solution);
             return RestResponse.success(dto, "解决方案更新成功");
         } catch (BusinessException ex) {
@@ -259,6 +232,47 @@ public class AdminService {
             return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ErrorCode.INTERNAL_SERVER_ERROR,
                     "删除解决方案失败: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * 撤回已发布的解决方案（管理员）
+     */
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Transactional
+    public RestResponse<Void> withdrawSolution(String solutionId) {
+        try {
+            // 验证管理员权限
+            User currentAdmin = validateAdminPermissions();
+
+            // 获取解决方案
+            Solution solution = solutionMapper.findById(solutionId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.SOLUTION_NOT_FOUND,
+                            HttpStatus.NOT_FOUND,
+                            "解决方案不存在"));
+            if (!solution.getCreatedBy().equals(currentAdmin.getId())) {
+                throw new BusinessException(ErrorCode.PERMISSION_DENIED,
+                        HttpStatus.FORBIDDEN,
+                        "只能撤回自己创建的解决方案");
+            }
+            if (!"已发布".equals(solution.getStatus())) {
+                throw new BusinessException(ErrorCode.INVALID_SOLUTION_STATUS,
+                        HttpStatus.BAD_REQUEST,
+                        "只能撤回已发布状态的解决方案");
+            }
+
+            // 更新状态
+            solution.setStatus("草稿");
+            solution.setUpdatedAt(LocalDateTime.now());
+            solutionMapper.update(solution);
+
+            return RestResponse.success("解决方案已撤回为草稿状态");
+        } catch (BusinessException ex) {
+            return RestResponse.fail(ex);
+        } catch (Exception ex) {
+            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    ErrorCode.INTERNAL_SERVER_ERROR,
+                    "撤回解决方案失败: " + ex.getMessage());
         }
     }
 
@@ -420,6 +434,7 @@ public class AdminService {
                 .anyMatch(role -> ADMIN_ROLE.equals(role.getName()));
 
         if (!isAdmin) {
+            log.warn("未授权用户访问尝试 ：用户[{}] 尝试访问管理员接口！我会永远永远看着你的~", username);
             throw new BusinessException(ErrorCode.PERMISSION_DENIED,
                     HttpStatus.FORBIDDEN,
                     "只有管理员能执行此操作");

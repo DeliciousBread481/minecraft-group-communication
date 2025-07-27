@@ -3,17 +3,18 @@ package com.github.konstantyn111.crashapi.service.admin;
 import com.github.konstantyn111.crashapi.dto.AdminApplicationDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
 import com.github.konstantyn111.crashapi.dto.UserInfo;
+import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;
 import com.github.konstantyn111.crashapi.entity.*;
 import com.github.konstantyn111.crashapi.entity.solution.Solution;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
 import com.github.konstantyn111.crashapi.mapper.AdminApplicationMapper;
+import com.github.konstantyn111.crashapi.mapper.solution.SolutionImageMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionMapper;
 import com.github.konstantyn111.crashapi.mapper.UserMapper;
-import com.github.konstantyn111.crashapi.util.RestResponse;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
-import com.github.konstantyn111.crashapi.util.SolutionConvertUtil;
-import com.github.konstantyn111.crashapi.util.UserConvertUtil;
+import com.github.konstantyn111.crashapi.mapper.solution.SolutionStepMapper;
+import com.github.konstantyn111.crashapi.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -29,20 +30,25 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeveloperService {
 
     private final SolutionMapper solutionMapper;
+    private final SolutionStepMapper solutionStepMapper;
+    private final SolutionImageMapper solutionImageMapper;
     private final UserMapper userMapper;
     private final AdminApplicationMapper adminApplicationMapper;
 
-    // 开发者角色常量
     private static final String DEVELOPER_ROLE = "ROLE_DEV";
     private static final String ADMIN_ROLE = "ROLE_ADMIN";
 
     /**
-     * 获取所有用户信息（仅开发者）
+     * <p>-- 开发者接口 <p/>
+     * 分页获取所有用户的信息
+     * @param pageable 分页参数
+     * @return 用户信息的分页数据
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional(readOnly = true)
@@ -69,7 +75,9 @@ public class DeveloperService {
     }
 
     /**
-     * 将普通用户提升为管理员（仅开发者）
+     * <p>-- 开发者接口 <p/>
+     * 提升普通用户为管理员
+     * @param userId 目标用户ID
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional
@@ -109,7 +117,9 @@ public class DeveloperService {
     }
 
     /**
-     * 撤销管理员权限（仅开发者）
+     * <p>-- 开发者接口 <p/>
+     * 撤销用户的管理员权限
+     * @param userId 目标用户ID
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional
@@ -148,7 +158,10 @@ public class DeveloperService {
     }
 
     /**
-     * 获取待处理的管理员申请（仅开发者）
+     * <p>-- 开发者接口 <p/>
+     * 分页获取待处理的管理员申请
+     * @param pageable 分页参数
+     * @return 申请管理员的分页数据
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional(readOnly = true)
@@ -173,7 +186,9 @@ public class DeveloperService {
     }
 
     /**
-     * 批准管理员申请（仅开发者）
+     * <p>-- 开发者接口 <p/>
+     * 批准管理员申请
+     * @param applicationId 申请记录ID
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional
@@ -227,7 +242,10 @@ public class DeveloperService {
     }
 
     /**
-     * 拒绝管理员申请（仅开发者）
+     * <p>-- 开发者接口 <p/>
+     * 拒绝管理员申请
+     * @param applicationId 申请记录ID
+     * @param reason 拒绝原因 <可选参数>
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional
@@ -266,31 +284,10 @@ public class DeveloperService {
     }
 
     /**
-     * 验证当前用户是否为开发者并返回用户实体
-     */
-    private User validateDeveloperPermissions() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userMapper.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
-                        HttpStatus.NOT_FOUND,
-                        "当前用户不存在"));
-
-        // 检查开发者权限
-        boolean isDeveloper = currentUser.getRoles().stream()
-                .anyMatch(role -> DEVELOPER_ROLE.equals(role.getName()));
-
-        if (!isDeveloper) {
-            throw new BusinessException(ErrorCode.PERMISSION_DENIED,
-                    HttpStatus.FORBIDDEN,
-                    "只有开发者能执行此操作");
-        }
-
-        return currentUser;
-    }
-
-    /**
-     * 获取待审核的解决方案
+     * <p>-- 开发者接口 <p/>
+     * 分页获取待审核的解决方案
+     * @param pageable 分页参数
+     * @return 解决方案的分页数据
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional(readOnly = true)
@@ -319,7 +316,9 @@ public class DeveloperService {
     }
 
     /**
+     * <p>-- 开发者接口 <p/>
      * 批准解决方案
+     * @param solutionId 解决方案ID
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional
@@ -357,7 +356,10 @@ public class DeveloperService {
     }
 
     /**
+     * <p>-- 开发者接口 <p/>
      * 拒绝解决方案
+     * @param solutionId 解决方案ID
+     * @param reason 拒绝原因
      */
     @PreAuthorize("hasRole('ROLE_DEV')")
     @Transactional
@@ -380,7 +382,7 @@ public class DeveloperService {
 
             // 更新状态为草稿并添加拒绝理由
             solution.setStatus("草稿");
-            solution.setNotes("审核拒绝原因: " + reason);
+            solution.setNotes(reason != null ? reason : "解决方案不符合格式");
             solution.setReviewedBy(currentDev.getId());
             solution.setUpdatedAt(LocalDateTime.now());
             solutionMapper.update(solution);
@@ -396,7 +398,51 @@ public class DeveloperService {
     }
 
     /**
+     * <p>-- 开发者接口 <p/>
+     * 更新任何已发布的解决方案
+     * @param solutionId 解决方案ID
+     * @param updateDTO 更新数据
+     * @return 更新后的解决方案DTO
+     */
+    @PreAuthorize("hasRole('ROLE_DEV')")
+    @Transactional
+    public RestResponse<SolutionDTO> updateSolution(String solutionId, SolutionUpdateDTO updateDTO) {
+        try {
+            validateDeveloperPermissions();
+            Solution solution = solutionMapper.findById(solutionId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.SOLUTION_NOT_FOUND,
+                            HttpStatus.NOT_FOUND,
+                            "解决方案不存在"));
+            //验证状态
+            if (!"已发布".equals(solution.getStatus())) {
+                throw new BusinessException(ErrorCode.INVALID_SOLUTION_STATUS,
+                        HttpStatus.BAD_REQUEST,
+                        "只能修改已发布状态的解决方案");
+            }
+
+            //更新解决方案核心数据
+            SolutionUpdateUtil.updateSolutionCore(
+                    solution,
+                    updateDTO,
+                    solutionMapper,
+                    solutionStepMapper,
+                    solutionImageMapper
+            );
+            SolutionDTO dto = SolutionConvertUtil.convertToSolutionDTO(solution);
+            return RestResponse.success(dto, "解决方案更新成功");
+        } catch (BusinessException ex) {
+            return RestResponse.fail(ex);
+        } catch (Exception ex) {
+            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    ErrorCode.INTERNAL_SERVER_ERROR,
+                    "更新解决方案失败: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * <p>-- 内部方法 <p/>
      * 添加开发者角色（仅超级管理员使用，非API）
+     * @param userId 目标用户ID
      */
     @Transactional
     protected void addDeveloperRole(Long userId) {
@@ -405,5 +451,30 @@ public class DeveloperService {
                         HttpStatus.BAD_REQUEST,
                         "开发者角色不存在"));
         userMapper.addRoleToUser(userId, devRole.getId());
+    }
+
+    /**
+     * <p>-- 内部方法 <p/>
+     * 验证当前用户是否为开发者并返回用户实体
+     */
+    private User validateDeveloperPermissions() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userMapper.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
+                        HttpStatus.NOT_FOUND,
+                        "当前用户不存在"));
+
+        boolean isDeveloper = currentUser.getRoles().stream()
+                .anyMatch(role -> DEVELOPER_ROLE.equals(role.getName()));
+
+        if (!isDeveloper) {
+            log.warn("未授权用户访问尝试 ：用户[{}] 尝试访问开发者接口！我会永远永远看着你的~", username);
+            throw new BusinessException(ErrorCode.PERMISSION_DENIED,
+                    HttpStatus.FORBIDDEN,
+                    "只有开发者能执行此操作");
+        }
+
+        return currentUser;
     }
 }

@@ -7,8 +7,14 @@ import org.springframework.http.HttpStatus;
 /**
  * 统一API响应封装类
  * <p>
- * 标准化API响应格式，包含操作状态、业务码和结构化数据
- *
+ * 标准化API响应格式
+ *{
+    success: bool
+    status: int
+    code: int
+    message: String
+    data: obj
+ *}
  * @param <T> 响应数据的类型
  */
 @Data
@@ -78,16 +84,6 @@ public class RestResponse<T> {
                 errorCode.getCode(),
                 message != null ? message : errorCode.getMessage(),
                 null);
-    }
-
-    /**
-     * 创建失败响应（使用错误码默认信息）
-     * @param httpStatus HTTP状态码
-     * @param errorCode 业务错误码
-     * @return 标准化错误响应
-     */
-    public static <T> RestResponse<T> fail(int httpStatus, ErrorCode errorCode) {
-        return fail(httpStatus, errorCode, null);
     }
 
     /**

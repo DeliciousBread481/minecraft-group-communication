@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 public class SolutionConvertUtil {
 
     private static CategoryMapper categoryMapper;
-    private static SolutionStepMapper solutionStepMapper;
-    private static SolutionImageMapper solutionImageMapper;
+    public static SolutionStepMapper solutionStepMapper;
+    public static SolutionImageMapper solutionImageMapper;
 
     @Autowired
     public SolutionConvertUtil(
