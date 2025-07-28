@@ -1,4 +1,4 @@
-package com.github.konstantyn111.crashapi.util;
+package com.github.konstantyn111.crashapi.util.admin;
 
 import com.github.konstantyn111.crashapi.dto.solution.SolutionCreateDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;

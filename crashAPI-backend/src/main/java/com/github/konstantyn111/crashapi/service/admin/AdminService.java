@@ -15,6 +15,7 @@ import com.github.konstantyn111.crashapi.mapper.solution.SolutionImageMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionStepMapper;
 import com.github.konstantyn111.crashapi.util.*;
+import com.github.konstantyn111.crashapi.util.admin.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,8 +23,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,25 +42,18 @@ public class AdminService {
     private final SolutionImageMapper solutionImageMapper;
     private final CategoryMapper categoryMapper;
 
-    private static final String ADMIN_ROLE = "ROLE_ADMIN";
-
-    // ===================== 用户管理接口 =====================
-
     /**
-     * 根据用户ID获取用户信息
+     * <p> ---- 管理员接口 ---- <p/>
+     * 根据ID获取用户信息
+     * @param userId 用户ID
+     * @return 用户信息DTO
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public RestResponse<UserInfo> getUserInfoById(Long userId) {
         try {
-            // 验证管理员权限
-            validateAdminPermissions();
-
-            User user = userMapper.findByIdWithRoles(userId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
-                            HttpStatus.NOT_FOUND,
-                            "用户不存在"));
-
+            SecurityUtils.validateAdminPermissions(userMapper);
+            User user = ValidationUtils.validateUserExists(userMapper, userId, "");
             return RestResponse.success(UserConvertUtil.convertToUserInfo(user), "获取用户信息成功");
         } catch (BusinessException ex) {
             return RestResponse.fail(ex);
@@ -72,6 +64,12 @@ public class AdminService {
         }
     }
 
+    /**
+     * <p> ---- 管理员接口 ---- <p/>
+     * 撤销用户令牌
+     * @param username 用户名
+     * @return API响应结果
+     */
     @Transactional
     public RestResponse<Void> revokeToken(String username) {
         Optional<User> userOptional = userMapper.findByUsername(username);
@@ -88,34 +86,30 @@ public class AdminService {
                 "用户不存在");
     }
 
-    // ===================== 解决方案管理接口 =====================
-
     /**
-     * 创建解决方案（管理员）
+     * <p> ---- 管理员接口 ---- <p/>
+     * 创建解决方案
+     * @param createDTO 创建数据
+     * @return 创建的解决方案DTO
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional
     public RestResponse<SolutionDTO> createSolution(SolutionCreateDTO createDTO) {
         try {
-            // 验证管理员权限
-            User currentAdmin = validateAdminPermissions();
+            User currentAdmin = SecurityUtils.validateAdminPermissions(userMapper);
 
-            // 验证分类是否存在
-            Category category = categoryMapper.findById(createDTO.getCategoryId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND,
-                            HttpStatus.NOT_FOUND,
-                            "问题分类不存在"));
+            Category category = ValidationUtils.validateCategoryExists(
+                    categoryMapper, createDTO.getCategoryId());
 
-            // 创建解决方案
             Solution solution = new Solution();
-            solution.setId(generateSolutionId());
+            solution.setId(SolutionUtils.generateSolutionId());
             solution.setCategoryId(createDTO.getCategoryId());
             solution.setTitle(createDTO.getTitle());
             solution.setDifficulty(createDTO.getDifficulty());
             solution.setVersion(createDTO.getVersion());
             solution.setDescription(createDTO.getDescription());
             solution.setNotes(createDTO.getNotes());
-            solution.setStatus("草稿"); // 初始状态为草稿
+            solution.setStatus(SolutionStatus.DRAFT);
             solution.setCreatedBy(currentAdmin.getId());
             solution.setCreatedAt(LocalDateTime.now());
             solution.setUpdatedAt(LocalDateTime.now());
@@ -129,7 +123,6 @@ public class AdminService {
                     solutionImageMapper
             );
 
-            // 使用SolutionConvertUtil转换解决方案
             SolutionDTO dto = SolutionConvertUtil.convertToSolutionDTO(solution);
             return RestResponse.success(dto, "解决方案创建成功");
         } catch (BusinessException ex) {
@@ -142,34 +135,28 @@ public class AdminService {
     }
 
     /**
-     * 更新解决方案（管理员）
+     * <p> ---- 管理员接口 ---- <p/>
+     * 更新解决方案
+     * @param solutionId 解决方案ID
+     * @param updateDTO 更新数据
+     * @return 更新后的解决方案DTO
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional
     public RestResponse<SolutionDTO> updateSolution(String solutionId, SolutionUpdateDTO updateDTO) {
         try {
-            // 验证管理员权限
-            User currentAdmin = validateAdminPermissions();
+            User currentAdmin = SecurityUtils.validateAdminPermissions(userMapper);
+            Solution solution = ValidationUtils.validateSolutionExists(solutionMapper, solutionId);
 
-            // 获取现有解决方案
-            Solution solution = solutionMapper.findById(solutionId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.SOLUTION_NOT_FOUND,
-                            HttpStatus.NOT_FOUND,
-                            "解决方案不存在"));
+            ValidationUtils.validateSolutionOwnership(solution, currentAdmin, "修改");
 
-            // 验证解决方案创建者
-            if (!solution.getCreatedBy().equals(currentAdmin.getId())) {
-                throw new BusinessException(ErrorCode.PERMISSION_DENIED,
-                        HttpStatus.FORBIDDEN,
-                        "只能修改自己创建的解决方案");
-            }
-
-            // 验证状态
-            if (!"草稿".equals(solution.getStatus()) && !"已发布".equals(solution.getStatus())) {
+            if (!SolutionStatus.DRAFT.equals(solution.getStatus()) &&
+                    !SolutionStatus.PUBLISHED.equals(solution.getStatus())) {
                 throw new BusinessException(ErrorCode.INVALID_SOLUTION_STATUS,
                         HttpStatus.BAD_REQUEST,
-                        "只能修改草稿或已撤回的解决方案");
+                        "只能修改草稿或已发布状态的解决方案");
             }
+
             SolutionUpdateUtil.updateSolutionCore(
                     solution,
                     updateDTO,
@@ -178,7 +165,6 @@ public class AdminService {
                     solutionImageMapper
             );
 
-            // 转换并返回结果
             SolutionDTO dto = SolutionConvertUtil.convertToSolutionDTO(solution);
             return RestResponse.success(dto, "解决方案更新成功");
         } catch (BusinessException ex) {
@@ -191,36 +177,26 @@ public class AdminService {
     }
 
     /**
-     * 删除解决方案（管理员）
+     * <p> ---- 管理员接口 ---- <p/>
+     * 删除解决方案
+     * @param solutionId 解决方案ID
+     * @return API响应结果
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional
     public RestResponse<Void> deleteSolution(String solutionId) {
         try {
-            // 验证管理员权限
-            User currentAdmin = validateAdminPermissions();
+            User currentAdmin = SecurityUtils.validateAdminPermissions(userMapper);
+            Solution solution = ValidationUtils.validateSolutionExists(solutionMapper, solutionId);
 
-            // 获取解决方案
-            Solution solution = solutionMapper.findById(solutionId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.SOLUTION_NOT_FOUND,
-                            HttpStatus.NOT_FOUND,
-                            "解决方案不存在"));
+            ValidationUtils.validateSolutionOwnership(solution, currentAdmin, "删除");
 
-            // 验证解决方案创建者
-            if (!solution.getCreatedBy().equals(currentAdmin.getId())) {
-                throw new BusinessException(ErrorCode.PERMISSION_DENIED,
-                        HttpStatus.FORBIDDEN,
-                        "只能删除自己创建的解决方案");
-            }
-
-            // 验证状态（只能删除草稿状态）
-            if (!"草稿".equals(solution.getStatus())) {
+            if (!SolutionStatus.DRAFT.equals(solution.getStatus())) {
                 throw new BusinessException(ErrorCode.INVALID_SOLUTION_STATUS,
                         HttpStatus.BAD_REQUEST,
                         "只能删除草稿状态的解决方案");
             }
 
-            // 删除解决方案及相关数据
             solutionStepMapper.deleteBySolutionId(solutionId);
             solutionImageMapper.deleteBySolutionId(solutionId);
             solutionMapper.delete(solutionId);
@@ -236,34 +212,21 @@ public class AdminService {
     }
 
     /**
-     * 撤回已发布的解决方案（管理员）
+     * <p> ---- 管理员接口 ---- <p/>
+     * 撤回已发布解决方案
+     * @param solutionId 解决方案ID
+     * @return API响应结果
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional
     public RestResponse<Void> withdrawSolution(String solutionId) {
         try {
-            // 验证管理员权限
-            User currentAdmin = validateAdminPermissions();
+            User currentAdmin = SecurityUtils.validateAdminPermissions(userMapper);
+            Solution solution = ValidationUtils.validateSolutionExists(solutionMapper, solutionId);
 
-            // 获取解决方案
-            Solution solution = solutionMapper.findById(solutionId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.SOLUTION_NOT_FOUND,
-                            HttpStatus.NOT_FOUND,
-                            "解决方案不存在"));
-            if (!solution.getCreatedBy().equals(currentAdmin.getId())) {
-                throw new BusinessException(ErrorCode.PERMISSION_DENIED,
-                        HttpStatus.FORBIDDEN,
-                        "只能撤回自己创建的解决方案");
-            }
-            if (!"已发布".equals(solution.getStatus())) {
-                throw new BusinessException(ErrorCode.INVALID_SOLUTION_STATUS,
-                        HttpStatus.BAD_REQUEST,
-                        "只能撤回已发布状态的解决方案");
-            }
+            ValidationUtils.validateSolutionOwnership(solution, currentAdmin, "撤回");
 
-            // 更新状态
-            solution.setStatus("草稿");
-            solution.setUpdatedAt(LocalDateTime.now());
+            SolutionStateUtils.transitionState(solution, SolutionStateUtils.SolutionStateAction.WITHDRAW, null);
             solutionMapper.update(solution);
 
             return RestResponse.success("解决方案已撤回为草稿状态");
@@ -277,38 +240,21 @@ public class AdminService {
     }
 
     /**
-     * 提交解决方案审核（管理员）
+     * <p> ---- 管理员接口 ---- <p/>
+     * 提交解决方案审核
+     * @param solutionId 解决方案ID
+     * @return API响应结果
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional
     public RestResponse<Void> submitSolutionForReview(String solutionId) {
         try {
-            // 验证管理员权限
-            User currentAdmin = validateAdminPermissions();
+            User currentAdmin = SecurityUtils.validateAdminPermissions(userMapper);
+            Solution solution = ValidationUtils.validateSolutionExists(solutionMapper, solutionId);
 
-            // 获取解决方案
-            Solution solution = solutionMapper.findById(solutionId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.SOLUTION_NOT_FOUND,
-                            HttpStatus.NOT_FOUND,
-                            "解决方案不存在"));
+            ValidationUtils.validateSolutionOwnership(solution, currentAdmin, "提交");
 
-            // 验证解决方案创建者
-            if (!solution.getCreatedBy().equals(currentAdmin.getId())) {
-                throw new BusinessException(ErrorCode.PERMISSION_DENIED,
-                        HttpStatus.FORBIDDEN,
-                        "只能提交自己创建的解决方案");
-            }
-
-            // 验证状态（只能从草稿状态提交）
-            if (!"草稿".equals(solution.getStatus())) {
-                throw new BusinessException(ErrorCode.INVALID_SOLUTION_STATUS,
-                        HttpStatus.BAD_REQUEST,
-                        "只能提交草稿状态的解决方案");
-            }
-
-            // 更新状态为待审核
-            solution.setStatus("待审核");
-            solution.setUpdatedAt(LocalDateTime.now());
+            SolutionStateUtils.transitionState(solution, SolutionStateUtils.SolutionStateAction.SUBMIT_FOR_REVIEW, null);
             solutionMapper.update(solution);
 
             return RestResponse.success("解决方案已提交审核");
@@ -322,16 +268,18 @@ public class AdminService {
     }
 
     /**
-     * 获取管理员创建的解决方案列表
+     * <p> ---- 管理员接口 ---- <p/>
+     * 分页获取管理员创建的解决方案
+     * @param pageable 分页参数
+     * @param status 解决方案状态/可以为空
+     * @return 解决方案分页数据
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public RestResponse<Page<SolutionDTO>> getMySolutions(Pageable pageable, String status) {
         try {
-            // 验证管理员权限
-            User currentAdmin = validateAdminPermissions();
+            User currentAdmin = SecurityUtils.validateAdminPermissions(userMapper);
 
-            // 查询解决方案
             List<Solution> solutions = solutionMapper.findByCreator(
                     currentAdmin.getId(),
                     status,
@@ -341,9 +289,7 @@ public class AdminService {
 
             long total = solutionMapper.countByCreator(currentAdmin.getId(), status);
 
-            // 使用SolutionConvertUtil转换解决方案列表
             List<SolutionDTO> dtos = SolutionConvertUtil.convertToSolutionDTOList(solutions);
-
             Page<SolutionDTO> page = new PageImpl<>(dtos, pageable, total);
             return RestResponse.success(page, "获取解决方案列表成功");
         } catch (BusinessException ex) {
@@ -356,21 +302,18 @@ public class AdminService {
     }
 
     /**
-     * 获取解决方案详情
+     * <p> ---- 管理员接口 ---- <p/>
+     * 根据ID获取解决方案详情
+     * @param solutionId 解决方案ID
+     * @return 解决方案DTO
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public RestResponse<SolutionDTO> getSolutionById(String solutionId) {
         try {
-            // 验证管理员权限
-            validateAdminPermissions();
+            SecurityUtils.validateAdminPermissions(userMapper);
+            Solution solution = ValidationUtils.validateSolutionExists(solutionMapper, solutionId);
 
-            Solution solution = solutionMapper.findById(solutionId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.SOLUTION_NOT_FOUND,
-                            HttpStatus.NOT_FOUND,
-                            "解决方案不存在"));
-
-            // 使用SolutionConvertUtil转换解决方案
             SolutionDTO dto = SolutionConvertUtil.convertToSolutionDTO(solution);
             return RestResponse.success(dto, "获取解决方案成功");
         } catch (BusinessException ex) {
@@ -383,14 +326,15 @@ public class AdminService {
     }
 
     /**
+     * <p> ---- 管理员接口 ---- <p/>
      * 获取所有问题分类
+     * @return 分类列表
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public RestResponse<List<CategoryDTO>> getAllCategories() {
         try {
-            // 验证管理员权限
-            validateAdminPermissions();
+            SecurityUtils.validateAdminPermissions(userMapper);
 
             List<Category> categories = categoryMapper.findAll();
 
@@ -414,39 +358,5 @@ public class AdminService {
                     ErrorCode.INTERNAL_SERVER_ERROR,
                     "获取分类列表失败: " + ex.getMessage());
         }
-    }
-
-    // ============= 私有方法 ============= //
-
-    /**
-     * 验证当前用户是否为管理员并返回用户实体
-     */
-    private User validateAdminPermissions() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userMapper.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
-                        HttpStatus.NOT_FOUND,
-                        "当前用户不存在"));
-
-        // 检查管理员权限
-        boolean isAdmin = currentUser.getRoles().stream()
-                .anyMatch(role -> ADMIN_ROLE.equals(role.getName()));
-
-        if (!isAdmin) {
-            log.warn("未授权用户访问尝试 ：用户[{}] 尝试访问管理员接口！我会永远永远看着你的~", username);
-            throw new BusinessException(ErrorCode.PERMISSION_DENIED,
-                    HttpStatus.FORBIDDEN,
-                    "只有管理员能执行此操作");
-        }
-
-        return currentUser;
-    }
-
-    /**
-     * 生成解决方案ID
-     */
-    private String generateSolutionId() {
-        return "s" + System.currentTimeMillis() + (int)(Math.random() * 1000);
     }
 }
