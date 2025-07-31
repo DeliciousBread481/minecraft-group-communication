@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.announcement.AnnouncementImageMapper">
+
+    <resultMap id="ImageMap" type="com.github.konstantyn111.crashapi.entity.announcement.AnnouncementImage">
+        <id property="itemId" column="item_id"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="caption" column="caption"/>
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO announcement_images (item_id, image_url, caption)
+        VALUES (#{itemId}, #{imageUrl}, #{caption})
+    </insert>
+
+    <update id="update">
+        UPDATE announcement_images
+        SET image_url = #{imageUrl},
+            caption = #{caption}
+        WHERE item_id = #{itemId}
+    </update>
+
+    <select id="findByItemId" resultMap="ImageMap">
+        SELECT * FROM announcement_images WHERE item_id = #{itemId}
+    </select>
+
+    <delete id="delete">
+        DELETE FROM announcement_images WHERE item_id = #{itemId}
+    </delete>
+</mapper>

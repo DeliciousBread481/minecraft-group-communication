@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.announcement.AnnouncementMapper">
+
+    <resultMap id="AnnouncementMap" type="com.github.konstantyn111.crashapi.entity.announcement.Announcement">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="lastUpdated" column="last_updated"/>
+        <result property="lastUpdatedBy" column="last_updated_by"/>
+    </resultMap>
+
+    <select id="findById" resultMap="AnnouncementMap">
+        SELECT * FROM announcements WHERE id = #{id}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO announcements (id, title, last_updated, last_updated_by)
+        VALUES (#{id}, #{title}, #{lastUpdated}, #{lastUpdatedBy})
+    </insert>
+
+    <update id="update">
+        UPDATE announcements
+        SET title = #{title},
+            last_updated = #{lastUpdated},
+            last_updated_by = #{lastUpdatedBy}
+        WHERE id = #{id}
+    </update>
+</mapper>

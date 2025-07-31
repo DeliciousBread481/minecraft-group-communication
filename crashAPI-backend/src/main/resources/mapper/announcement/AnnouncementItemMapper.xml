@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.announcement.AnnouncementItemMapper">
+
+    <resultMap id="ItemMap" type="com.github.konstantyn111.crashapi.entity.announcement.AnnouncementItem">
+        <id property="id" column="id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="itemType" column="item_type"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="lastUpdatedBy" column="last_updated_by"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findByCategoryIdOrdered" resultMap="ItemMap">
+        SELECT *
+        FROM announcement_items
+        WHERE category_id = #{categoryId}
+        ORDER BY sort_order
+    </select>
+
+    <select id="findById" resultMap="ItemMap">
+        SELECT * FROM announcement_items WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO announcement_items (category_id, item_type, sort_order, last_updated_by, created_at)
+        VALUES (#{categoryId}, #{itemType}, #{sortOrder}, #{lastUpdatedBy}, #{createdAt})
+    </insert>
+
+    <update id="update">
+        UPDATE announcement_items
+        SET category_id = #{categoryId},
+            item_type = #{itemType},
+            sort_order = #{sortOrder},
+            last_updated_by = #{lastUpdatedBy}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM announcement_items WHERE id = #{id}
+    </delete>
+
+    <select id="countByCategoryId" resultType="int">
+        SELECT COUNT(*) FROM announcement_items WHERE category_id = #{categoryId}
+    </select>
+</mapper>
