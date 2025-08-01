@@ -50,4 +50,31 @@ public interface SolutionMapper {
 
     @Select("SELECT COUNT(*) FROM solutions WHERE status = #{status}")
     int countByStatus(@Param("status") String status);
+
+    /**
+     * 查询已发布的解决方案（分页!）
+     */
+    @Select("SELECT * FROM solutions WHERE status = #{status} " +
+            "AND (#{categoryId} IS NULL OR category_id = #{categoryId}) " +
+            "ORDER BY updated_at DESC " +
+            "LIMIT #{limit} OFFSET #{offset}")
+    List<Solution> findPublishedSolutions(@Param("status") String status,
+                                          @Param("categoryId") String categoryId,
+                                          @Param("limit") int limit,
+                                          @Param("offset") int offset);
+
+    /**
+     * 统计已发布的解决方案数量
+     */
+    @Select("SELECT COUNT(*) FROM solutions WHERE status = #{status} " +
+            "AND (#{categoryId} IS NULL OR category_id = #{categoryId})")
+    int countPublishedSolutions(@Param("status") String status,
+                                @Param("categoryId") String categoryId);
+
+    /**
+     * 根据ID查询已发布的解决方案
+     */
+    @Select("SELECT * FROM solutions WHERE id = #{solutionId} AND status = #{status}")
+    Optional<Solution> findPublishedById(@Param("solutionId") String solutionId,
+                                         @Param("status") String status);
 }

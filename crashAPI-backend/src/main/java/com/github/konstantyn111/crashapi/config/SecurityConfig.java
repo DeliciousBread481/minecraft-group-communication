@@ -36,6 +36,11 @@ public class SecurityConfig {
             "/api/auth/register",
             "/api/auth/refresh-token",
 
+            // 解决方案公共端点
+            "/api/solutions/categories",
+            "/api/solutions",
+            "/api/solutions/*",
+
             //用不了留着看
             "/swagger-ui",
             "/v3/api-docs",

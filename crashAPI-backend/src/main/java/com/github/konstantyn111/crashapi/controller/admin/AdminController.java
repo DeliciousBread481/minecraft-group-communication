@@ -1,7 +1,6 @@
 package com.github.konstantyn111.crashapi.controller.admin;
 
 import com.github.konstantyn111.crashapi.dto.*;
-import com.github.konstantyn111.crashapi.dto.solution.CategoryDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionCreateDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;
@@ -10,10 +9,9 @@ import com.github.konstantyn111.crashapi.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -22,124 +20,88 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    // ===================== 用户管理接口 =====================
-
     /**
      * 根据ID获取用户信息
-     * @param userId 目标用户ID
-     * @return 用户信息响应
      */
-    @GetMapping("/users/{userId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<UserInfo> getUserById(@PathVariable Long userId) {
-        return adminService.getUserInfoById(userId);
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<RestResponse<UserInfo>> getUserInfoById(@PathVariable Long userId) {
+        return ResponseEntity.ok(adminService.getUserInfoById(userId));
     }
 
     /**
-     * 撤销指定用户的所有令牌
-     * @param username 需要撤销令牌的用户名
-     * @return 操作结果（无数据返回）
+     * 撤销用户令牌
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("/revoke-token")
-    public RestResponse<Void> revokeToken(@RequestParam String username) {
-        return adminService.revokeToken(username);
+    @PostMapping("/users/revoke-token")
+    public ResponseEntity<RestResponse<Void>> revokeToken(@RequestParam String username) {
+        return ResponseEntity.ok(adminService.revokeToken(username));
     }
-
-    // ===================== 解决方案管理接口 =====================
 
     /**
      * 创建解决方案
-     * @param createDTO 解决方案创建DTO
-     * @return 创建的解决方案DTO
      */
-    @PostMapping("/solutions")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<SolutionDTO> createSolution(@RequestBody SolutionCreateDTO createDTO) {
-        return adminService.createSolution(createDTO);
+    @PostMapping("/solutions")
+    public ResponseEntity<RestResponse<SolutionDTO>> createSolution(@RequestBody SolutionCreateDTO createDTO) {
+        return ResponseEntity.ok(adminService.createSolution(createDTO));
     }
 
     /**
      * 更新解决方案
-     * @param solutionId 解决方案ID
-     * @param updateDTO 解决方案更新DTO
-     * @return 更新后的解决方案DTO
      */
-    @PutMapping("/solutions/{solutionId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<SolutionDTO> updateSolution(
+    @PutMapping("/solutions/{solutionId}")
+    public ResponseEntity<RestResponse<SolutionDTO>> updateSolution(
             @PathVariable String solutionId,
             @RequestBody SolutionUpdateDTO updateDTO) {
-        return adminService.updateSolution(solutionId, updateDTO);
+        return ResponseEntity.ok(adminService.updateSolution(solutionId, updateDTO));
     }
 
     /**
      * 删除解决方案
-     * @param solutionId 解决方案ID
-     * @return 删除结果
      */
-    @DeleteMapping("/solutions/{solutionId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<Void> deleteSolution(@PathVariable String solutionId) {
-        return adminService.deleteSolution(solutionId);
+    @DeleteMapping("/solutions/{solutionId}")
+    public ResponseEntity<RestResponse<Void>> deleteSolution(@PathVariable String solutionId) {
+        return ResponseEntity.ok(adminService.deleteSolution(solutionId));
     }
 
     /**
-     * 撤回已发布的解决方案
-     * @param solutionId 解决方案ID
-     * @return 操作结果
+     * 撤回已发布解决方案
      */
-    @PostMapping("/solutions/{solutionId}/withdraw")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<Void> withdrawSolution(@PathVariable String solutionId) {
-        return adminService.withdrawSolution(solutionId);
+    @PostMapping("/solutions/{solutionId}/withdraw")
+    public ResponseEntity<RestResponse<Void>> withdrawSolution(@PathVariable String solutionId) {
+        return ResponseEntity.ok(adminService.withdrawSolution(solutionId));
     }
 
     /**
      * 提交解决方案审核
-     * @param solutionId 解决方案ID
-     * @return 提交结果
      */
-    @PostMapping("/solutions/{solutionId}/submit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<Void> submitSolutionForReview(@PathVariable String solutionId) {
-        return adminService.submitSolutionForReview(solutionId);
+    @PostMapping("/solutions/{solutionId}/submit-review")
+    public ResponseEntity<RestResponse<Void>> submitSolutionForReview(@PathVariable String solutionId) {
+        return ResponseEntity.ok(adminService.submitSolutionForReview(solutionId));
     }
 
     /**
-     * 获取管理员创建的解决方案列表
-     * @param pageable 分页参数
-     * @param status 解决方案状态（可选）
-     * @return 解决方案分页列表
+     * 分页获取管理员创建的解决方案
      */
-    @GetMapping("/solutions")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<Page<SolutionDTO>> getMySolutions(
+    @GetMapping("/solutions/my")
+    public ResponseEntity<RestResponse<Page<SolutionDTO>>> getMySolutions(
             Pageable pageable,
             @RequestParam(required = false) String status) {
-        return adminService.getMySolutions(pageable, status);
+        return ResponseEntity.ok(adminService.getMySolutions(pageable, status));
     }
 
     /**
-     * 获取解决方案详情
-     * @param solutionId 解决方案ID
-     * @return 解决方案详情
+     * 根据ID获取解决方案详情
      */
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/solutions/{solutionId}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<SolutionDTO> getSolutionById(@PathVariable String solutionId) {
-        return adminService.getSolutionById(solutionId);
-    }
-
-    // ===================== 分类管理接口 =====================
-
-    /**
-     * 获取所有问题分类
-     * @return 分类列表
-     */
-    @GetMapping("/categories")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public RestResponse<List<CategoryDTO>> getAllCategories() {
-        return adminService.getAllCategories();
+    public ResponseEntity<RestResponse<SolutionDTO>> getSolutionById(@PathVariable String solutionId) {
+        return ResponseEntity.ok(adminService.getSolutionById(solutionId));
     }
 }

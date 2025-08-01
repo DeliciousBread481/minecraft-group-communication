@@ -1,6 +1,8 @@
 package com.github.konstantyn111.crashapi.dto.solution;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 @Data
@@ -12,5 +14,5 @@ public class SolutionCreateDTO {
     private String description;
     private String notes;
     private List<String> steps;
-    private List<String> imageUrls;
+    private List<MultipartFile> imageFiles;
 }

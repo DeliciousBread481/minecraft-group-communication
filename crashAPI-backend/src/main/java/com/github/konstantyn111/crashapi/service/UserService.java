@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -209,6 +210,9 @@ public class UserService {
                             HttpStatus.NOT_FOUND,
                             "用户不存在"));
 
+            // 安全验证：文件类型和大小
+            validateAvatarFile(file);
+
             // 处理文件上传
             String fileUrl = storeAvatarFile(file, existingUser.getId());
 
@@ -227,21 +231,23 @@ public class UserService {
     }
 
     /**
-     * 验证邮箱唯一性
-     */
-    private void validateEmailUniqueness(String email, Long currentUserId) {
-        Optional<User> userByEmail = userMapper.findByEmail(email);
-        if (userByEmail.isPresent() && !userByEmail.get().getId().equals(currentUserId)) {
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL,
-                    HttpStatus.CONFLICT,
-                    "邮箱已被使用");
-        }
-    }
-
-    /**
-     * 存储头像文件
+     * 存储头像文件（添加安全验证）
      */
     private String storeAvatarFile(MultipartFile file, Long userId) throws IOException {
+        // 验证文件类型
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+            throw new BusinessException(ErrorCode.UNSUPPORTED_FILE_TYPE,
+                    HttpStatus.BAD_REQUEST,
+                    "仅支持图片格式");
+        }
+
+        // 验证文件大小
+        if (file.getSize() > 2 * 1024 * 1024) {
+            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED,
+                    HttpStatus.BAD_REQUEST,
+                    "文件大小不能超过2MB");
+        }
+
         // 确保上传目录存在
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)) {
@@ -260,5 +266,37 @@ public class UserService {
 
         // 返回访问URL
         return cdnBaseUrl + fileName;
+    }
+
+    /**
+     * 验证头像文件
+     */
+    private void validateAvatarFile(MultipartFile file) {
+        // 文件类型验证
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BusinessException(ErrorCode.UNSUPPORTED_FILE_TYPE,
+                    HttpStatus.BAD_REQUEST,
+                    "仅支持图片格式");
+        }
+
+        // 文件大小验证 (2MB)
+        long maxSize = 2 * 1024 * 1024;
+        if (file.getSize() > maxSize) {
+            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED,
+                    HttpStatus.BAD_REQUEST,
+                    "文件大小不能超过2MB");
+        }
+    }
+    /**
+     * 验证邮箱唯一性
+     */
+    private void validateEmailUniqueness(String email, Long currentUserId) {
+        Optional<User> userByEmail = userMapper.findByEmail(email);
+        if (userByEmail.isPresent() && !userByEmail.get().getId().equals(currentUserId)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL,
+                    HttpStatus.CONFLICT,
+                    "邮箱已被使用");
+        }
     }
 }
