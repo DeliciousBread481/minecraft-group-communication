@@ -38,6 +38,7 @@ public class DeveloperService {
     private final SolutionStepMapper solutionStepMapper;
     private final SolutionImageMapper solutionImageMapper;
     private final AdminApplicationMapper adminApplicationMapper;
+    private final SolutionUpdateUtil solutionUpdateUtil;
 
     /**
      * <p> ---- 开发者接口 ---- <p/>
@@ -279,6 +280,13 @@ public class DeveloperService {
             User currentDev = SecurityUtils.validateDeveloperPermissions(userMapper);
             Solution solution = ValidationUtils.validateSolutionExists(solutionMapper, solutionId);
 
+            // 状态机验证
+            if (!SolutionStatus.PENDING_REVIEW.equals(solution.getStatus())) {
+                throw new BusinessException(ErrorCode.INVALID_OPERATION,
+                        HttpStatus.BAD_REQUEST,
+                        "只能审核待处理状态的解决方案");
+            }
+
             SolutionStateUtils.transitionState(solution, SolutionStateUtils.SolutionStateAction.APPROVE, null);
             solution.setReviewedBy(currentDev.getId());
             solution.setUpdatedAt(LocalDateTime.now());
@@ -307,6 +315,13 @@ public class DeveloperService {
         try {
             User currentDev = SecurityUtils.validateDeveloperPermissions(userMapper);
             Solution solution = ValidationUtils.validateSolutionExists(solutionMapper, solutionId);
+
+            // 状态机验证
+            if (!SolutionStatus.PENDING_REVIEW.equals(solution.getStatus())) {
+                throw new BusinessException(ErrorCode.INVALID_OPERATION,
+                        HttpStatus.BAD_REQUEST,
+                        "只能审核待处理状态的解决方案");
+            }
 
             SolutionStateUtils.transitionState(solution, SolutionStateUtils.SolutionStateAction.REJECT, reason);
             solution.setReviewedBy(currentDev.getId());
@@ -343,7 +358,7 @@ public class DeveloperService {
                         "只能修改已发布状态的解决方案");
             }
 
-            SolutionUpdateUtil.updateSolutionCore(
+            solutionUpdateUtil.updateSolutionCore(
                     solution,
                     updateDTO,
                     solutionMapper,

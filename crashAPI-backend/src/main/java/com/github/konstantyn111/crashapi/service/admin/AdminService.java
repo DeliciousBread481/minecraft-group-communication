@@ -1,7 +1,6 @@
 package com.github.konstantyn111.crashapi.service.admin;
 
 import com.github.konstantyn111.crashapi.dto.UserInfo;
-import com.github.konstantyn111.crashapi.dto.solution.CategoryDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionCreateDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;
@@ -29,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,6 +39,7 @@ public class AdminService {
     private final SolutionStepMapper solutionStepMapper;
     private final SolutionImageMapper solutionImageMapper;
     private final CategoryMapper categoryMapper;
+    private final SolutionUpdateUtil solutionUpdateUtil;
 
     /**
      * <p> ---- 管理员接口 ---- <p/>
@@ -116,7 +115,7 @@ public class AdminService {
 
             solutionMapper.insert(solution);
 
-            SolutionUpdateUtil.createSolutionStepsAndImages(
+            solutionUpdateUtil.createSolutionStepsAndImages(
                     solution,
                     createDTO,
                     solutionStepMapper,
@@ -157,7 +156,7 @@ public class AdminService {
                         "只能修改草稿或已发布状态的解决方案");
             }
 
-            SolutionUpdateUtil.updateSolutionCore(
+            solutionUpdateUtil.updateSolutionCore(
                     solution,
                     updateDTO,
                     solutionMapper,
@@ -322,41 +321,6 @@ public class AdminService {
             return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ErrorCode.INTERNAL_SERVER_ERROR,
                     "获取解决方案失败: " + ex.getMessage());
-        }
-    }
-
-    /**
-     * <p> ---- 管理员接口 ---- <p/>
-     * 获取所有问题分类
-     * @return 分类列表
-     */
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Transactional(readOnly = true)
-    public RestResponse<List<CategoryDTO>> getAllCategories() {
-        try {
-            SecurityUtils.validateAdminPermissions(userMapper);
-
-            List<Category> categories = categoryMapper.findAll();
-
-            List<CategoryDTO> dtos = categories.stream()
-                    .map(category -> {
-                        CategoryDTO dto = new CategoryDTO();
-                        dto.setId(category.getId());
-                        dto.setName(category.getName());
-                        dto.setIcon(category.getIcon());
-                        dto.setDescription(category.getDescription());
-                        dto.setColor(category.getColor());
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
-
-            return RestResponse.success(dtos, "获取分类列表成功");
-        } catch (BusinessException ex) {
-            return RestResponse.fail(ex);
-        } catch (Exception ex) {
-            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ErrorCode.INTERNAL_SERVER_ERROR,
-                    "获取分类列表失败: " + ex.getMessage());
         }
     }
 }

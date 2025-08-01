@@ -1,11 +1,10 @@
 package com.github.konstantyn111.crashapi.entity.solution;
 
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter
-@Data
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
