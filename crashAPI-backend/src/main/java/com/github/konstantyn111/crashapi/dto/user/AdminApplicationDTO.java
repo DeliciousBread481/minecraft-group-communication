@@ -1,4 +1,4 @@
-package com.github.konstantyn111.crashapi.dto;
+package com.github.konstantyn111.crashapi.dto.user;
 
 import lombok.Data;
 import java.time.LocalDateTime;

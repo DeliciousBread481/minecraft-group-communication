@@ -1,20 +1,22 @@
 package com.github.konstantyn111.crashapi.service.admin;
 
-import com.github.konstantyn111.crashapi.dto.UserInfo;
+import com.github.konstantyn111.crashapi.dto.user.UserInfo;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionCreateDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;
-import com.github.konstantyn111.crashapi.entity.User;
+import com.github.konstantyn111.crashapi.entity.user.User;
 import com.github.konstantyn111.crashapi.entity.solution.Category;
 import com.github.konstantyn111.crashapi.entity.solution.Solution;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
-import com.github.konstantyn111.crashapi.mapper.UserMapper;
+import com.github.konstantyn111.crashapi.exception.ErrorCode;
+import com.github.konstantyn111.crashapi.mapper.user.UserMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.CategoryMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionImageMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionStepMapper;
 import com.github.konstantyn111.crashapi.util.*;
 import com.github.konstantyn111.crashapi.util.admin.*;
+import com.github.konstantyn111.crashapi.util.user.UserConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

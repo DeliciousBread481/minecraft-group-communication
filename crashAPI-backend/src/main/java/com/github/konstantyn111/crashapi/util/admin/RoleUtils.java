@@ -1,10 +1,10 @@
 package com.github.konstantyn111.crashapi.util.admin;
 
-import com.github.konstantyn111.crashapi.entity.Role;
-import com.github.konstantyn111.crashapi.entity.User;
+import com.github.konstantyn111.crashapi.entity.user.Role;
+import com.github.konstantyn111.crashapi.entity.user.User;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
-import com.github.konstantyn111.crashapi.mapper.UserMapper;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
+import com.github.konstantyn111.crashapi.mapper.user.UserMapper;
+import com.github.konstantyn111.crashapi.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 /**

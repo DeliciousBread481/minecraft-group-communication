@@ -1,7 +1,7 @@
 package com.github.konstantyn111.crashapi.security;
 
-import com.github.konstantyn111.crashapi.entity.Role;
-import com.github.konstantyn111.crashapi.entity.User;
+import com.github.konstantyn111.crashapi.entity.user.Role;
+import com.github.konstantyn111.crashapi.entity.user.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

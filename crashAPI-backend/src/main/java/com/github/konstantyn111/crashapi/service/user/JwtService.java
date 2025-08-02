@@ -1,4 +1,4 @@
-package com.github.konstantyn111.crashapi.service;
+package com.github.konstantyn111.crashapi.service.user;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

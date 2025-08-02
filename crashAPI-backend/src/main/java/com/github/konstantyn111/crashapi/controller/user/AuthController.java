@@ -1,10 +1,10 @@
-package com.github.konstantyn111.crashapi.controller;
+package com.github.konstantyn111.crashapi.controller.user;
 
-import com.github.konstantyn111.crashapi.dto.AuthResponse;
-import com.github.konstantyn111.crashapi.dto.LoginRequest;
-import com.github.konstantyn111.crashapi.dto.RefreshRequest;
-import com.github.konstantyn111.crashapi.dto.RegisterRequest;
-import com.github.konstantyn111.crashapi.service.AuthService;
+import com.github.konstantyn111.crashapi.dto.user.AuthResponse;
+import com.github.konstantyn111.crashapi.dto.user.LoginRequest;
+import com.github.konstantyn111.crashapi.dto.user.RefreshRequest;
+import com.github.konstantyn111.crashapi.dto.user.RegisterRequest;
+import com.github.konstantyn111.crashapi.service.user.AuthService;
 import com.github.konstantyn111.crashapi.util.RestResponse;
 
 import jakarta.validation.Valid;

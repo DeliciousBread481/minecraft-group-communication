@@ -1,10 +1,10 @@
-package com.github.konstantyn111.crashapi.util;
+package com.github.konstantyn111.crashapi.util.user;
 
-import com.github.konstantyn111.crashapi.dto.AdminApplicationDTO;
-import com.github.konstantyn111.crashapi.dto.UserInfo;
-import com.github.konstantyn111.crashapi.entity.AdminApplication;
-import com.github.konstantyn111.crashapi.entity.Role;
-import com.github.konstantyn111.crashapi.entity.User;
+import com.github.konstantyn111.crashapi.dto.user.AdminApplicationDTO;
+import com.github.konstantyn111.crashapi.dto.user.UserInfo;
+import com.github.konstantyn111.crashapi.entity.user.AdminApplication;
+import com.github.konstantyn111.crashapi.entity.user.Role;
+import com.github.konstantyn111.crashapi.entity.user.User;
 
 import java.util.stream.Collectors;
 

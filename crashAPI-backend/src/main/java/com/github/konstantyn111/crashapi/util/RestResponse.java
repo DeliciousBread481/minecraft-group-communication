@@ -1,20 +1,12 @@
 package com.github.konstantyn111.crashapi.util;
 
 import com.github.konstantyn111.crashapi.exception.BusinessException;
+import com.github.konstantyn111.crashapi.exception.ErrorCode;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 
 /**
  * 统一API响应封装类
- * <p>
- * 标准化API响应格式
- *{
-    success: bool
-    status: int
-    code: int
-    message: String
-    data: obj
- *}
  * @param <T> 响应数据的类型
  */
 @Data

@@ -1,7 +1,7 @@
 package com.github.konstantyn111.crashapi.config;
 
 import com.github.konstantyn111.crashapi.security.CustomUserDetailsService;
-import com.github.konstantyn111.crashapi.service.JwtService;
+import com.github.konstantyn111.crashapi.service.user.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

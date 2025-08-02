@@ -2,7 +2,7 @@ package com.github.konstantyn111.crashapi.util.admin;
 
 import com.github.konstantyn111.crashapi.entity.solution.Solution;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
+import com.github.konstantyn111.crashapi.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 /**

@@ -1,7 +1,7 @@
-package com.github.konstantyn111.crashapi.controller;
+package com.github.konstantyn111.crashapi.controller.user;
 
-import com.github.konstantyn111.crashapi.dto.UserInfo;
-import com.github.konstantyn111.crashapi.service.UserService;
+import com.github.konstantyn111.crashapi.dto.user.UserInfo;
+import com.github.konstantyn111.crashapi.service.user.UserService;
 import com.github.konstantyn111.crashapi.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

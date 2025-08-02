@@ -5,7 +5,7 @@ import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
 import com.github.konstantyn111.crashapi.entity.solution.*;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
 import com.github.konstantyn111.crashapi.mapper.solution.*;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
+import com.github.konstantyn111.crashapi.exception.ErrorCode;
 import com.github.konstantyn111.crashapi.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

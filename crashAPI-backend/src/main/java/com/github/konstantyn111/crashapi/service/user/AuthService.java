@@ -1,16 +1,16 @@
-package com.github.konstantyn111.crashapi.service;
+package com.github.konstantyn111.crashapi.service.user;
 
-import com.github.konstantyn111.crashapi.dto.AuthResponse;
-import com.github.konstantyn111.crashapi.dto.LoginRequest;
-import com.github.konstantyn111.crashapi.dto.RefreshRequest;
-import com.github.konstantyn111.crashapi.dto.RegisterRequest;
-import com.github.konstantyn111.crashapi.entity.User;
+import com.github.konstantyn111.crashapi.dto.user.AuthResponse;
+import com.github.konstantyn111.crashapi.dto.user.LoginRequest;
+import com.github.konstantyn111.crashapi.dto.user.RefreshRequest;
+import com.github.konstantyn111.crashapi.dto.user.RegisterRequest;
+import com.github.konstantyn111.crashapi.entity.user.User;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
-import com.github.konstantyn111.crashapi.mapper.RoleMapper;
-import com.github.konstantyn111.crashapi.mapper.UserMapper;
+import com.github.konstantyn111.crashapi.mapper.user.RoleMapper;
+import com.github.konstantyn111.crashapi.mapper.user.UserMapper;
 import com.github.konstantyn111.crashapi.security.CustomUserDetails;
 import com.github.konstantyn111.crashapi.util.RestResponse;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
+import com.github.konstantyn111.crashapi.exception.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

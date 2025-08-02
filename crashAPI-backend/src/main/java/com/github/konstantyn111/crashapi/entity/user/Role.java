@@ -1,4 +1,4 @@
-package com.github.konstantyn111.crashapi.entity;
+package com.github.konstantyn111.crashapi.entity.user;
 
 import lombok.Data;
 

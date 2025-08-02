@@ -1,9 +1,9 @@
 package com.github.konstantyn111.crashapi.controller.admin;
 
-import com.github.konstantyn111.crashapi.dto.*;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionCreateDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
 import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;
+import com.github.konstantyn111.crashapi.dto.user.UserInfo;
 import com.github.konstantyn111.crashapi.service.admin.AdminService;
 import com.github.konstantyn111.crashapi.util.RestResponse;
 import lombok.RequiredArgsConstructor;

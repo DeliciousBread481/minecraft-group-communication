@@ -1,14 +1,14 @@
-package com.github.konstantyn111.crashapi.service;
+package com.github.konstantyn111.crashapi.service.user;
 
-import com.github.konstantyn111.crashapi.dto.UserInfo;
-import com.github.konstantyn111.crashapi.entity.AdminApplication;
-import com.github.konstantyn111.crashapi.entity.User;
+import com.github.konstantyn111.crashapi.dto.user.UserInfo;
+import com.github.konstantyn111.crashapi.entity.user.AdminApplication;
+import com.github.konstantyn111.crashapi.entity.user.User;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
-import com.github.konstantyn111.crashapi.mapper.AdminApplicationMapper;
-import com.github.konstantyn111.crashapi.mapper.UserMapper;
+import com.github.konstantyn111.crashapi.mapper.user.AdminApplicationMapper;
+import com.github.konstantyn111.crashapi.mapper.user.UserMapper;
 import com.github.konstantyn111.crashapi.util.RestResponse;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
-import com.github.konstantyn111.crashapi.util.UserConvertUtil;
+import com.github.konstantyn111.crashapi.exception.ErrorCode;
+import com.github.konstantyn111.crashapi.util.user.UserConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;

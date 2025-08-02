@@ -1,7 +1,6 @@
 package com.github.konstantyn111.crashapi.exception;
 
 import com.github.konstantyn111.crashapi.util.RestResponse;
-import com.github.konstantyn111.crashapi.util.ErrorCode;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

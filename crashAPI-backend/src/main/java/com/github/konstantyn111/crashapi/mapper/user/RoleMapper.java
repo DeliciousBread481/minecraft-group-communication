@@ -1,6 +1,6 @@
-package com.github.konstantyn111.crashapi.mapper;
+package com.github.konstantyn111.crashapi.mapper.user;
 
-import com.github.konstantyn111.crashapi.entity.Role;
+import com.github.konstantyn111.crashapi.entity.user.Role;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

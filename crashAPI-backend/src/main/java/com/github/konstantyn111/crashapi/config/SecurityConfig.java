@@ -39,12 +39,7 @@ public class SecurityConfig {
             // 解决方案公共端点
             "/api/solutions/categories",
             "/api/solutions",
-            "/api/solutions/*",
-
-            //用不了留着看
-            "/swagger-ui",
-            "/v3/api-docs",
-            "/swagger-resources"
+            "/api/solutions/*"
     );
 
     @Autowired
@@ -68,8 +63,6 @@ public class SecurityConfig {
 
                         // 开发者角色专属端点
                         .requestMatchers("/api/developer/**").hasRole("DEV")
-                        //用不了留着看
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").hasRole("DEV")
 
                         // 管理员角色专属端点
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

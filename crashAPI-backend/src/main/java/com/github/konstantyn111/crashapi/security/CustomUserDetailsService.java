@@ -1,7 +1,7 @@
 package com.github.konstantyn111.crashapi.security;
 
-import com.github.konstantyn111.crashapi.entity.User;
-import com.github.konstantyn111.crashapi.mapper.UserMapper;
+import com.github.konstantyn111.crashapi.entity.user.User;
+import com.github.konstantyn111.crashapi.mapper.user.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

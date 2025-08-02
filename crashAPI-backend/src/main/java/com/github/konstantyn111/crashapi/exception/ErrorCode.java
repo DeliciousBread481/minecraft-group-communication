@@ -1,4 +1,4 @@
-package com.github.konstantyn111.crashapi.util;
+package com.github.konstantyn111.crashapi.exception;
 
 import lombok.Getter;
 

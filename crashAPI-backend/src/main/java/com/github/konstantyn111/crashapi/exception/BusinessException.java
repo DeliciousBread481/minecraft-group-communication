@@ -1,6 +1,5 @@
 package com.github.konstantyn111.crashapi.exception;
 
-import com.github.konstantyn111.crashapi.util.ErrorCode;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
