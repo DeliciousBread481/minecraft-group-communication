@@ -13,6 +13,7 @@ import com.github.konstantyn111.crashapi.util.RestResponse;
 import com.github.konstantyn111.crashapi.exception.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -40,23 +41,31 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    /**
+     * 用户注册认证
+     * <p>
+     * 注册新用户并完成认证流程。验证用户名和邮箱唯一性后，加密存储密码，
+     * 分配默认用户角色，生成访问令牌和刷新令牌，并将刷新令牌存入数据库。
+     * </p>
+     *
+     * @param request 注册请求体（包含用户名、邮箱和密码）
+     * @return 包含双令牌的认证响应实体
+     * @throws BusinessException 当用户名或邮箱已被注册时抛出
+     */
     @Transactional
     public RestResponse<AuthResponse> register(RegisterRequest request) {
-        // 检查用户名唯一性
         if (userMapper.findByUsername(request.getUsername()).isPresent()) {
             throw new BusinessException(ErrorCode.DUPLICATE_USERNAME,
                     HttpStatus.CONFLICT,
                     "用户名已被使用");
         }
 
-        // 检查邮箱唯一性
         if (userMapper.findByEmail(request.getEmail()).isPresent()) {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL,
                     HttpStatus.CONFLICT,
                     "邮箱已被注册");
         }
 
-        // 创建并保存用户
         User user = new User(
                 request.getUsername(),
                 request.getEmail(),
@@ -64,20 +73,16 @@ public class AuthService {
         );
         userMapper.save(user);
 
-        // 分配默认角色
         roleMapper.findByName("ROLE_USER")
                 .ifPresent(role -> userMapper.addRoleToUser(user.getId(), role.getId()));
 
-        // 生成双令牌
         CustomUserDetails userDetails = new CustomUserDetails(user);
         String accessToken = jwtService.generateToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-        // 存储刷新令牌到数据库
         userMapper.updateRefreshToken(user.getId(), refreshToken,
                 new Date(System.currentTimeMillis() + jwtService.getJwtRefreshExpiration()));
 
-        // 构建响应
         AuthResponse authResponse = new AuthResponse(
                 accessToken,
                 refreshToken,
@@ -87,9 +92,19 @@ public class AuthService {
         return RestResponse.success(authResponse, "用户注册成功");
     }
 
+    /**
+     * 用户登录认证
+     * <p>
+     * 认证用户身份并颁发令牌。使用Spring Security认证用户名和密码，
+     * 认证成功后生成新的双令牌，更新刷新令牌存储，并设置安全上下文。
+     * </p>
+     *
+     * @param request 登录请求体（包含用户名和密码）
+     * @return 包含双令牌的认证响应实体
+     * @throws BusinessException 当用户名/密码错误或认证失败时抛出
+     */
     public RestResponse<AuthResponse> login(LoginRequest request) {
         try {
-            // 使用Spring Security进行认证
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getUsername(),
@@ -97,22 +112,17 @@ public class AuthService {
                     )
             );
 
-            // 设置安全上下文
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // 获取用户详情
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             User user = userDetails.getUser();
 
-            // 生成双令牌
             String accessToken = jwtService.generateToken(userDetails);
             String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-            // 存储刷新令牌到数据库
             userMapper.updateRefreshToken(user.getId(), refreshToken,
                     new Date(System.currentTimeMillis() + jwtService.getJwtRefreshExpiration()));
 
-            // 构建响应
             AuthResponse authResponse = new AuthResponse(
                     accessToken,
                     refreshToken,
@@ -121,12 +131,10 @@ public class AuthService {
 
             return RestResponse.success(authResponse, "用户登录成功");
         } catch (BadCredentialsException e) {
-            // 认证失败
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS,
                     HttpStatus.UNAUTHORIZED,
                     "用户名或密码错误");
         } catch (Exception e) {
-            // 其他异常
             logger.error("登录失败: {}", e.getMessage());
             throw new BusinessException(ErrorCode.AUTHENTICATION_FAILED,
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -134,19 +142,28 @@ public class AuthService {
         }
     }
 
+    /**
+     * 令牌刷新机制
+     * <p>
+     * 使用有效刷新令牌换取新的双令牌。验证刷新令牌有效性后生成新访问令牌和刷新令牌，
+     * 同时更新数据库中的刷新令牌和有效期。
+     * </p>
+     *
+     * @param request 令牌刷新请求体（包含原刷新令牌）
+     * @return 包含新双令牌的认证响应实体
+     * @throws BusinessException 当令牌无效/过期、用户不存在或刷新令牌不匹配时抛出
+     */
     @Transactional
     public RestResponse<AuthResponse> refreshToken(RefreshRequest request) {
         try {
             String refreshToken = request.getRefreshToken();
 
-            // 1. 基本验证
             if (!jwtService.isRefreshTokenValid(refreshToken)) {
                 throw new BusinessException(ErrorCode.INVALID_TOKEN,
                         HttpStatus.UNAUTHORIZED,
                         "刷新令牌无效");
             }
 
-            // 2. 提取用户名
             String username = jwtService.extractUsername(refreshToken);
             if (username == null) {
                 throw new BusinessException(ErrorCode.INVALID_TOKEN,
@@ -154,7 +171,6 @@ public class AuthService {
                         "无法从令牌中提取用户信息");
             }
 
-            // 3. 获取用户信息
             Optional<User> userOptional = userMapper.findByUsername(username);
             if (userOptional.isEmpty()) {
                 throw new BusinessException(ErrorCode.USER_NOT_FOUND,
@@ -162,35 +178,17 @@ public class AuthService {
                         "用户不存在");
             }
 
-            // 4. 创建UserDetails
-            CustomUserDetails userDetails = new CustomUserDetails(userOptional.get());
+            CustomUserDetails userDetails = getCustomUserDetails(userOptional, refreshToken);
 
-            // 5. 验证令牌匹配
-            if (!refreshToken.equals(userDetails.getRefreshToken())) {
-                throw new BusinessException(ErrorCode.INVALID_TOKEN,
-                        HttpStatus.UNAUTHORIZED,
-                        "刷新令牌不匹配");
-            }
-
-            // 6. 检查令牌状态
-            if (!userDetails.isRefreshTokenValid()) {
-                throw new BusinessException(ErrorCode.TOKEN_EXPIRED,
-                        HttpStatus.UNAUTHORIZED,
-                        "刷新令牌已过期");
-            }
-
-            // 7. 生成新令牌对
             String newAccessToken = jwtService.generateToken(userDetails);
             String newRefreshToken = jwtService.generateRefreshToken(userDetails);
 
-            // 8. 更新数据库中的刷新令牌
             userMapper.updateRefreshToken(
                     userDetails.getUser().getId(),
                     newRefreshToken,
                     new Date(System.currentTimeMillis() + jwtService.getJwtRefreshExpiration())
             );
 
-            // 9. 构建响应
             AuthResponse authResponse = new AuthResponse(
                     newAccessToken,
                     newRefreshToken,
@@ -213,6 +211,46 @@ public class AuthService {
         }
     }
 
+    /**
+     * 获取用户详情并验证令牌
+     *
+     * @param userOptional 数据库中的用户数据
+     * @param refreshToken 待验证的刷新令牌
+     * @return 包含用户的认证详情
+     * @throws BusinessException 当令牌不匹配或已过期时抛出
+     */
+    private static @NotNull CustomUserDetails getCustomUserDetails(Optional<User> userOptional, String refreshToken) {
+        User user = userOptional.orElseThrow(() ->
+                new BusinessException(ErrorCode.USER_NOT_FOUND,
+                        HttpStatus.UNAUTHORIZED,
+                        "用户不存在"));
+
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+
+        if (!refreshToken.equals(userDetails.getRefreshToken())) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN,
+                    HttpStatus.UNAUTHORIZED,
+                    "刷新令牌不匹配");
+        }
+
+        if (!userDetails.isRefreshTokenValid()) {
+            throw new BusinessException(ErrorCode.TOKEN_EXPIRED,
+                    HttpStatus.UNAUTHORIZED,
+                    "刷新令牌已过期");
+        }
+        return userDetails;
+    }
+
+    /**
+     * 用户登出操作
+     * <p>
+     * 清除当前认证用户的刷新令牌和安全上下文。
+     * 需要有效的用户会话，未登录状态下操作会抛出异常。
+     * </p>
+     *
+     * @return 操作结果响应（无数据体）
+     * @throws BusinessException 当用户未登录或用户不存在时抛出
+     */
     @Transactional
     public RestResponse<Void> logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -6,8 +6,9 @@ import com.github.konstantyn111.crashapi.entity.user.User;
 import com.github.konstantyn111.crashapi.exception.BusinessException;
 import com.github.konstantyn111.crashapi.mapper.user.AdminApplicationMapper;
 import com.github.konstantyn111.crashapi.mapper.user.UserMapper;
-import com.github.konstantyn111.crashapi.util.RestResponse;
+import com.github.konstantyn111.crashapi.service.solution.FileStorageService;
 import com.github.konstantyn111.crashapi.exception.ErrorCode;
+import com.github.konstantyn111.crashapi.util.RestResponse;
 import com.github.konstantyn111.crashapi.util.user.UserConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,16 +19,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
+/**
+ * 用户管理服务
+ * <p>
+ * 提供用户相关操作：管理员申请、信息管理、密码修改等
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -35,13 +35,20 @@ public class UserService {
     private final UserMapper userMapper;
     private final AdminApplicationMapper adminApplicationMapper;
     private final PasswordEncoder passwordEncoder;
+    private final FileStorageService fileStorageService;
 
-    // 文件存储配置
-    private final String uploadDir = "uploads/avatars/";
-    private final String cdnBaseUrl = "https://cdn.example.com/avatars/";
+    private final String avatarCdnBaseUrl = "https://cdn.example.com/avatars/";
 
     /**
-     * 申请管理员权限
+     * 提交管理员权限申请
+     * <p>
+     * 为当前登录用户创建管理员权限申请。验证用户状态（非管理员且无待处理申请）
+     * 后创建新的PENDING状态申请记录。
+     * </p>
+     *
+     * @param reason 申请理由说明
+     * @return 操作结果响应（无数据体）
+     * @throws BusinessException 当用户已是管理员或有待处理申请时抛出
      */
     @Transactional
     public RestResponse<Void> applyForAdminRole(String reason) {
@@ -54,21 +61,18 @@ public class UserService {
                             HttpStatus.NOT_FOUND,
                             "用户不存在"));
 
-            // 检查是否已经是管理员
             if (userMapper.hasRole(currentUser.getId(), "ROLE_ADMIN")) {
                 throw new BusinessException(ErrorCode.ALREADY_ADMIN,
                         HttpStatus.BAD_REQUEST,
                         "您已经是管理员");
             }
 
-            // 检查是否有待处理的申请
             if (adminApplicationMapper.hasPendingApplication(currentUser.getId())) {
                 throw new BusinessException(ErrorCode.PENDING_APPLICATION_EXISTS,
                         HttpStatus.CONFLICT,
                         "您已提交过申请，请等待处理");
             }
 
-            // 创建新申请
             AdminApplication application = new AdminApplication();
             application.setUserId(currentUser.getId());
             application.setStatus("PENDING");
@@ -89,6 +93,12 @@ public class UserService {
 
     /**
      * 获取当前登录用户信息
+     * <p>
+     * 从安全上下文中提取认证信息，查询并返回完整的用户信息（含角色）。
+     * </p>
+     *
+     * @return 包含用户信息的响应实体
+     * @throws BusinessException 当用户未登录或用户不存在时抛出
      */
     @Transactional(readOnly = true)
     public RestResponse<UserInfo> getCurrentUserInfo() {
@@ -119,7 +129,14 @@ public class UserService {
     }
 
     /**
-     * 更新当前用户信息
+     * 更新当前用户基本信息
+     * <p>
+     * 修改昵称或邮箱信息。邮箱变更时验证唯一性，更新后返回完整用户信息。
+     * </p>
+     *
+     * @param updateData 包含更新字段的用户信息对象
+     * @return 更新后的用户信息响应实体
+     * @throws BusinessException 当邮箱已被使用或用户不存在时抛出
      */
     @Transactional
     public RestResponse<UserInfo> updateUserInfo(UserInfo updateData) {
@@ -132,7 +149,6 @@ public class UserService {
                             HttpStatus.NOT_FOUND,
                             "用户不存在"));
 
-            // 更新基本信息
             if (updateData.getNickname() != null) {
                 existingUser.setNickname(updateData.getNickname());
             }
@@ -142,10 +158,8 @@ public class UserService {
                 existingUser.setEmail(updateData.getEmail());
             }
 
-            // 更新数据库
             userMapper.updateUserInfo(existingUser);
 
-            // 重新加载用户信息
             User updatedUser = userMapper.findByIdWithRoles(existingUser.getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
                             HttpStatus.NOT_FOUND,
@@ -163,6 +177,14 @@ public class UserService {
 
     /**
      * 修改当前用户密码
+     * <p>
+     * 验证旧密码匹配后更新为新密码（加密存储）。
+     * </p>
+     *
+     * @param oldPassword 原密码（明文）
+     * @param newPassword 新密码（明文）
+     * @return 操作结果响应（无数据体）
+     * @throws BusinessException 当旧密码错误或用户不存在时抛出
      */
     @Transactional
     public RestResponse<Void> updatePassword(String oldPassword, String newPassword) {
@@ -175,14 +197,12 @@ public class UserService {
                             HttpStatus.NOT_FOUND,
                             "用户不存在"));
 
-            // 验证旧密码
             if (!passwordEncoder.matches(oldPassword, existingUser.getPassword())) {
                 throw new BusinessException(ErrorCode.INVALID_CREDENTIALS,
                         HttpStatus.UNAUTHORIZED,
                         "旧密码不正确");
             }
 
-            // 更新密码
             existingUser.setPassword(passwordEncoder.encode(newPassword));
             userMapper.updateUserInfo(existingUser);
 
@@ -198,6 +218,13 @@ public class UserService {
 
     /**
      * 更新用户头像
+     * <p>
+     * 通过FileStorageService上传并存储头像文件，验证文件类型和大小后更新用户头像URL。
+     * </p>
+     *
+     * @param file 头像图片文件
+     * @return 包含新头像URL的响应实体
+     * @throws BusinessException 当文件格式/大小不符或用户不存在时抛出
      */
     @Transactional
     public RestResponse<String> updateAvatar(MultipartFile file) {
@@ -210,13 +237,16 @@ public class UserService {
                             HttpStatus.NOT_FOUND,
                             "用户不存在"));
 
-            // 安全验证：文件类型和大小
-            validateAvatarFile(file);
+            String fileName = "avatar_" + existingUser.getId() + "_" + System.currentTimeMillis();
+            String storedFileName = fileStorageService.storeFile(
+                    file,
+                    "avatars",
+                    fileName,
+                    2 * 1024 * 1024,
+                    "image/"
+            );
 
-            // 处理文件上传
-            String fileUrl = storeAvatarFile(file, existingUser.getId());
-
-            // 更新用户头像URL
+            String fileUrl = avatarCdnBaseUrl + storedFileName;
             existingUser.setAvatar(fileUrl);
             userMapper.updateUserInfo(existingUser);
 
@@ -231,65 +261,14 @@ public class UserService {
     }
 
     /**
-     * 存储头像文件（添加安全验证）
-     */
-    private String storeAvatarFile(MultipartFile file, Long userId) throws IOException {
-        // 验证文件类型
-        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
-            throw new BusinessException(ErrorCode.UNSUPPORTED_FILE_TYPE,
-                    HttpStatus.BAD_REQUEST,
-                    "仅支持图片格式");
-        }
-
-        // 验证文件大小
-        if (file.getSize() > 2 * 1024 * 1024) {
-            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED,
-                    HttpStatus.BAD_REQUEST,
-                    "文件大小不能超过2MB");
-        }
-
-        // 确保上传目录存在
-        Path uploadPath = Paths.get(uploadDir);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // 生成唯一文件名
-        String originalFilename = file.getOriginalFilename();
-        String extension = originalFilename != null ?
-                originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
-        String fileName = "avatar_" + userId + "_" + UUID.randomUUID() + extension;
-
-        // 保存文件
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-        // 返回访问URL
-        return cdnBaseUrl + fileName;
-    }
-
-    /**
-     * 验证头像文件
-     */
-    private void validateAvatarFile(MultipartFile file) {
-        // 文件类型验证
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new BusinessException(ErrorCode.UNSUPPORTED_FILE_TYPE,
-                    HttpStatus.BAD_REQUEST,
-                    "仅支持图片格式");
-        }
-
-        // 文件大小验证 (2MB)
-        long maxSize = 2 * 1024 * 1024;
-        if (file.getSize() > maxSize) {
-            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED,
-                    HttpStatus.BAD_REQUEST,
-                    "文件大小不能超过2MB");
-        }
-    }
-    /**
-     * 验证邮箱唯一性
+     * 验证邮箱地址唯一性
+     * <p>
+     * 检查新邮箱是否已被其他用户使用（排除当前用户）。
+     * </p>
+     *
+     * @param email 待验证的邮箱地址
+     * @param currentUserId 当前用户ID
+     * @throws BusinessException 当邮箱已被其他用户使用时抛出
      */
     private void validateEmailUniqueness(String email, Long currentUserId) {
         Optional<User> userByEmail = userMapper.findByEmail(email);

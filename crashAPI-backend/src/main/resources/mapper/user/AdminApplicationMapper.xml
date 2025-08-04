@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.user.AdminApplicationMapper">
+    <resultMap id="AdminAppResultMap" type="com.github.konstantyn111.crashapi.entity.user.AdminApplication">
+        <id property="id" column="id" />
+        <result property="status" column="status" />
+        <result property="reason" column="reason" />
+        <result property="createdAt" column="created_at" />
+        <result property="processedAt" column="processed_at" />
+        <result property="userId" column="user_id" />
+        <result property="processorId" column="processor_id" />
+    </resultMap>
+
+    <resultMap id="AdminAppWithUserResultMap" type="com.github.konstantyn111.crashapi.entity.user.AdminApplication" extends="AdminAppResultMap">
+        <association property="user" javaType="com.github.konstantyn111.crashapi.entity.user.User">
+            <result property="username" column="username"/>
+            <result property="email" column="email"/>
+            <result property="nickname" column="nickname"/>
+        </association>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.github.konstantyn111.crashapi.entity.user.AdminApplication"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO admin_applications
+            (user_id, status, reason, processor_id, created_at, processed_at)
+        VALUES
+            (#{userId}, #{status}, #{reason}, #{processorId}, #{createdAt}, #{processedAt})
+    </insert>
+
+    <select id="hasPendingApplication" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM admin_applications
+        WHERE user_id = #{userId} AND status = 'PENDING'
+    </select>
+
+    <select id="findPendingApplicationsWithUserInfo" resultMap="AdminAppWithUserResultMap">
+        SELECT
+            aa.*,
+            u.username,
+            u.email,
+            u.nickname
+        FROM admin_applications aa
+                 JOIN users u ON aa.user_id = u.id
+        WHERE aa.status = 'PENDING'
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPendingApplications" resultType="long">
+        SELECT COUNT(*)
+        FROM admin_applications
+        WHERE status = 'PENDING'
+    </select>
+
+    <update id="update" parameterType="com.github.konstantyn111.crashapi.entity.user.AdminApplication">
+        UPDATE admin_applications
+        SET
+            status = #{status},
+            reason = #{reason},
+            processor_id = #{processorId},
+            processed_at = #{processedAt}
+        WHERE id = #{id}
+    </update>
+</mapper>

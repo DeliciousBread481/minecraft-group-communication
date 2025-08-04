@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.SolutionStepMapper">
+
+    <resultMap id="StepResultMap" type="com.example.entity.SolutionStep">
+        <id property="id" column="id" />
+        <result property="stepOrder" column="step_order" />
+        <result property="content" column="content" />
+
+        <association property="solution" javaType="com.github.konstantyn111.crashapi.entity.solution.Solution">
+            <id property="id" column="solution_id" />
+        </association>
+    </resultMap>
+
+    <!-- 基本CRUD操作 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO solution_steps (solution_id, step_order, content)
+        VALUES (#{solution.id}, #{stepOrder}, #{content})
+    </insert>
+
+    <update id="update">
+        UPDATE solution_steps SET
+                                  step_order = #{stepOrder},
+                                  content = #{content}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM solution_steps WHERE id = #{id}
+    </delete>
+
+    <!-- 批量操作 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO solution_steps (solution_id, step_order, content)
+        VALUES
+        <foreach collection="list" item="step" separator=",">
+            (#{step.solution.id}, #{step.stepOrder}, #{step.content})
+        </foreach>
+    </insert>
+
+    <delete id="deleteBySolutionId">
+        DELETE FROM solution_steps WHERE solution_id = #{solutionId}
+    </delete>
+</mapper>
