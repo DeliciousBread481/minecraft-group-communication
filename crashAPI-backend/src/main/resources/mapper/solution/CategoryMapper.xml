@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.example.mapper.CategoryMapper">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.CategoryMapper">
 
     <resultMap id="CategoryResultMap" type="com.github.konstantyn111.crashapi.entity.solution.Category">
         <id property="id" column="id" />
@@ -11,7 +11,7 @@
         <result property="color" column="color" />
         <result property="createdAt" column="created_at" />
 
-        <association property="createdBy" javaType="com.example.entity.User">
+        <association property="createdBy" javaType="com.github.konstantyn111.crashapi.entity.user.User">
             <id property="id" column="created_by" />
         </association>
     </resultMap>

@@ -151,7 +151,18 @@ public class SolutionUtils {
 
         SolutionDTO dto = new SolutionDTO();
         dto.setId(solution.getId());
-        dto.setCategoryId(solution.getCategoryId());
+
+        if (solution.getCategory() != null) {
+            dto.setCategoryId(solution.getCategory().getId());
+            dto.setCategoryName(solution.getCategory().getName());
+        } else if (solution.getCategoryId() != null) {
+            categoryMapper.findById(solution.getCategoryId())
+                    .ifPresent(category -> {
+                        dto.setCategoryId(category.getId());
+                        dto.setCategoryName(category.getName());
+                    });
+        }
+
         dto.setTitle(solution.getTitle());
         dto.setDifficulty(solution.getDifficulty());
         dto.setVersion(solution.getVersion());
@@ -160,9 +171,6 @@ public class SolutionUtils {
         dto.setStatus(solution.getStatus());
         dto.setCreatedAt(solution.getCreatedAt());
         dto.setUpdatedAt(solution.getUpdatedAt());
-
-        categoryMapper.findById(solution.getCategoryId())
-                .ifPresent(category -> dto.setCategoryName(category.getName()));
 
         List<SolutionStep> steps = solutionStepMapper.findBySolutionId(solution.getId());
         dto.setSteps(steps.stream()

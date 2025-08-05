@@ -54,9 +54,12 @@ public interface SolutionMapper {
     /**
      * 查询已发布的解决方案（分页!）
      */
-    @Select("SELECT * FROM solutions WHERE status = #{status} " +
-            "AND (#{categoryId} IS NULL OR category_id = #{categoryId}) " +
-            "ORDER BY updated_at DESC " +
+    @Select("SELECT s.*, c.name AS category_name " +
+            "FROM solutions s " +
+            "JOIN categories c ON s.category_id = c.id " +
+            "WHERE s.status = #{status} " +
+            "AND (#{categoryId} IS NULL OR s.category_id = #{categoryId}) " +
+            "ORDER BY s.updated_at DESC " +
             "LIMIT #{limit} OFFSET #{offset}")
     List<Solution> findPublishedSolutions(@Param("status") String status,
                                           @Param("categoryId") String categoryId,
@@ -74,7 +77,10 @@ public interface SolutionMapper {
     /**
      * 根据ID查询已发布的解决方案
      */
-    @Select("SELECT * FROM solutions WHERE id = #{solutionId} AND status = #{status}")
+    @Select("SELECT s.*, c.name AS category_name " +
+            "FROM solutions s " +
+            "JOIN categories c ON s.category_id = c.id " +
+            "WHERE s.id = #{solutionId} AND s.status = #{status}")
     Optional<Solution> findPublishedById(@Param("solutionId") String solutionId,
                                          @Param("status") String status);
 }

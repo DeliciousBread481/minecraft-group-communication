@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.example.mapper.SolutionImageMapper">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.SolutionImageMapper">
 
     <resultMap id="ImageResultMap" type="com.github.konstantyn111.crashapi.entity.solution.SolutionImage">
         <id property="id" column="id" />
         <result property="imageOrder" column="image_order" />
         <result property="imageUrl" column="image_url" />
 
-        <association property="solution" javaType="com.example.entity.Solution">
+        <association property="solution" javaType="com.github.konstantyn111.crashapi.entity.solution.Solution">
             <id property="id" column="solution_id" />
         </association>
     </resultMap>

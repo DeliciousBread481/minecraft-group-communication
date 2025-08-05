@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.example.mapper.SolutionStepMapper">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.solution.SolutionStepMapper">
 
-    <resultMap id="StepResultMap" type="com.example.entity.SolutionStep">
+    <resultMap id="StepResultMap" type="com.github.konstantyn111.crashapi.entity.solution.SolutionStep">
         <id property="id" column="id" />
         <result property="stepOrder" column="step_order" />
         <result property="content" column="content" />

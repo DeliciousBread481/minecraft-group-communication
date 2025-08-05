@@ -1,7 +1,6 @@
 package com.github.konstantyn111.crashapi.entity.solution;
 
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -12,6 +11,9 @@ import java.time.LocalDateTime;
 public class Solution {
     private String id;
     private String categoryId;
+    @Setter
+    @Getter
+    private Category category;
     private String title;
     private String difficulty;
     private String version;

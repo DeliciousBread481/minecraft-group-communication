@@ -14,22 +14,23 @@
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
 
-        <association property="category" javaType="com.example.entity.Category">
+        <association property="category" javaType="com.github.konstantyn111.crashapi.entity.solution.Category">
             <id property="id" column="category_id" />
+            <result property="name" column="category_name" />
         </association>
 
-        <association property="createdBy" javaType="com.example.entity.User">
+        <association property="createdBy" javaType="com.github.konstantyn111.crashapi.entity.user.User">
             <id property="id" column="created_by" />
         </association>
 
-        <association property="reviewedBy" javaType="com.example.entity.User">
+        <association property="reviewedBy" javaType="com.github.konstantyn111.crashapi.entity.user.User">
             <id property="id" column="reviewed_by" />
         </association>
 
-        <collection property="steps" ofType="com.example.entity.SolutionStep"
+        <collection property="steps" ofType="com.github.konstantyn111.crashapi.entity.solution.SolutionStep"
                     column="id" select="findStepsBySolutionId"/>
 
-        <collection property="images" ofType="com.example.entity.SolutionImage"
+        <collection property="images" ofType="com.github.konstantyn111.crashapi.entity.solution.SolutionImage"
                     column="id" select="findImagesBySolutionId"/>
     </resultMap>
 
@@ -63,13 +64,13 @@
     </delete>
 
     <!-- 关联查询 -->
-    <select id="findStepsBySolutionId" resultType="com.example.entity.SolutionStep">
+    <select id="findStepsBySolutionId" resultType="com.github.konstantyn111.crashapi.entity.solution.SolutionStep">
         SELECT * FROM solution_steps
         WHERE solution_id = #{solutionId}
         ORDER BY step_order
     </select>
 
-    <select id="findImagesBySolutionId" resultType="com.example.entity.SolutionImage">
+    <select id="findImagesBySolutionId" resultType="com.github.konstantyn111.crashapi.entity.solution.SolutionImage">
         SELECT * FROM solution_images
         WHERE solution_id = #{solutionId}
         ORDER BY image_order
@@ -82,5 +83,22 @@
 
     <select id="findByStatus" resultMap="SolutionResultMap">
         SELECT * FROM solutions WHERE status = #{status}
+    </select>
+
+    <select id="findPublishedSolutions" resultMap="SolutionResultMap">
+        SELECT s.*, c.name AS category_name
+        FROM solutions s
+                 JOIN categories c ON s.category_id = c.id
+        WHERE s.status = #{status}
+          AND (#{categoryId} IS NULL OR s.category_id = #{categoryId})
+        ORDER BY s.updated_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findPublishedById" resultMap="SolutionResultMap">
+        SELECT s.*, c.name AS category_name
+        FROM solutions s
+                 JOIN categories c ON s.category_id = c.id
+        WHERE s.id = #{solutionId} AND s.status = #{status}
     </select>
 </mapper>
