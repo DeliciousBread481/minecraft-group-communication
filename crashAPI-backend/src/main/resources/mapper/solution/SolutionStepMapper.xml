@@ -5,18 +5,15 @@
 
     <resultMap id="StepResultMap" type="com.github.konstantyn111.crashapi.entity.solution.SolutionStep">
         <id property="id" column="id" />
+        <result property="solutionId" column="solution_id" />
         <result property="stepOrder" column="step_order" />
         <result property="content" column="content" />
-
-        <association property="solution" javaType="com.github.konstantyn111.crashapi.entity.solution.Solution">
-            <id property="id" column="solution_id" />
-        </association>
     </resultMap>
 
     <!-- 基本CRUD操作 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO solution_steps (solution_id, step_order, content)
-        VALUES (#{solution.id}, #{stepOrder}, #{content})
+        VALUES (#{solutionId}, #{stepOrder}, #{content})
     </insert>
 
     <update id="update">
@@ -27,7 +24,7 @@
     </update>
 
     <delete id="delete">
-        DELETE FROM solution_steps WHERE id = #{id}
+        DELETE FROM solution_steps WHERE id = #{stepId}
     </delete>
 
     <!-- 批量操作 -->
@@ -35,11 +32,32 @@
         INSERT INTO solution_steps (solution_id, step_order, content)
         VALUES
         <foreach collection="list" item="step" separator=",">
-            (#{step.solution.id}, #{step.stepOrder}, #{step.content})
+            (#{step.solutionId}, #{step.stepOrder}, #{step.content})
         </foreach>
     </insert>
 
     <delete id="deleteBySolutionId">
         DELETE FROM solution_steps WHERE solution_id = #{solutionId}
     </delete>
+
+    <select id="findStepsBySolutionId" resultMap="StepResultMap">
+        SELECT * FROM solution_steps
+        WHERE solution_id = #{solutionId}
+        ORDER BY step_order
+    </select>
+
+    <select id="findStepsBySolutionIds" resultType="com.github.konstantyn111.crashapi.entity.solution.SolutionStep">
+        SELECT id,
+        solution_id AS solutionId,
+        step_order AS stepOrder,
+        content
+        FROM solution_steps
+        WHERE solution_id IN
+        <foreach collection="solutionIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY solution_id, step_order
+    </select>
+
+
 </mapper>

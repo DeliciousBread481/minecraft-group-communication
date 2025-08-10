@@ -1,9 +1,6 @@
 package com.github.konstantyn111.crashapi.controller;
 
-import com.github.konstantyn111.crashapi.dto.solution.CategoryDTO;
-import com.github.konstantyn111.crashapi.dto.solution.SolutionDTO;
-import com.github.konstantyn111.crashapi.dto.solution.SolutionCreateDTO;
-import com.github.konstantyn111.crashapi.dto.solution.SolutionUpdateDTO;
+import com.github.konstantyn111.crashapi.dto.solution.*;
 import com.github.konstantyn111.crashapi.service.solution.SolutionService;
 import com.github.konstantyn111.crashapi.util.RestResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,14 +34,12 @@ public class SolutionController {
      * </p>
      *
      * @param pageable 分页参数
-     * @param categoryId 分类ID（可选过滤条件）
      * @return 分页的解决方案列表响应实体
      */
     @GetMapping("/solutions")
-    public ResponseEntity<RestResponse<Page<SolutionDTO>>> getSolutions(
-            Pageable pageable,
-            @RequestParam(required = false) String categoryId) {
-        return ResponseEntity.ok(solutionService.getPublishedSolutions(pageable, categoryId));
+    public RestResponse<SolutionPageDto> getPublishedSolutions(Pageable pageable) {
+        SolutionPageDto pageDto = solutionService.getPublishedSolutions(pageable);
+        return RestResponse.success(pageDto, "获取解决方案列表成功");
     }
 
     /**

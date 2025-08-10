@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import java.time.format.DateTimeFormatter;
 
 @SpringBootApplication
 @MapperScan("com.github.konstantyn111.crashapi.mapper")
@@ -20,18 +21,31 @@ public class CrashApiApplication {
 
     @Bean
     public CommandLineRunner startupNotifier() {
-        return args -> log.info("""
-                        
-                        ===============================================================
-                          应用启动成功!\s
-                          CrashAPI 服务已就绪\s
-                          当前访问地址不兼容，不可用!\t
-                          访问地址: http://localhost:{}/swagger-ui.html\s
-                          当前时间: {}\s
-                        ===============================================================""",
-                getServerPort(),
-                java.time.LocalDateTime.now()
-        );
+        return args -> {
+            int port = getServerPort();
+            String time = java.time.LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+            log.info("""
+                    
+                      (  )   (   )  )
+                         ) (   )  (  (
+                         ( )  (    ) )
+                         _____________
+                        <_____________> ___
+                        |             |/ _ \\
+                        |   ABSTRACT  | | | |
+                        |   LAUNCH    |_| | |
+                        |___PORT:{}___|\\___/
+                        |__TIME:{}__|
+                          :::       :::
+                         '###'     '###'
+                         #####     #####
+                    """,
+                    String.format("%5d", port),
+                    time
+            );
+        };
     }
 
     private int getServerPort() {

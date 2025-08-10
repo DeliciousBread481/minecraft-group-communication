@@ -1,8 +1,11 @@
 package com.github.konstantyn111.crashapi.dto.solution;
 
-import lombok.Data;
+import lombok.*;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CategoryDTO {
     private String id;
     private String name;

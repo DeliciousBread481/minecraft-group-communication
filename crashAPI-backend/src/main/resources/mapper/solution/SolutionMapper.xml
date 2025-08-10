@@ -1,104 +1,114 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.example.mapper.SolutionMapper">
+
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.solution.SolutionMapper">
 
     <resultMap id="SolutionResultMap" type="com.github.konstantyn111.crashapi.entity.solution.Solution">
-        <id property="id" column="id" />
-        <result property="title" column="title" />
-        <result property="difficulty" column="difficulty" />
-        <result property="version" column="version" />
-        <result property="description" column="description" />
-        <result property="notes" column="notes" />
-        <result property="status" column="status" />
-        <result property="createdAt" column="created_at" />
-        <result property="updatedAt" column="updated_at" />
-
+        <id property="id" column="id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="title" column="title"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="version" column="version"/>
+        <result property="description" column="description"/>
+        <result property="notes" column="notes"/>
+        <result property="updatedAt" column="updated_at"/>
         <association property="category" javaType="com.github.konstantyn111.crashapi.entity.solution.Category">
-            <id property="id" column="category_id" />
-            <result property="name" column="category_name" />
+            <id property="id" column="category_id"/>
+            <result property="name" column="category_name"/>
+            <result property="icon" column="icon"/>
+            <result property="color" column="color"/>
         </association>
-
-        <association property="createdBy" javaType="com.github.konstantyn111.crashapi.entity.user.User">
-            <id property="id" column="created_by" />
-        </association>
-
-        <association property="reviewedBy" javaType="com.github.konstantyn111.crashapi.entity.user.User">
-            <id property="id" column="reviewed_by" />
-        </association>
-
-        <collection property="steps" ofType="com.github.konstantyn111.crashapi.entity.solution.SolutionStep"
-                    column="id" select="findStepsBySolutionId"/>
-
-        <collection property="images" ofType="com.github.konstantyn111.crashapi.entity.solution.SolutionImage"
-                    column="id" select="findImagesBySolutionId"/>
     </resultMap>
 
-    <!-- 基本CRUD操作 -->
-    <insert id="insert">
-        INSERT INTO solutions (id, category_id, title, difficulty, version, description, notes, status, created_by, reviewed_by)
-        VALUES (#{id}, #{category.id}, #{title}, #{difficulty}, #{version}, #{description},
-                #{notes}, #{status}, #{createdBy.id}, #{reviewedBy.id})
+    <!-- 插入解决方案 -->
+    <insert id="insert" parameterType="com.github.konstantyn111.crashapi.entity.solution.Solution">
+        INSERT INTO solutions(id, category_id, title, difficulty, version, description, notes, status, created_by, updated_at)
+        VALUES (#{id}, #{categoryId}, #{title}, #{difficulty}, #{version}, #{description}, #{notes}, #{status}, #{createdBy}, #{updatedAt})
     </insert>
 
-    <select id="findById" resultMap="SolutionResultMap">
-        SELECT * FROM solutions WHERE id = #{id}
-    </select>
-
-    <update id="update">
-        UPDATE solutions SET
-                             category_id = #{category.id},
-                             title = #{title},
-                             difficulty = #{difficulty},
-                             version = #{version},
-                             description = #{description},
-                             notes = #{notes},
-                             status = #{status},
-                             reviewed_by = #{reviewedBy.id},
-                             updated_at = #{updatedAt}
-        WHERE id = #{id}
+    <!-- 更新解决方案 -->
+    <update id="update" parameterType="com.github.konstantyn111.crashapi.entity.solution.Solution">
+        UPDATE solutions
+        SET category_id=#{categoryId}, title=#{title}, difficulty=#{difficulty}, version=#{version},
+            description=#{description}, notes=#{notes}, status=#{status}, updated_at=#{updatedAt}
+        WHERE id=#{id}
     </update>
 
-    <delete id="delete">
-        DELETE FROM solutions WHERE id = #{id}
+    <!-- 删除解决方案 -->
+    <delete id="delete" parameterType="string">
+        DELETE FROM solutions WHERE id=#{solutionId}
     </delete>
 
-    <!-- 关联查询 -->
-    <select id="findStepsBySolutionId" resultType="com.github.konstantyn111.crashapi.entity.solution.SolutionStep">
-        SELECT * FROM solution_steps
-        WHERE solution_id = #{solutionId}
-        ORDER BY step_order
-    </select>
-
-    <select id="findImagesBySolutionId" resultType="com.github.konstantyn111.crashapi.entity.solution.SolutionImage">
-        SELECT * FROM solution_images
-        WHERE solution_id = #{solutionId}
-        ORDER BY image_order
-    </select>
-
-    <!-- 查询方法 -->
-    <select id="findByCategoryId" resultMap="SolutionResultMap">
-        SELECT * FROM solutions WHERE category_id = #{categoryId}
-    </select>
-
-    <select id="findByStatus" resultMap="SolutionResultMap">
-        SELECT * FROM solutions WHERE status = #{status}
-    </select>
-
-    <select id="findPublishedSolutions" resultMap="SolutionResultMap">
-        SELECT s.*, c.name AS category_name
+    <!-- 根据ID查找 -->
+    <select id="findById" resultMap="SolutionResultMap" parameterType="string">
+        SELECT s.*, c.name AS category_name, c.icon, c.color
         FROM solutions s
                  JOIN categories c ON s.category_id = c.id
-        WHERE s.status = #{status}
-          AND (#{categoryId} IS NULL OR s.category_id = #{categoryId})
+        WHERE s.id = #{solutionId}
+    </select>
+
+    <!-- 根据创建者查找 -->
+    <select id="findByCreator" resultMap="SolutionResultMap">
+        SELECT s.*, c.name AS category_name, c.icon, c.color
+        FROM solutions s
+        JOIN categories c ON s.category_id = c.id
+        WHERE s.created_by = #{creatorId}
+        <if test="status != null">
+            AND s.status = #{status}
+        </if>
         ORDER BY s.updated_at DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
+    <!-- 创建者记录数 -->
+    <select id="countByCreator" resultType="int">
+        SELECT COUNT(*)
+        FROM solutions
+        WHERE created_by = #{creatorId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <!-- 根据状态查找 -->
+    <select id="findByStatus" resultMap="SolutionResultMap">
+        SELECT s.*, c.name AS category_name, c.icon, c.color
+        FROM solutions s
+                 JOIN categories c ON s.category_id = c.id
+        WHERE s.status = #{status}
+        ORDER BY s.updated_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 状态记录数 -->
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*) FROM solutions WHERE status = #{status}
+    </select>
+
+    <!-- 已发布的解决方案（分页） -->
+    <select id="findPublishedSolutions" resultMap="SolutionResultMap">
+        SELECT s.id, s.category_id, s.title, s.difficulty, s.version, s.description, s.notes, s.updated_at,
+               c.name AS category_name, c.icon, c.color
+        FROM solutions s
+                 JOIN categories c ON s.category_id = c.id
+        WHERE s.status = '已发布'
+        ORDER BY s.updated_at DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- 已发布解决方案数量 -->
+    <select id="countPublishedSolutions" resultType="int">
+        SELECT COUNT(*) FROM solutions WHERE status = '已发布'
+    </select>
+
+    <!-- 根据ID查找已发布的解决方案 -->
     <select id="findPublishedById" resultMap="SolutionResultMap">
-        SELECT s.*, c.name AS category_name
+        SELECT s.*, c.name AS category_name, c.icon, c.color
         FROM solutions s
                  JOIN categories c ON s.category_id = c.id
         WHERE s.id = #{solutionId} AND s.status = #{status}
     </select>
+
 </mapper>
