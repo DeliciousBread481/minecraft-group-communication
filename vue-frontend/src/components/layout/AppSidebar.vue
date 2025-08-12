@@ -62,5 +62,5 @@ const openFeedback = () => {
 </script>
 
 <style scoped lang="scss">
-@use '@/styles/components/sidebar' as *;
+@use '@/styles/components' as *;
 </style>

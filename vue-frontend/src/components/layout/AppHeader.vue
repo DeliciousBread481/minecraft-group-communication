@@ -106,5 +106,5 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-@use '@/styles/components/header' as *;
+@use '@/styles/components' as *;
 </style>

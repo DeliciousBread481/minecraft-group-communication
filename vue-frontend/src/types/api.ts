@@ -121,12 +121,23 @@ export interface AdminApplicationDTO {
   processedAt: string;
 }
 
+export interface AdminApplicationStatus {
+  id: number;
+  userId: number;
+  status: 'pending' | 'approved' | 'rejected';
+  reason: string;
+  feedback?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ===================== API响应类型 =====================
 export type SolutionApiResponse = ApiResponse<SolutionDTO>;
 export type SolutionListApiResponse = ApiResponse<PageData<SolutionDTO>>;
 export type CategoryListApiResponse = ApiResponse<CategoryDTO[]>;
 export type AdminApplicationListApiResponse = ApiResponse<PageData<AdminApplicationDTO>>;
 export type AdminApplicationPageApiResponse = ApiResponse<PageData<AdminApplicationDTO>>;
+export type AdminApplicationStatusApiResponse = ApiResponse<AdminApplicationStatus>;
 export type SolutionPageApiResponse = ApiResponse<PageData<SolutionDTO>>;
 export type UserPageApiResponse = ApiResponse<PageData<UserInfoData>>;
 

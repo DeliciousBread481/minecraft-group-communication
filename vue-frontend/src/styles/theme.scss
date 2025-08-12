@@ -1,0 +1,159 @@
+$light-theme: (
+        bg-color: #ffffff,
+        bg-secondary-color: #f5f7fa,
+        bg-tertiary-color: #f0f2f5,
+
+        text-color: #303133,
+        text-secondary-color: #606266,
+        text-tertiary-color: #909399,
+        heading-color: #1f2329,
+
+        input-bg-color: #ffffff,
+        input-border-color: #dcdfe6,
+        input-placeholder-color: #c0c4cc,
+        input-hover-border-color: #c0c4cc,
+        input-focus-border-color: #409eff,
+
+        card-bg-color: #ffffff,
+        card-border-color: #ebeef5,
+        card-shadow-color: rgba(0, 0, 0, 0.1),
+
+        border-color: #dcdfe6,
+        border-light-color: #ebeef5,
+
+        primary-color: #409eff,
+        primary-hover-color: #337ecc,
+        primary-light-color: #ecf5ff,
+
+        success-color: #67c23a,
+        warning-color: #e6a23c,
+        error-color: #f56c6c,
+        info-color: #909399,
+
+        hover-color: #f5f7fa,
+        active-color: #ecf5ff,
+        disabled-bg-color: #f5f7fa,
+        disabled-text-color: #c0c4cc,
+
+        shadow-color: rgba(0, 0, 0, 0.12),
+
+        menu-bg-color: #f7f9fc,
+        menu-active-bg-color: #ffffff,
+        menu-hover-bg-color: #edf2f7,
+        menu-text-color: #4a5568,
+        menu-active-text-color: #4361ee,
+
+        spacing-xs: 4px,
+        spacing-sm: 8px,
+        spacing-md: 16px,
+        spacing-lg: 24px,
+        spacing-xl: 32px,
+        spacing-xxl: 48px,
+
+        font-size-xs: 12px,
+        font-size-sm: 14px,
+        font-size-md: 16px,
+        font-size-lg: 18px,
+        font-size-xl: 20px,
+        font-size-xxl: 24px,
+
+        border-radius-sm: 4px,
+        border-radius-md: 8px,
+        border-radius-lg: 12px,
+        border-radius-circle: 50%,
+
+        transition-speed: 0.3s,
+        transition-easing: ease-in-out,
+
+        primary-color-rgb: rgb(64, 158, 255),
+        error-color-rgb: rgb(245, 108, 108),
+        success-color-rgb: rgb(103, 194, 58)
+);
+
+// ========== 暗色主题 ==========
+$dark-theme: (
+        bg-color: #141414,
+        bg-secondary-color: #1d1d1d,
+        bg-tertiary-color: #2a2a2a,
+
+        text-color: #e5eaf3,
+        text-secondary-color: #a3a6ad,
+        text-tertiary-color: #8d99a8,
+        heading-color: #ffffff,
+
+        input-bg-color: #1f1f1f,
+        input-border-color: #434343,
+        input-placeholder-color: #6b7280,
+        input-hover-border-color: #555555,
+        input-focus-border-color: #165dff,
+
+        card-bg-color: #1f1f1f,
+        card-border-color: #303030,
+        card-shadow-color: rgba(0, 0, 0, 0.3),
+
+        border-color: #434343,
+        border-light-color: #303030,
+
+        primary-color: #165dff,
+        primary-hover-color: #0e42c0,
+        primary-light-color: #1f3d5c,
+
+        success-color: #4eb85f,
+        warning-color: #cf9d3d,
+        error-color: #f35b63,
+        info-color: #8d99a8,
+
+        hover-color: #2a2a2a,
+        active-color: #1f3d5c,
+        disabled-bg-color: #2a2a2a,
+        disabled-text-color: #6b7280,
+
+        shadow-color: rgba(0, 0, 0, 0.24),
+
+        menu-bg-color: #1d1d1d,
+        menu-active-bg-color: #2a2a2a,
+        menu-hover-bg-color: #333333,
+        menu-text-color: #a3a6ad,
+        menu-active-text-color: #165dff,
+
+        spacing-xs: 4px,
+        spacing-sm: 8px,
+        spacing-md: 16px,
+        spacing-lg: 24px,
+        spacing-xl: 32px,
+        spacing-xxl: 48px,
+
+        font-size-xs: 12px,
+        font-size-sm: 14px,
+        font-size-md: 16px,
+        font-size-lg: 18px,
+        font-size-xl: 20px,
+        font-size-xxl: 24px,
+
+        border-radius-sm: 4px,
+        border-radius-md: 8px,
+        border-radius-lg: 12px,
+        border-radius-circle: 50%,
+
+        transition-speed: 0.3s,
+        transition-easing: ease-in-out,
+
+        primary-color-rgb: rgb(22, 93, 255),
+        error-color-rgb: rgb(243, 91, 99),
+        success-color-rgb: rgb(78, 184, 95)
+);
+
+// ========== 应用主题到 CSS 变量 ==========
+:root {
+  @each $name, $value in $light-theme {
+    --#{$name}: #{$value};
+  }
+  --primary-color-rgb: 64, 158, 255;
+}
+
+.dark {
+  @each $name, $value in $dark-theme {
+    --#{$name}: #{$value};
+  }
+  --primary-color-rgb: 22, 93, 255;
+}

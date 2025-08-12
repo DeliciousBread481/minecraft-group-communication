@@ -4,7 +4,7 @@ import type {
   UserInfoApiResponse,
   VoidApiResponse,
   StringApiResponse,
-  UpdateUserInfo, UserInfoData
+  UpdateUserInfo, UserInfoData, AdminApplicationStatusApiResponse, AdminApplicationStatus
 } from '@/types/api'
 
 /**
@@ -84,7 +84,7 @@ export const updateAvatar = async (file: File): Promise<StringApiResponse> => {
  * POST /api/user/apply-for-admin
  * @param reason 申请理由
  */
-export const applyForAdminRole = async (reason: string): Promise<VoidApiResponse> => {
+export const applyForAdmin = async (reason: string): Promise<VoidApiResponse> => {
   try {
     const response = await api.post('/user/apply-for-admin', null, {
       params: { reason }
@@ -94,3 +94,17 @@ export const applyForAdminRole = async (reason: string): Promise<VoidApiResponse
     throw new Error('申请成为管理员失败');
   }
 };
+
+/**
+ * 需要修改后端和数据库暂未实现！！！
+ * 类型安全的获取管理员申请状态方法
+ * GET /api/user/admin-application/status
+ */
+export const getAdminApplicationStatus = async (): Promise<AdminApplicationStatusApiResponse> => {
+  try {
+    const response = await api.get('/user/admin-application/status');
+    return handleResponse<AdminApplicationStatus>(response);
+  }catch (error: any) {
+    throw new Error(error);
+  }
+}

@@ -49,5 +49,5 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-@use '@/styles/components/layout' as *;
+@use '@/styles/components' as *;
 </style>

@@ -522,7 +522,7 @@ const handleForgotPasswordError = (error: any) => {
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
   padding: 1.5rem;
   background: var(--bg-secondary-color);
 }
