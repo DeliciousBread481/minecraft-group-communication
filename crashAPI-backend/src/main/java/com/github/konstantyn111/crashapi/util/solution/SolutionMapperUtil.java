@@ -5,7 +5,6 @@ import com.github.konstantyn111.crashapi.entity.solution.*;
 import com.github.konstantyn111.crashapi.entity.user.User;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 public class SolutionMapperUtil {
@@ -18,6 +17,7 @@ public class SolutionMapperUtil {
                 .icon(category.getIcon())
                 .description(category.getDescription())
                 .color(category.getColor())
+                .createdByUsername(category.getCreatedBy() != null ? category.getCreatedBy().getUsername() : null)
                 .build();
     }
 
@@ -34,9 +34,10 @@ public class SolutionMapperUtil {
                 .version(solution.getVersion())
                 .updateTime(solution.getUpdatedAt())
                 .description(solution.getDescription())
+                .steps(steps)
                 .notes(solution.getNotes())
-                .steps(steps != null ? steps : Collections.emptyList())
-                .images(images != null ? images : Collections.emptyList())
+                .images(images)
+                .createdByUsername(solution.getCreatedByUser() != null ? solution.getCreatedByUser().getUsername() : null)
                 .build();
     }
 

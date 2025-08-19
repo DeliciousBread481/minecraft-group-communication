@@ -1,5 +1,6 @@
 package com.github.konstantyn111.crashapi.service.user;
 
+import com.github.konstantyn111.crashapi.dto.user.AdminApplicationStatus;
 import com.github.konstantyn111.crashapi.dto.user.UserInfo;
 import com.github.konstantyn111.crashapi.entity.user.AdminApplication;
 import com.github.konstantyn111.crashapi.entity.user.User;
@@ -9,19 +10,24 @@ import com.github.konstantyn111.crashapi.mapper.user.UserMapper;
 import com.github.konstantyn111.crashapi.service.solution.FileStorageService;
 import com.github.konstantyn111.crashapi.exception.ErrorCode;
 import com.github.konstantyn111.crashapi.util.RestResponse;
-import com.github.konstantyn111.crashapi.util.user.UserConvertUtil;
+import com.github.konstantyn111.crashapi.util.SecurityValidationUtils;
+import com.github.konstantyn111.crashapi.util.user.UserUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -30,6 +36,7 @@ public class UserService {
     private final AdminApplicationMapper adminApplicationMapper;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
+    private final SecurityValidationUtils securityValidatorUtils;
 
     /**
      * 提交管理员权限申请
@@ -39,6 +46,9 @@ public class UserService {
     @Transactional
     public RestResponse<Void> applyForAdminRole(String reason) {
         try {
+            // 安全检查
+            String safeReason = securityValidatorUtils.fullSecurityCheck(reason);
+
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
 
@@ -60,9 +70,9 @@ public class UserService {
             }
 
             AdminApplication application = new AdminApplication();
-            application.setUserId(currentUser.getId());
+            application.setApplicantId(currentUser.getId());
             application.setStatus("PENDING");
-            application.setReason(reason);
+            application.setReason(safeReason);
             application.setCreatedAt(LocalDateTime.now());
 
             adminApplicationMapper.insert(application);
@@ -76,6 +86,57 @@ public class UserService {
                     "提交申请失败: " + ex.getMessage());
         }
     }
+
+    @Transactional(readOnly = true)
+    public RestResponse<AdminApplicationStatus> getAdminApplicationStatus() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED,
+                        HttpStatus.UNAUTHORIZED,
+                        "用户未登录");
+            }
+
+            String username = authentication.getName();
+            User currentUser = userMapper.findByUsername(username)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
+                            HttpStatus.NOT_FOUND,
+                            "用户不存在"));
+            Optional<AdminApplication> applicationOpt =
+                    adminApplicationMapper.findLatestByUserId(currentUser.getId());
+
+            if (userMapper.hasRole(currentUser.getId(), "ROLE_ADMIN")) {
+                throw new BusinessException(ErrorCode.ALREADY_ADMIN,
+                        HttpStatus.BAD_REQUEST,
+                        "您已经是管理员");
+            }
+            if (applicationOpt.isEmpty()) {
+                return RestResponse.fail(HttpStatus.NOT_FOUND.value(),
+                        ErrorCode.APPLICATION_NOT_FOUND,
+                        "未找到管理员申请记录");
+            }
+
+            AdminApplication application = applicationOpt.get();
+
+            AdminApplicationStatus dto = AdminApplicationStatus.builder()
+                    .id(application.getId())
+                    .applicantId(application.getApplicantId())
+                    .status(application.getStatus())
+                    .reason(application.getReason())
+                    .feedback(application.getFeedback())
+                    .createdAt(application.getCreatedAt())
+                    .build();
+
+            return RestResponse.success(dto, "获取管理员申请状态成功");
+        } catch (BusinessException ex) {
+            return RestResponse.fail(ex);
+        } catch (Exception ex) {
+            return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    ErrorCode.INTERNAL_SERVER_ERROR,
+                    "获取申请状态失败: " + ex.getMessage());
+        }
+    }
+
 
     /**
      * 获取当前登录用户信息
@@ -93,13 +154,18 @@ public class UserService {
             }
 
             String username = authentication.getName();
-
             Optional<User> userOpt = userMapper.findByUsername(username);
-            return userOpt.map(user -> RestResponse.success(UserConvertUtil.convertToUserInfo(user), "获取用户信息成功"))
-                    .orElseGet(() -> RestResponse.fail(HttpStatus.NOT_FOUND.value(),
-                            ErrorCode.USER_NOT_FOUND,
-                            "用户不存在"));
 
+            if (userOpt.isEmpty()) {
+                return RestResponse.fail(HttpStatus.NOT_FOUND.value(),
+                        ErrorCode.USER_NOT_FOUND,
+                        "用户不存在");
+            }
+
+            User user = userOpt.get();
+            Set<String> roles = userMapper.findRolesByUserId(user.getId());
+
+            return RestResponse.success(UserUtils.Convert.toUserInfo(user, roles), "获取用户信息成功");
         } catch (BusinessException ex) {
             return RestResponse.fail(ex);
         } catch (Exception ex) {
@@ -134,14 +200,16 @@ public class UserService {
                 existingUser.setEmail(updateData.getEmail());
             }
 
+            existingUser.setUpdatedAt(LocalDateTime.now());
             userMapper.updateUserInfo(existingUser);
 
-            User updatedUser = userMapper.findByIdWithRoles(existingUser.getId())
+            User updatedUser = userMapper.findById(existingUser.getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
                             HttpStatus.NOT_FOUND,
                             "用户不存在"));
+            Set<String> roles = userMapper.findRolesByUserId(updatedUser.getId());
 
-            return RestResponse.success(UserConvertUtil.convertToUserInfo(updatedUser), "用户信息更新成功");
+            return RestResponse.success(UserUtils.Convert.toUserInfo(updatedUser, roles), "用户信息更新成功");
         } catch (BusinessException ex) {
             return RestResponse.fail(ex);
         } catch (Exception ex) {
@@ -175,6 +243,7 @@ public class UserService {
             }
 
             existingUser.setPassword(passwordEncoder.encode(newPassword));
+            existingUser.setUpdatedAt(LocalDateTime.now());
             userMapper.updateUserInfo(existingUser);
 
             return RestResponse.success("密码更新成功");
@@ -194,11 +263,12 @@ public class UserService {
      */
     @Transactional
     public RestResponse<String> updateAvatar(MultipartFile file) {
+        User existingUser = null;
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
 
-            User existingUser = userMapper.findByUsername(username)
+            existingUser = userMapper.findByUsername(username)
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND,
                             HttpStatus.NOT_FOUND,
                             "用户不存在"));
@@ -215,12 +285,18 @@ public class UserService {
             String avatarCdnBaseUrl = "https://cdn.example.com/avatars/";
             String fileUrl = avatarCdnBaseUrl + storedFileName;
             existingUser.setAvatar(fileUrl);
+            existingUser.setUpdatedAt(LocalDateTime.now());
             userMapper.updateUserInfo(existingUser);
 
             return RestResponse.success(fileUrl, "头像更新成功");
         } catch (BusinessException ex) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return RestResponse.fail(ex);
         } catch (Exception ex) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            if (existingUser != null) {
+                log.error("更新失败！用户ID: {}", existingUser.getId(), ex);
+            }
             return RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ErrorCode.INTERNAL_SERVER_ERROR,
                     "更新头像失败: " + ex.getMessage());

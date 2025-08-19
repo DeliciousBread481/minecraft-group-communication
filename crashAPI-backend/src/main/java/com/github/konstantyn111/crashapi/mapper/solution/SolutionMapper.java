@@ -10,9 +10,12 @@ import java.util.Optional;
 @Mapper
 public interface SolutionMapper {
     void insert(Solution solution);
+
     void update(Solution solution);
-    void delete(String solutionId);
-    Optional<Solution> findById(String solutionId);
+
+    void delete(@Param("solutionId") String solutionId);
+
+    Optional<Solution> findById(@Param("solutionId") String solutionId);
 
     List<Solution> findByCreator(@Param("creatorId") Long creatorId,
                                  @Param("status") String status,
@@ -33,4 +36,5 @@ public interface SolutionMapper {
 
     int countPublishedSolutions();
 
+    Optional<Solution> findPublishedById(@Param("solutionId") String solutionId);
 }

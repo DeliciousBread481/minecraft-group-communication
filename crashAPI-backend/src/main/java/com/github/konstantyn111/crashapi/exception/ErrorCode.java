@@ -35,6 +35,8 @@ public enum ErrorCode {
     /** 数据验证失败 */
     DATA_VALIDATION_FAILED(10008, "数据验证失败"),
 
+    SECURITY_VIOLATION(10009, "违规操作"),
+
     // ===================== 认证错误码 (20000-29999) =====================
     /** 用户认证失败 */
     AUTHENTICATION_FAILED(20000, "用户认证失败"),

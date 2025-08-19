@@ -36,7 +36,6 @@ public class SecurityConfig {
             "/api/auth/register",
             "/api/auth/refresh-token",
 
-            // 解决方案公共端点
             "/api/solutions/categories",
             "/api/solutions",
             "/api/solutions/*"
@@ -57,14 +56,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(authorize -> authorize
-                        // 公共访问端点
+                        // public
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS.toArray(new String[0])).permitAll()
 
-                        // 开发者角色专属端点
+                        // admin
                         .requestMatchers("/api/developer/**").hasRole("DEV")
 
-                        // 管理员角色专属端点
+                        // dev
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         //其他请求都需要认证

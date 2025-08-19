@@ -108,8 +108,10 @@ public class SolutionUtils {
                 .notes(solution.getNotes())
                 .steps(steps)
                 .images(images)
+                .createdByUsername(solution.getCreatedByUser() != null ? solution.getCreatedByUser().getUsername() : null)
                 .build();
     }
+
     public static List<SolutionDTO> convertListToDTO(List<Solution> solutions) {
         return solutions.stream().map(SolutionUtils::convertToDTO).collect(Collectors.toList());
     }

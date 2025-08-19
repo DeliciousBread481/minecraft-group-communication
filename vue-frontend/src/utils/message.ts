@@ -73,3 +73,102 @@ export const showPrompt = (
     .then(({ value }) => value as string)
     .catch(() => null);
 };
+
+/**
+ * 错误类型定义
+ */
+export interface ApiError extends Error {
+  response?: {
+    data?: {
+      message?: string;
+      code?: string | number;
+    };
+    status?: number;
+  };
+}
+
+/**
+ * 统一处理API错误
+ * @param error 错误对象
+ * @param defaultMessage 默认错误消息
+ * @param showMessage 是否显示错误消息
+ */
+export const handleApiError = (
+  error: ApiError,
+  defaultMessage: string = '操作失败，请稍后重试',
+  showMessage: boolean = true
+): never => {
+  let errorMessage = defaultMessage;
+
+  if (error.response?.data?.message) {
+    errorMessage = error.response.data.message;
+  } else if (error.message) {
+    errorMessage = error.message;
+  }
+
+  if (showMessage) {
+    showError(errorMessage);
+  }
+
+  throw new Error(errorMessage);
+};
+
+/**
+ * 显示错误消息
+ * @param message 错误消息内容
+ * @param title 错误标题（用于通知）
+ * @param useNotification 是否使用通知形式而非消息
+ */
+export const showError = (
+  message: string,
+  title: string = '错误',
+  useNotification: boolean = false
+) => {
+  if (useNotification) {
+    showNotification(title, message, 'error');
+  } else {
+    showMessage(message, 'error');
+  }
+};
+
+/**
+ * 显示成功消息
+ * @param message 成功消息内容
+ * @param title 成功标题（用于通知）
+ * @param useNotification 是否使用通知形式而非消息
+ */
+export const showSuccess = (
+  message: string,
+  title: string = '成功',
+  useNotification: boolean = false
+) => {
+  if (useNotification) {
+    showNotification(title, message, 'success');
+  } else {
+    showMessage(message, 'success');
+  }
+};
+
+/**
+ * 安全执行异步操作，自动捕获并显示错误
+ * @param operation 异步操作函数
+ * @param errorMessage 自定义错误消息
+ * @param showError 是否显示错误
+ * @returns 操作结果
+ */
+export const safeExecute = async <T>(
+  operation: () => Promise<T>,
+  errorMessage: string = '操作失败',
+  showError: boolean = true
+): Promise<T | null> => {
+  try {
+    return await operation();
+  } catch (error) {
+    if (showError) {
+      handleApiError(error as ApiError, errorMessage, true);
+    } else {
+      console.error(error);
+    }
+    return null;
+  }
+};

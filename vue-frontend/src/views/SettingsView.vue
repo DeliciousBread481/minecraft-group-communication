@@ -24,7 +24,7 @@
         class="menu-item"
         :class="{ active: activeMenu === 'admin' }"
         @click="activeMenu = 'admin'"
-        >
+      >
         <div class="admin-application-container">
           <i class="menu-icon icon-admin"></i>
           <span class="menu-title">申请成为管理员</span>
@@ -323,9 +323,8 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useUserStore } from '@/store/user';
 import { updateUserInfo, updatePassword, updateAvatar, applyForAdmin, getAdminApplicationStatus } from '@/api/user'
 import { showMessage } from '@/utils/message';
@@ -335,6 +334,13 @@ import type { VoidApiResponse } from '@/types/api'
 const userStore = useUserStore();
 const activeMenu = ref('profile');
 const avatarInput = ref<HTMLInputElement | null>(null);
+
+const isAdmin = computed(() => {
+  const roles = userStore.userInfo?.roles || [];
+  return roles.some((r: string) =>
+    r.toLowerCase() === 'ROLE_DEV' || r.toUpperCase() === 'ROLE_ADMIN'
+  );
+});
 
 // 初始化用户信息
 const userForm = reactive({
@@ -630,27 +636,19 @@ const adminForm = reactive({
   lastAppliedAt: '',
 });
 
-// 检查是否可以提交管理员申请
-const canSubmitAdminApplication = computed(() => {
-  return adminForm.reason.length >= 100;
-});
+// --- 管理员申请逻辑 ---
+const canSubmitAdminApplication = computed(() => adminForm.reason.length >= 100);
 
-// 获取管理员申请状态
 const fetchAdminApplicationStatus = async () => {
   try {
     const response = await getAdminApplicationStatus();
-
     if (response.success && response.data) {
       adminForm.isApplied = true;
       adminForm.status = response.data.status;
       adminForm.adminFeedback = response.data.feedback || '';
-      adminForm.feedbackTime = response.data.updatedAt
-        ? new Date(response.data.updatedAt).toLocaleString()
-        : '';
       adminForm.lastAppliedAt = response.data.createdAt
         ? new Date(response.data.createdAt).toLocaleString()
         : '';
-
       updateStatusDisplay();
     } else {
       adminForm.isApplied = false;
@@ -661,7 +659,6 @@ const fetchAdminApplicationStatus = async () => {
   }
 };
 
-// 更新状态显示
 const updateStatusDisplay = () => {
   switch (adminForm.status) {
     case 'approved':
@@ -682,25 +679,20 @@ const updateStatusDisplay = () => {
   }
 };
 
-// 提交管理员申请
 const submitAdminApplication = async () => {
   if (!canSubmitAdminApplication.value) {
     showMessage('请填写至少100字的申请理由', 'warning');
     return;
   }
-
   try {
     adminForm.isSubmitting = true;
     const response: VoidApiResponse = await applyForAdmin(adminForm.reason);
-
     if (response.success) {
       showMessage('申请已提交，请等待审核', 'success');
       adminForm.isApplied = true;
       adminForm.status = 'pending';
       adminForm.lastAppliedAt = new Date().toLocaleString();
       updateStatusDisplay();
-
-      // 重新获取状态以更新反馈信息
       await fetchAdminApplicationStatus();
     } else {
       showMessage(response.message || '申请提交失败，请稍后再试', 'error');
@@ -713,7 +705,6 @@ const submitAdminApplication = async () => {
   }
 };
 
-// 重置管理员申请表单
 const resetAdminForm = () => {
   adminForm.reason = '';
   adminForm.isApplied = false;
@@ -723,13 +714,23 @@ const resetAdminForm = () => {
   adminForm.lastAppliedAt = '';
 };
 
-// 页面加载时初始化表单
+// --- 生命周期 & 监听 ---
 onMounted(() => {
   resetForm();
-  if (!userStore.userInfo?.roles?.includes('admin')) {
+  if (!isAdmin.value) {
     fetchAdminApplicationStatus();
   }
 });
+
+watch(
+  () => userStore.userInfo,
+  (newUser) => {
+    if (newUser && !isAdmin.value) {
+      fetchAdminApplicationStatus();
+    }
+  },
+  { immediate: false }
+);
 </script>
 
 <style scoped lang="scss">

@@ -10,7 +10,7 @@ import com.github.konstantyn111.crashapi.exception.ErrorCode;
 import com.github.konstantyn111.crashapi.mapper.solution.*;
 import com.github.konstantyn111.crashapi.mapper.user.UserMapper;
 import com.github.konstantyn111.crashapi.util.RestResponse;
-import com.github.konstantyn111.crashapi.util.solution.SecurityValidationUtils;
+import com.github.konstantyn111.crashapi.util.SecurityValidationUtils;
 import com.github.konstantyn111.crashapi.util.solution.SolutionMapperUtil;
 import com.github.konstantyn111.crashapi.util.solution.SolutionOperations;
 import com.github.konstantyn111.crashapi.util.solution.SolutionUtils;
@@ -49,6 +49,9 @@ public class SolutionService {
 
         List<Solution> solutions = solutionMapper.findPublishedSolutions(offset, pageSize);
         int total = solutionMapper.countPublishedSolutions();
+        
+        logger.info("获取已发布解决方案，当前页：{}，页面大小：{}，总记录数：{}", pageable.getPageNumber(), pageable.getPageSize(), total);
+        logger.info(solutions.toString());
 
         if (solutions.isEmpty()) {
             return SolutionPageDto.fromPage(new PageImpl<>(Collections.emptyList(), pageable, 0));
@@ -97,6 +100,7 @@ public class SolutionService {
             List<CategoryDTO> dtos = categoryMapper.findAll().stream()
                     .map(SolutionMapperUtil::toCategoryDTO)
                     .toList();
+            logger.info(dtos.toString());
             return RestResponse.success(dtos, "获取分类列表成功");
         } catch (Exception ex) {
             logger.error("获取分类列表失败", ex);

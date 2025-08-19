@@ -29,10 +29,6 @@ public class FileStorageService {
 
     /**
      * 存储多个文件
-     * <p>
-     * 批量处理文件上传，使用默认配置存储到解决方案目录（solution）。
-     * </p>
-     *
      * @param files 要存储的文件列表
      * @return 文件访问URL列表
      * @throws RuntimeException 当文件存储失败时抛出
@@ -49,10 +45,6 @@ public class FileStorageService {
 
     /**
      * 存储单个文件
-     * <p>
-     * 通用文件存储方法，支持自定义存储参数和验证规则。
-     * </p>
-     *
      * @param file 上传的文件
      * @param subDirectory 存储子目录（基于baseUploadDir）
      * @param fileName 自定义文件名（含扩展名），null时自动生成

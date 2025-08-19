@@ -12,4 +12,5 @@ public class CategoryDTO {
     private String icon;
     private String description;
     private String color;
+    private String createdByUsername;
 }

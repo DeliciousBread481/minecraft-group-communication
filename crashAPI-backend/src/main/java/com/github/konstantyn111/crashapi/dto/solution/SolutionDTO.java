@@ -20,4 +20,5 @@ public class SolutionDTO {
     private List<String> steps;
     private String notes;
     private List<String> images;
+    private String createdByUsername;
 }

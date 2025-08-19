@@ -18,6 +18,7 @@ interface UserState {
   accessToken: string | null;
   refreshTokenValue: string | null;
   userInfo: any | null;
+  lastUserInfoFetch: number | null;
 }
 
 export const useUserStore = defineStore('user', {
@@ -25,7 +26,8 @@ export const useUserStore = defineStore('user', {
     isAuthenticated: false,
     accessToken: localStorage.getItem('accessToken') || null,
     refreshTokenValue: localStorage.getItem('refreshToken') || null,
-    userInfo: JSON.parse(localStorage.getItem('userInfo') || 'null')
+    userInfo: JSON.parse(localStorage.getItem('userInfo') || 'null'),
+    lastUserInfoFetch: null
   }),
 
   actions: {
@@ -35,8 +37,9 @@ export const useUserStore = defineStore('user', {
     init() {
       this.isAuthenticated = !!this.accessToken;
 
-      // 自动获取用户信息
-      if (this.isAuthenticated && !this.userInfo) {
+      // 自动获取用户信息（如果超过5分钟未获取）
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      if (this.isAuthenticated && (!this.lastUserInfoFetch || this.lastUserInfoFetch < fiveMinutesAgo)) {
         this.fetchUserInfo();
       }
     },
@@ -108,6 +111,7 @@ export const useUserStore = defineStore('user', {
       try {
         const response: UserInfoApiResponse = await getCurrentUser();
         this.userInfo = response.data;
+        this.lastUserInfoFetch = Date.now();
         localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
       } catch (error) {
         console.error('获取用户信息失败:', error);
@@ -120,7 +124,7 @@ export const useUserStore = defineStore('user', {
      */
     async refreshToken(): Promise<boolean> {
       if (!this.refreshTokenValue) {
-        this.logout();
+        await this.logout();
         return false;
       }
 
@@ -142,7 +146,7 @@ export const useUserStore = defineStore('user', {
         return true;
       } catch (error) {
         console.error('刷新令牌失败:', error);
-        this.logout();
+        await this.logout();
         return false;
       }
     },
@@ -170,6 +174,7 @@ export const useUserStore = defineStore('user', {
       this.accessToken = null;
       this.refreshTokenValue = null;
       this.userInfo = null;
+      this.lastUserInfoFetch = null;
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userInfo');

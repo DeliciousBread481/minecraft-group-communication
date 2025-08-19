@@ -1,3 +1,4 @@
+// ===================== 通用响应类型 =====================
 export interface ApiResponse<T = any> {
   success: boolean;
   status: number;
@@ -6,6 +7,7 @@ export interface ApiResponse<T = any> {
   data: T;
 }
 
+// ===================== 鉴权相关类型 =====================
 export interface LoginRequest {
   username: string;
   password: string;
@@ -26,7 +28,7 @@ export interface AuthResponseData {
   refreshToken: string;
 }
 
-// 用户信息数据结构
+// ===================== 用户信息相关类型 =====================
 export interface UserInfoData {
   id: number;
   username: string;
@@ -39,7 +41,6 @@ export interface UserInfoData {
   roles?: string[];
 }
 
-// 更新用户信息类型
 export interface UpdateUserInfo {
   id?: number;
   username?: string;
@@ -52,32 +53,24 @@ export interface UpdateUserInfo {
   roles?: string[];
 }
 
-// 更新密码参数
 export interface UpdatePasswordRequest {
   oldPassword: string;
   newPassword: string;
 }
 
-export type AuthApiResponse = ApiResponse<AuthResponseData>;
-export type UserInfoApiResponse = ApiResponse<UserInfoData>;
-export type VoidApiResponse = ApiResponse<void>;
-export type StringApiResponse = ApiResponse<string>;
-
 // ===================== 解决方案相关类型 =====================
 export interface SolutionDTO {
   id: string;
+  title: string;
   categoryId: string;
   categoryName: string;
-  title: string;
   difficulty: string;
   version: string;
+  updateTime: string;
   description: string;
   notes: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
   steps: string[];
-  imageUrls: string[];
+  images: string[];
 }
 
 export interface SolutionCreateDTO {
@@ -88,7 +81,7 @@ export interface SolutionCreateDTO {
   description: string;
   notes: string;
   steps: string[];
-  imageUrls: string[];
+  imageFiles: File[];
 }
 
 export interface SolutionUpdateDTO {
@@ -98,7 +91,8 @@ export interface SolutionUpdateDTO {
   description: string;
   notes: string;
   steps: string[];
-  imageUrls: string[];
+  imageFiles: File[];
+  existingImageUrls: string[];
 }
 
 export interface CategoryDTO {
@@ -112,10 +106,10 @@ export interface CategoryDTO {
 // ===================== 管理员申请相关类型 =====================
 export interface AdminApplicationDTO {
   id: number;
-  userId: number;
-  username: string;
-  email: string;
+  applicantUsername: string;
   status: string;
+  reason: string;
+  feedback: string;
   processorUsername: string;
   createdAt: string;
   processedAt: string;
@@ -123,25 +117,28 @@ export interface AdminApplicationDTO {
 
 export interface AdminApplicationStatus {
   id: number;
-  userId: number;
-  status: 'pending' | 'approved' | 'rejected';
+  applicantId: number;
+  status: string;
   reason: string;
-  feedback?: string;
+  feedback: string;
   createdAt: string;
-  updatedAt: string;
 }
 
-// ===================== API响应类型 =====================
+// ===================== API 响应类型 =====================
+export type AuthApiResponse = ApiResponse<AuthResponseData>;
+export type UserInfoApiResponse = ApiResponse<UserInfoData>;
+export type VoidApiResponse = ApiResponse<void>;
+export type StringApiResponse = ApiResponse<string>;
+
 export type SolutionApiResponse = ApiResponse<SolutionDTO>;
 export type SolutionListApiResponse = ApiResponse<PageData<SolutionDTO>>;
 export type CategoryListApiResponse = ApiResponse<CategoryDTO[]>;
-export type AdminApplicationListApiResponse = ApiResponse<PageData<AdminApplicationDTO>>;
 export type AdminApplicationPageApiResponse = ApiResponse<PageData<AdminApplicationDTO>>;
 export type AdminApplicationStatusApiResponse = ApiResponse<AdminApplicationStatus>;
 export type SolutionPageApiResponse = ApiResponse<PageData<SolutionDTO>>;
 export type UserPageApiResponse = ApiResponse<PageData<UserInfoData>>;
 
-// 分页数据结构
+// ===================== 分页数据结构 =====================
 export interface PageData<T> {
   content: T[];
   totalElements: number;

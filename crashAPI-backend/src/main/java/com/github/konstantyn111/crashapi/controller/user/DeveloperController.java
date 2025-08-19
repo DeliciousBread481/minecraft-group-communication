@@ -70,7 +70,7 @@ public class DeveloperController {
     @PostMapping("/admin-applications/{applicationId}/reject")
     public ResponseEntity<RestResponse<Void>> rejectApplication(
             @PathVariable Long applicationId,
-            @RequestParam(required = false) String reason) {
-        return ResponseEntity.ok(developerService.rejectApplication(applicationId, reason));
+            @RequestParam(required = false) String feedback) {
+        return ResponseEntity.ok(developerService.rejectApplication(applicationId, feedback));
     }
 }

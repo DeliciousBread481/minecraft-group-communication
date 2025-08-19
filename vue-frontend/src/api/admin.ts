@@ -1,5 +1,5 @@
-import api from '@/utils/api';
-import { handleResponse } from '@/utils/api';
+import api, { handleResponse } from '@/utils/api';
+import { handleApiError } from '@/utils/message';
 import type {
   UserInfoApiResponse,
   SolutionApiResponse,
@@ -14,14 +14,13 @@ import type {
 /**
  * 根据ID获取用户信息
  * GET /api/admin/users/{userId}
- * @param userId 用户ID
  */
 export const getUserById = async (userId: number): Promise<UserInfoApiResponse> => {
   try {
     const response = await api.get(`/admin/users/${userId}`);
     return handleResponse(response);
   } catch (error: any) {
-    throw new Error('获取用户信息失败');
+    return handleApiError(error, '获取用户信息失败');
   }
 };
 
@@ -30,22 +29,19 @@ export const getUserById = async (userId: number): Promise<UserInfoApiResponse> 
 /**
  * 创建解决方案
  * POST /api/admin/solutions
- * @param createDTO 解决方案数据
  */
 export const createSolution = async (createDTO: SolutionCreateDTO): Promise<SolutionApiResponse> => {
   try {
     const response = await api.post('/admin/solutions', createDTO);
     return handleResponse(response);
   } catch (error: any) {
-    throw new Error('创建解决方案失败');
+    return handleApiError(error, '创建解决方案失败');
   }
 };
 
 /**
  * 更新解决方案
  * PUT /api/admin/solutions/{solutionId}
- * @param solutionId 解决方案ID
- * @param updateDTO 更新数据
  */
 export const updateSolution = async (
   solutionId: string,
@@ -55,42 +51,37 @@ export const updateSolution = async (
     const response = await api.put(`/admin/solutions/${solutionId}`, updateDTO);
     return handleResponse(response);
   } catch (error: any) {
-    throw new Error('更新解决方案失败');
+    return handleApiError(error, '更新解决方案失败');
   }
 };
 
 /**
  * 删除解决方案
  * DELETE /api/admin/solutions/{solutionId}
- * @param solutionId 解决方案ID
  */
 export const deleteSolution = async (solutionId: string): Promise<void> => {
   try {
     await api.delete(`/admin/solutions/${solutionId}`);
   } catch (error: any) {
-    throw new Error('删除解决方案失败');
+    return handleApiError(error, '删除解决方案失败');
   }
 };
 
 /**
  * 提交解决方案审核
- * POST /api/admin/solutions/{solutionId}/submit
- * @param solutionId 解决方案ID
+ * POST /api/admin/solutions/{solutionId}/submit-review
  */
 export const submitSolutionForReview = async (solutionId: string): Promise<void> => {
   try {
-    await api.post(`/admin/solutions/${solutionId}/submit`);
+    await api.post(`/admin/solutions/${solutionId}/submit-review`);
   } catch (error: any) {
-    throw new Error('提交解决方案审核失败');
+    return handleApiError(error, '提交解决方案审核失败');
   }
 };
 
 /**
  * 获取管理员创建的解决方案列表
- * GET /api/admin/solutions
- * @param page
- * @param size
- * @param status 解决方案状态（可选）
+ * GET /api/admin/solutions/my
  */
 export const getAdminSolutions = async (
   page: number,
@@ -98,30 +89,26 @@ export const getAdminSolutions = async (
   status?: string
 ): Promise<SolutionListApiResponse> => {
   try {
-    const params: Record<string, any> = {
-      page,
-      size
-    };
+    const params: Record<string, any> = { page, size };
     if (status) params.status = status;
 
-    const response = await api.get('/admin/solutions', { params });
+    const response = await api.get('/admin/solutions/my', { params });
     return handleResponse(response);
   } catch (error: any) {
-    throw new Error('获取解决方案列表失败');
+    return handleApiError(error, '获取解决方案列表失败');
   }
 };
 
 /**
  * 获取解决方案详情
  * GET /api/admin/solutions/{solutionId}
- * @param solutionId 解决方案ID
  */
 export const getSolutionById = async (solutionId: string): Promise<SolutionApiResponse> => {
   try {
     const response = await api.get(`/admin/solutions/${solutionId}`);
     return handleResponse(response);
   } catch (error: any) {
-    throw new Error('获取解决方案详情失败');
+    return handleApiError(error, '获取解决方案详情失败');
   }
 };
 
@@ -136,6 +123,6 @@ export const getAllCategories = async (): Promise<CategoryListApiResponse> => {
     const response = await api.get('/admin/categories');
     return handleResponse(response);
   } catch (error: any) {
-    throw new Error('获取分类列表失败');
+    return handleApiError(error, '获取分类列表失败');
   }
 };

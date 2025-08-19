@@ -1,5 +1,6 @@
 package com.github.konstantyn111.crashapi.entity.solution;
 
+import com.github.konstantyn111.crashapi.entity.user.User;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ public class Category {
     private String icon;
     private String description;
     private String color;
-    private Long createdBy;
+    private User createdBy;
     private LocalDateTime createdAt;
+    private String CreatedByUsername;
 }

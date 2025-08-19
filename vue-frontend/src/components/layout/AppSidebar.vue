@@ -2,7 +2,7 @@
   <div class="app-sidebar">
     <div class="sidebar-menu">
       <div
-        v-for="item in menuItems"
+        v-for="item in filteredMenuItems"
         :key="item.path"
         class="menu-item"
         :class="{ 'active': item.path === '/' ? $route.path === '/' : $route.path.startsWith(item.path) }"
@@ -33,24 +33,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/store/user'
 import {
   HomeFilled,
   Notebook,
   CollectionTag,
   QuestionFilled,
-  ChatLineRound
+  ChatLineRound,
+  Setting
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const userStore = useUserStore()
 
+// 静态菜单
 const menuItems = ref([
   { path: '/', title: '首页', icon: HomeFilled },
   { path: '/notice', title: '群公告文档', icon: Notebook },
   { path: '/solutions', title: '解决方案', icon: CollectionTag },
   { path: '/faq', title: '常见问题', icon: QuestionFilled },
+  { path: '/admin', title: '后台管理', icon: Setting, requiresRole: ['ROLE_DEV', 'ROLE_ADMIN'] }
 ])
+
+// 过滤菜单（根据角色判断是否显示）
+const filteredMenuItems = computed(() => {
+  const roles: string[] = userStore.userInfo?.roles || []
+  return menuItems.value.filter(item => {
+    if (!item.requiresRole) return true
+    return roles.some((r: string) => item.requiresRole?.includes(r))
+  })
+})
+
 
 const navigateTo = (path: string) => {
   router.push(path)

@@ -11,6 +11,7 @@
         <result property="createdAt" column="created_at" />
         <association property="createdBy" javaType="com.github.konstantyn111.crashapi.entity.user.User">
             <id property="id" column="created_by" />
+            <result property="username" column="created_username"/>
         </association>
     </resultMap>
 
@@ -39,6 +40,10 @@
 
     <!-- 查询方法 -->
     <select id="findAll" resultMap="CategoryResultMap">
-        SELECT * FROM categories ORDER BY name
+        SELECT c.*,
+               creator.username as created_username
+               FROM categories c
+                 JOIN users creator on c.created_by = creator.id
+                 ORDER BY name
     </select>
 </mapper>

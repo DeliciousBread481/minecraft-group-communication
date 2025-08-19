@@ -1,4 +1,4 @@
-package com.github.konstantyn111.crashapi.controller;
+package com.github.konstantyn111.crashapi.controller.solution;
 
 import com.github.konstantyn111.crashapi.dto.solution.*;
 import com.github.konstantyn111.crashapi.service.solution.SolutionService;

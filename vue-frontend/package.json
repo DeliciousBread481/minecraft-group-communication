@@ -20,7 +20,8 @@
     "marked": "^9.1.6",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.1",

@@ -2,7 +2,6 @@ package com.github.konstantyn111.crashapi.entity.solution;
 
 import lombok.*;
 
-@Getter
 @Data
 @Builder
 @NoArgsConstructor
