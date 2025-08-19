@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.user.RoleMapper">
+
+    <resultMap id="RoleResultMap" type="com.github.konstantyn111.crashapi.entity.user.Role">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+    </resultMap>
+
+    <select id="findByName" resultMap="RoleResultMap">
+        SELECT id, name, description FROM roles WHERE name = #{name}
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO roles (name, description) VALUES (#{name}, #{description})
+    </insert>
+</mapper>

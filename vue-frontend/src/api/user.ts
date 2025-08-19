@@ -96,15 +96,18 @@ export const applyForAdmin = async (reason: string): Promise<VoidApiResponse> =>
 };
 
 /**
- * 需要修改后端和数据库暂未实现！！！
  * 类型安全的获取管理员申请状态方法
  * GET /api/user/admin-application/status
  */
 export const getAdminApplicationStatus = async (): Promise<AdminApplicationStatusApiResponse> => {
   try {
     const response = await api.get('/user/admin-application/status');
-    return handleResponse<AdminApplicationStatus>(response);
-  }catch (error: any) {
+    const data = handleResponse<AdminApplicationStatus>(response);
+    if (data.data && data.data.status !== 'REJECTED') {
+      data.data.feedback = null;
+    }
+    return data;
+  } catch (error: any) {
     throw new Error(error);
   }
-}
+};

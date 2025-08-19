@@ -1,5 +1,6 @@
 package com.github.konstantyn111.crashapi.controller.user;
 
+import com.github.konstantyn111.crashapi.dto.user.AdminApplicationStatus;
 import com.github.konstantyn111.crashapi.dto.user.UserInfo;
 import com.github.konstantyn111.crashapi.service.user.UserService;
 import com.github.konstantyn111.crashapi.util.RestResponse;
@@ -54,5 +55,13 @@ public class UserController {
     @PostMapping("/apply-for-admin")
     public RestResponse<Void> applyForAdmin(@RequestParam("reason") String reason) {
         return userService.applyForAdminRole(reason);
+    }
+
+    /**
+     * 获取当前用户的管理员申请状态
+     */
+    @GetMapping("/admin-application/status")
+    public RestResponse<AdminApplicationStatus> getAdminApplicationStatus() {
+        return userService.getAdminApplicationStatus();
     }
 }

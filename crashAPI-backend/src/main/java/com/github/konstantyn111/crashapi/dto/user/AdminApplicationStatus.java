@@ -6,20 +6,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfo {
+public class AdminApplicationStatus {
     private Long id;
-    private String username;
-    private String email;
-    private String nickname;
-    private String avatar;
+    private Long userId;
+    private String status;
+    private String reason;
+    private String feedback;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private boolean enabled;
-    private Set<String> roles;
 }

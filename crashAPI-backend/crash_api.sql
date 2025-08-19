@@ -37,11 +37,13 @@ CREATE TABLE IF NOT EXISTS admin_applications (
                                                   user_id BIGINT NOT NULL COMMENT '申请人ID',
                                                   status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING' COMMENT '处理状态',
                                                   reason TEXT COMMENT '申请理由',
+                                                  feedback TEXT COMMENT '处理反馈',
                                                   processor_id BIGINT COMMENT '处理人ID',
                                                   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '申请时间',
                                                   processed_at TIMESTAMP COMMENT '处理时间',
                                                   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) COMMENT '管理员权限申请表';
+
 
 -- 解决方案知识库
 CREATE TABLE IF NOT EXISTS categories (
