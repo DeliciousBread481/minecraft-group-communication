@@ -1,5 +1,3 @@
-// @/utils/clipboard.ts
-
 /**
  * 复制文本到剪贴板
  * @param text 要复制的文本
@@ -7,10 +5,9 @@
  */
 export const copyToClipboard = (text: string): boolean => {
   try {
-    // 创建一个临时的 textarea 元素
     const textArea = document.createElement('textarea');
     textArea.value = text;
-    textArea.style.position = 'fixed'; // 避免滚动到页面底部
+    textArea.style.position = 'fixed';
     textArea.style.top = '0';
     textArea.style.left = '0';
     textArea.style.opacity = '0';
@@ -35,7 +32,7 @@ export const copyToClipboard = (text: string): boolean => {
 };
 
 /**
- * 异步复制文本到剪贴板（现代API）
+ * 异步复制文本到剪贴板
  * @param text 要复制的文本
  * @returns Promise 是否复制成功
  */

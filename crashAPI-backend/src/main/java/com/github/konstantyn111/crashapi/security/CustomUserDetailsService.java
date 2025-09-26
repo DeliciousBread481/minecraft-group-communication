@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userOptional.orElseThrow(() ->
                 new UsernameNotFoundException("User not found: " + username));
 
-        // ✅ 修改：只取角色名集合
+        //角色名集合
         Set<String> roleNames = userMapper.findRolesByUserId(user.getId());
 
         return new CustomUserDetails(user, roleNames);

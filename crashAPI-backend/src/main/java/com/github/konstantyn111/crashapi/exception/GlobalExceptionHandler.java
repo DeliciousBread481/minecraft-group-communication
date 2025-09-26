@@ -1,6 +1,7 @@
 package com.github.konstantyn111.crashapi.exception;
 
 import com.github.konstantyn111.crashapi.util.RestResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
  * 统一处理应用程序中的各类异常，返回标准化的错误响应。
  * </p>
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -48,6 +50,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<RestResponse<?>> handleBadCredentialsException(BadCredentialsException ex) {
+        log.warn("用户名和密码错误{}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(RestResponse.fail(HttpStatus.UNAUTHORIZED.value(),
                         ErrorCode.INVALID_CREDENTIALS,
@@ -114,6 +117,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse<?>> handleGenericException(Exception ex) {
+        log.error("服务器错误，请联系管理员处理{}",ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         ErrorCode.UNKNOWN_ERROR,

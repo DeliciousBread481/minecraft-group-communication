@@ -1,10 +1,10 @@
 <template>
   <router-view />
-<!--  <ThemeDebugger />-->
+  <ThemeDebugger />
 </template>
 
 <script setup lang="ts">
-// import ThemeDebugger from '@/components/ThemeDebugger.vue'
+import ThemeDebugger from '@/components/ThemeDebugger.vue'
 </script>
 <style>
 :root {

@@ -5,7 +5,7 @@ import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-// import { initThemeCheck } from '@/utils/themeUtils'
+import { initThemeCheck } from '@/utils/themeUtils'
 import "@/styles/main.scss"
 
 const app = createApp(App)
@@ -21,4 +21,4 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 app.mount('#app')
 
-// initThemeCheck()
+initThemeCheck()

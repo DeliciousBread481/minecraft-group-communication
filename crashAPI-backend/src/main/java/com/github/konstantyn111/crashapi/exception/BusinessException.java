@@ -2,14 +2,6 @@ package com.github.konstantyn111.crashapi.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-
-/**
- * 业务逻辑异常类
- * <p>
- * 用于封装业务处理过程中的错误信息，包含错误码、HTTP状态码和自定义错误消息。
- * 统一处理业务规则验证失败、数据冲突等场景。
- * </p>
- */
 @Getter
 public class BusinessException extends RuntimeException {
     /**

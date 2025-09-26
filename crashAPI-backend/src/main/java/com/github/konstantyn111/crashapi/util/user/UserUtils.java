@@ -32,10 +32,10 @@ public class UserUtils {
             if (user == null) return null;
             return UserInfo.builder()
                     .id(user.getId())
-                    .username(user.getUsername())
-                    .email(user.getEmail())
+                    .username(null)
+                    .email(null)
                     .nickname(user.getNickname())
-                    .avatar(user.getAvatar())
+                    .avatar(null)
                     .createdAt(user.getCreatedAt())
                     .updatedAt(user.getUpdatedAt())
                     .enabled(user.isEnabled())

@@ -1,5 +1,8 @@
--- 创建数据库
-CREATE DATABASE IF NOT EXISTS crash_api;
+-- 创建数据库并设置字符集
+CREATE DATABASE IF NOT EXISTS crash_api
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
 USE crash_api;
 
 -- 用户表
@@ -15,21 +18,23 @@ CREATE TABLE IF NOT EXISTS users (
                                      enabled BOOLEAN NOT NULL DEFAULT TRUE COMMENT '账户启用状态',
                                      refresh_token VARCHAR(255) COMMENT '刷新令牌',
                                      refresh_token_expiry TIMESTAMP COMMENT '刷新令牌过期时间'
-) COMMENT '用户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '用户表';
 
+-- 角色表
 CREATE TABLE IF NOT EXISTS roles (
                                      id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '角色唯一ID',
                                      name VARCHAR(255) NOT NULL UNIQUE COMMENT '角色名称(唯一)',
                                      description VARCHAR(255) COMMENT '角色描述'
-) COMMENT '系统角色表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '系统角色表';
 
+-- 用户-角色关联表
 CREATE TABLE IF NOT EXISTS user_roles (
                                           user_id BIGINT NOT NULL COMMENT '用户ID',
                                           role_id BIGINT NOT NULL COMMENT '角色ID',
                                           PRIMARY KEY (user_id, role_id),
                                           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                                           FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
-) COMMENT '用户-角色关联表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '用户-角色关联表';
 
 -- 管理员申请流程
 CREATE TABLE IF NOT EXISTS admin_applications (
@@ -42,10 +47,9 @@ CREATE TABLE IF NOT EXISTS admin_applications (
                                                   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '申请时间',
                                                   processed_at TIMESTAMP COMMENT '处理时间',
                                                   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) COMMENT '管理员权限申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '管理员权限申请表';
 
-
--- 解决方案知识库
+-- 问题分类表
 CREATE TABLE IF NOT EXISTS categories (
                                           id VARCHAR(50) PRIMARY KEY COMMENT '分类ID(如startup)',
                                           name VARCHAR(50) NOT NULL COMMENT '分类名称',
@@ -55,8 +59,9 @@ CREATE TABLE IF NOT EXISTS categories (
                                           created_by BIGINT NOT NULL COMMENT '创建者ID',
                                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                           FOREIGN KEY (created_by) REFERENCES users(id)
-) COMMENT '问题分类表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '问题分类表';
 
+-- 解决方案主表
 CREATE TABLE IF NOT EXISTS solutions (
                                          id VARCHAR(50) PRIMARY KEY COMMENT '方案ID(如s1)',
                                          category_id VARCHAR(50) NOT NULL COMMENT '关联分类ID',
@@ -73,33 +78,35 @@ CREATE TABLE IF NOT EXISTS solutions (
                                          FOREIGN KEY (category_id) REFERENCES categories(id),
                                          FOREIGN KEY (created_by) REFERENCES users(id),
                                          FOREIGN KEY (reviewed_by) REFERENCES users(id)
-) COMMENT '解决方案主表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '解决方案主表';
 
+-- 解决方案步骤表
 CREATE TABLE IF NOT EXISTS solution_steps (
                                               id INT AUTO_INCREMENT PRIMARY KEY,
                                               solution_id VARCHAR(50) NOT NULL COMMENT '关联方案ID',
                                               step_order TINYINT UNSIGNED NOT NULL COMMENT '步骤序号(1起)',
                                               content TEXT NOT NULL COMMENT '步骤内容',
                                               FOREIGN KEY (solution_id) REFERENCES solutions(id) ON DELETE CASCADE
-) COMMENT '解决方案步骤表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '解决方案步骤表';
 
+-- 解决方案截图表
 CREATE TABLE IF NOT EXISTS solution_images (
                                                id INT AUTO_INCREMENT PRIMARY KEY,
                                                solution_id VARCHAR(50) NOT NULL COMMENT '关联方案ID',
                                                image_order TINYINT UNSIGNED NOT NULL COMMENT '图片序号',
                                                image_url VARCHAR(500) NOT NULL COMMENT '图片URL',
                                                FOREIGN KEY (solution_id) REFERENCES solutions(id) ON DELETE CASCADE
-) COMMENT '解决方案截图表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '解决方案截图表';
 
 -- ============= 群公告系统 ============= --
--- 主公告表
+-- 公告主表
 CREATE TABLE IF NOT EXISTS announcements (
-                                             id VARCHAR(50) PRIMARY KEY DEFAULT 'main_announcement' COMMENT '公告ID(固定为主公告)',
+                                             id VARCHAR(50) PRIMARY KEY COMMENT '公告ID',
                                              title VARCHAR(255) NOT NULL DEFAULT '群规及问题指南' COMMENT '公告标题',
                                              last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
                                              last_updated_by BIGINT NOT NULL COMMENT '最后更新者ID',
                                              FOREIGN KEY (last_updated_by) REFERENCES users(id)
-) COMMENT '公告主表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '公告主表';
 
 -- 内容分类表
 CREATE TABLE IF NOT EXISTS announcement_categories (
@@ -107,7 +114,7 @@ CREATE TABLE IF NOT EXISTS announcement_categories (
                                                        name VARCHAR(50) NOT NULL COMMENT '分类名称',
                                                        sort_order SMALLINT NOT NULL DEFAULT 0 COMMENT '排序顺序',
                                                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
-) COMMENT '公告分类表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '公告分类表';
 
 -- 内容项表（文本或图片容器）
 CREATE TABLE IF NOT EXISTS announcement_items (
@@ -119,14 +126,14 @@ CREATE TABLE IF NOT EXISTS announcement_items (
                                                   last_updated_by BIGINT NOT NULL COMMENT '最后更新者ID',
                                                   FOREIGN KEY (category_id) REFERENCES announcement_categories(id) ON DELETE CASCADE,
                                                   FOREIGN KEY (last_updated_by) REFERENCES users(id)
-) COMMENT '公告内容项表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '公告内容项表';
 
 -- 文本内容表
 CREATE TABLE IF NOT EXISTS announcement_texts (
                                                   item_id INT PRIMARY KEY COMMENT '关联内容项ID',
                                                   content TEXT NOT NULL COMMENT '文本内容',
                                                   FOREIGN KEY (item_id) REFERENCES announcement_items(id) ON DELETE CASCADE
-) COMMENT '公告文本内容表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '公告文本内容表';
 
 -- 图片内容表
 CREATE TABLE IF NOT EXISTS announcement_images (
@@ -134,7 +141,7 @@ CREATE TABLE IF NOT EXISTS announcement_images (
                                                    image_url VARCHAR(500) NOT NULL COMMENT '图片URL',
                                                    caption VARCHAR(255) COMMENT '图片说明',
                                                    FOREIGN KEY (item_id) REFERENCES announcement_items(id) ON DELETE CASCADE
-) COMMENT '公告图片表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '公告图片表';
 
 -- ============= 索引优化 ============= --
 -- 用户系统索引
@@ -160,6 +167,9 @@ CREATE INDEX idx_ann_texts_item ON announcement_texts(item_id);
 CREATE INDEX idx_ann_images_item ON announcement_images(item_id);
 
 -- ============= 初始化数据 ============= --
+-- 设置字符集以确保中文正确插入
+SET NAMES utf8mb4;
+
 START TRANSACTION;
 
 -- 1. 初始化系统角色
@@ -169,10 +179,10 @@ INSERT IGNORE INTO roles (name, description) VALUES
                                                  ('ROLE_USER', '普通用户');
 
 -- 2. 初始化用户
-INSERT IGNORE INTO users (username, email, password, nickname) VALUES
-                                                                   ('john_doe', 'john@example.com', '$2a$10$Xp1DfT7Y2Jz5v8sQeWZzUuBd6LrCc1V0oGkZ1hY3HjKlN2mP3oR9S', 'John Doe'),
-                                                                   ('admin1', 'admin1@example.com', '$2a$10$SXJFAfgRnwKDHDcHlBuVzOISnlGJXYbdTwj7C96UPi7llUz5Gu7Pq', '系统管理员1'),
-                                                                   ('admin2', 'admin2@example.com', '$2a$10$f37BSMpJQ23Dl65JfwzFiOorqJHsbHl9NH03o0ccSkpsEHpDD6yz', '系统管理员2');
+INSERT IGNORE INTO users (username, email, password, nickname, refresh_token_expiry) VALUES
+                                                                   ('john_doe', 'john@example.com', '$2a$10$Xp1DfT7Y2Jz5v8sQeWZzUuBd6LrCc1V0oGkZ1hY3HjKlN2mP3oR9S', 'John Doe', DATE_ADD(NOW(), INTERVAL 30 DAY)),
+                                                                   ('admin1', 'admin1@example.com', '$2a$10$SXJFAfgRnwKDHDcHlBuVzOISnlGJXYbdTwj7C96UPi7llUz5Gu7Pq', '系统管理员1', DATE_ADD(NOW(), INTERVAL 30 DAY)),
+                                                                   ('admin2', 'admin2@example.com', '$2a$10$f37BSMpJQ23Dl65JfwzFiOorqJHsbHl9NH03o0ccSkpsEHpDD6yz', '系统管理员2', DATE_ADD(NOW(), INTERVAL 30 DAY));
 
 -- 3. 分配角色
 INSERT IGNORE INTO user_roles (user_id, role_id)
@@ -241,8 +251,8 @@ VALUES
     ('s4', 5, '查看游戏日志文件定位具体错误');
 
 -- 7. 群公告系统初始化
-INSERT IGNORE INTO announcements (id, last_updated_by)
-SELECT 'main_announcement', id
+INSERT IGNORE INTO announcements (id, title, last_updated_by)
+SELECT 'main_announcement', '群规及问题指南', id
 FROM users
 WHERE username = 'admin1';
 

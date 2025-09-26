@@ -42,6 +42,12 @@ public class SolutionService {
 
     // ==================== 公共接口 ====================
 
+    /**
+     * 分页获取已发布的解决方案
+     *
+     * @param pageable 分页参数
+     * @return 包含解决方案列表的分页数据
+     */
     @Transactional(readOnly = true)
     public SolutionPageDto getPublishedSolutions(Pageable pageable) {
         int offset = (int) pageable.getOffset();
@@ -79,6 +85,13 @@ public class SolutionService {
         return SolutionPageDto.fromPage(new PageImpl<>(dtos, pageable, total));
     }
 
+    /**
+     * 根据ID获取解决方案详情
+     *
+     * @param solutionId 解决方案ID
+     * @return 包含解决方案详情的响应结果
+     * @throws BusinessException 当解决方案不存在时抛出
+     */
     @Transactional(readOnly = true)
     public RestResponse<SolutionDTO> getSolutionById(String solutionId) {
         Solution solution = solutionMapper.findById(solutionId)
@@ -94,6 +107,11 @@ public class SolutionService {
         return RestResponse.success(dto, "获取解决方案成功");
     }
 
+    /**
+     * 获取全部分类列表
+     *
+     * @return 包含分类列表的响应结果
+     */
     @Transactional(readOnly = true)
     public RestResponse<List<CategoryDTO>> getAllCategories() {
         try {
@@ -112,6 +130,12 @@ public class SolutionService {
 
     // ==================== 管理员接口 ====================
 
+    /**
+     * 创建新的解决方案
+     *
+     * @param createDTO 解决方案创建数据
+     * @return 包含新创建解决方案详情的响应结果
+     */
     @Transactional
     public RestResponse<SolutionDTO> createSolution(SolutionCreateDTO createDTO) {
         try {
@@ -131,6 +155,13 @@ public class SolutionService {
         }
     }
 
+    /**
+     * 管理员更新解决方案
+     *
+     * @param solutionId 解决方案ID
+     * @param updateDTO 解决方案更新数据
+     * @return 包含更新后解决方案详情的响应结果
+     */
     @Transactional
     public RestResponse<SolutionDTO> updateSolutionAdmin(String solutionId, SolutionUpdateDTO updateDTO) {
         try {
@@ -152,6 +183,12 @@ public class SolutionService {
         }
     }
 
+    /**
+     * 删除解决方案
+     *
+     * @param solutionId 解决方案ID
+     * @return 操作结果响应
+     */
     @Transactional
     public RestResponse<Void> deleteSolution(String solutionId) {
         try {
@@ -172,6 +209,12 @@ public class SolutionService {
         }
     }
 
+    /**
+     * 撤回已发布的解决方案（变为草稿状态）
+     *
+     * @param solutionId 解决方案ID
+     * @return 操作结果响应
+     */
     @Transactional
     public RestResponse<Void> withdrawSolution(String solutionId) {
         try {
@@ -191,6 +234,12 @@ public class SolutionService {
         }
     }
 
+    /**
+     * 提交解决方案进行审核
+     *
+     * @param solutionId 解决方案ID
+     * @return 操作结果响应
+     */
     @Transactional
     public RestResponse<Void> submitSolutionForReview(String solutionId) {
         try {
@@ -210,6 +259,13 @@ public class SolutionService {
         }
     }
 
+     /**
+     * 分页获取当前用户创建的解决方案
+     *
+     * @param pageable 分页参数
+     * @param status 解决方案状态筛选条件
+     * @return 包含解决方案列表的分页响应结果
+     */
     @Transactional(readOnly = true)
     public RestResponse<Page<SolutionDTO>> getMySolutions(Pageable pageable, String status) {
         try {
@@ -230,6 +286,12 @@ public class SolutionService {
         }
     }
 
+    /**
+     * 管理员根据ID获取解决方案详情
+     *
+     * @param solutionId 解决方案ID
+     * @return 包含解决方案详情的响应结果
+     */
     @Transactional(readOnly = true)
     public RestResponse<SolutionDTO> getSolutionByIdAdmin(String solutionId) {
         try {
@@ -247,6 +309,12 @@ public class SolutionService {
 
     // ==================== 审核接口 ====================
 
+    /**
+     * 分页获取待审核的解决方案
+     *
+     * @param pageable 分页参数
+     * @return 包含待审核解决方案列表的分页响应结果
+     */
     @Transactional(readOnly = true)
     public RestResponse<Page<SolutionDTO>> getPendingSolutions(Pageable pageable) {
         try {
@@ -264,6 +332,12 @@ public class SolutionService {
         }
     }
 
+    /**
+     * 批准解决方案
+     *
+     * @param solutionId 解决方案ID
+     * @return 操作结果响应
+     */
     @Transactional
     public RestResponse<Void> approveSolution(String solutionId) {
         try {
@@ -284,6 +358,13 @@ public class SolutionService {
         }
     }
 
+    /**
+     * 拒绝解决方案
+     *
+     * @param solutionId 解决方案ID
+     * @param reason 拒绝原因
+     * @return 操作结果响应
+     */
     @Transactional
     public RestResponse<Void> rejectSolution(String solutionId, String reason) {
         try {
@@ -304,6 +385,13 @@ public class SolutionService {
         }
     }
 
+    /**
+     * 开发者更新已发布的解决方案
+     *
+     * @param solutionId 解决方案ID
+     * @param updateDTO 解决方案更新数据
+     * @return 包含更新后解决方案详情的响应结果
+     */
     @Transactional
     public RestResponse<SolutionDTO> updateSolutionDeveloper(String solutionId, SolutionUpdateDTO updateDTO) {
         try {

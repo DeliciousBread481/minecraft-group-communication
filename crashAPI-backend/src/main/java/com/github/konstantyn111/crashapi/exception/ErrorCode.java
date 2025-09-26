@@ -177,7 +177,7 @@ public enum ErrorCode {
     /** 业务错误码 */
     private final int code;
 
-    /** 默认错误提示信息（中文） */
+    /** 默认错误提示信息 */
     private final String message;
 
     ErrorCode(int code, String message) {
