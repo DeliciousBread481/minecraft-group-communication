@@ -3,14 +3,20 @@ package com.github.konstantyn111.crashapi.util.solution;
 import com.github.konstantyn111.crashapi.dto.solution.*;
 import com.github.konstantyn111.crashapi.entity.solution.*;
 import com.github.konstantyn111.crashapi.entity.user.User;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+
+@Slf4j
 public class SolutionMapperUtil {
 
     public static CategoryDTO toCategoryDTO(Category category) {
-        if (category == null) return null;
+        if (category == null) {
+            log.error("数据实体为空");
+            return null;
+        }
         return CategoryDTO.builder()
                 .id(category.getId())
                 .name(category.getName())
@@ -24,7 +30,10 @@ public class SolutionMapperUtil {
     public static SolutionDTO toSolutionDTO(Solution solution,
                                             List<String> steps,
                                             List<String> images) {
-        if (solution == null) return null;
+        if (solution == null) {
+            log.error("数据实体为空");
+            return null;
+        }
         return SolutionDTO.builder()
                 .id(solution.getId())
                 .title(solution.getTitle())
