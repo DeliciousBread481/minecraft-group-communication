@@ -38,7 +38,8 @@ public class SecurityConfig {
 
             "/api/solutions/categories",
             "/api/solutions",
-            "/api/solutions/*"
+            "/api/solutions/*",
+            "/crashapi/api/solutions/**"
     );
 
     @Autowired
@@ -60,10 +61,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS.toArray(new String[0])).permitAll()
 
-                        // admin
+                        // developer
                         .requestMatchers("/api/developer/**").hasRole("DEV")
 
-                        // dev
+                        // admin
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         //其他请求都需要认证

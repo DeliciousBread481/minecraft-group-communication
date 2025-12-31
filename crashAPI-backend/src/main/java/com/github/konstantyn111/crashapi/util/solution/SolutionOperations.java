@@ -9,6 +9,7 @@ import com.github.konstantyn111.crashapi.mapper.solution.SolutionImageMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionMapper;
 import com.github.konstantyn111.crashapi.mapper.solution.SolutionStepMapper;
 import com.github.konstantyn111.crashapi.service.solution.FileStorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -22,9 +23,10 @@ import java.util.List;
  * </p>
  */
 @Component
+@RequiredArgsConstructor
 public class SolutionOperations {
 
-    private FileStorageService fileStorageService;
+    private final FileStorageService fileStorageService;
 
     /**
      * 为解决方案添加步骤

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.solution.SolutionMapper">
+
+    <resultMap id="SolutionResultMap" type="com.github.konstantyn111.crashapi.entity.solution.Solution">
+        <id property="id" column="id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="title" column="title"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="version" column="version"/>
+        <result property="description" column="description"/>
+        <result property="notes" column="notes"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="reviewedBy" column="reviewed_by"/>
+
+        <association property="category" javaType="com.github.konstantyn111.crashapi.entity.solution.Category">
+            <id property="id" column="category_id"/>
+            <result property="name" column="category_name"/>
+            <result property="icon" column="icon"/>
+            <result property="color" column="color"/>
+        </association>
+
+        <association property="createdByUser" javaType="com.github.konstantyn111.crashapi.entity.user.User">
+            <id property="id" column="created_by_id"/>
+            <result property="username" column="created_username"/>
+        </association>
+
+        <association property="reviewedByUser" javaType="com.github.konstantyn111.crashapi.entity.user.User">
+            <id property="id" column="reviewed_by_id"/>
+            <result property="username" column="reviewed_username"/>
+        </association>
+    </resultMap>
+
+    <!-- 插入解决方案 -->
+    <insert id="insert" parameterType="com.github.konstantyn111.crashapi.entity.solution.Solution">
+        INSERT INTO solutions(id, category_id, title, difficulty, version, description, notes, status, created_at, created_by, updated_at, reviewed_by)
+        VALUES (#{id}, #{categoryId}, #{title}, #{difficulty}, #{version}, #{description}, #{notes}, #{status}, #{createdAt}, #{createdBy}, #{updatedAt}, #{reviewedBy})
+    </insert>
+
+    <!-- 更新解决方案 -->
+    <update id="update" parameterType="com.github.konstantyn111.crashapi.entity.solution.Solution">
+        UPDATE solutions
+        SET category_id=#{categoryId}, title=#{title}, difficulty=#{difficulty}, version=#{version},
+            description=#{description}, notes=#{notes}, status=#{status}, updated_at=#{updatedAt},
+            reviewed_by=#{reviewedBy}
+        WHERE id=#{id}
+    </update>
+
+    <!-- 删除解决方案 -->
+    <delete id="delete" parameterType="string">
+        DELETE FROM solutions WHERE id=#{solutionId}
+    </delete>
+
+    <!-- 根据ID查找 -->
+    <select id="findById" resultMap="SolutionResultMap" parameterType="string">
+        SELECT
+            s.*,
+            c.name AS category_name,
+            c.icon,
+            c.color,
+            creator.id as created_by_id,
+            creator.username as created_username,
+            reviewer.id as reviewed_by_id,
+            reviewer.username as reviewed_username
+        FROM solutions s
+                 JOIN categories c ON s.category_id = c.id
+                 LEFT JOIN users creator ON s.created_by = creator.id
+                 LEFT JOIN users reviewer ON s.reviewed_by = reviewer.id
+        WHERE s.id = #{solutionId}
+    </select>
+
+    <!-- 根据创建者查找 -->
+    <select id="findByCreator" resultMap="SolutionResultMap">
+        SELECT
+        s.*,
+        c.name AS category_name,
+        c.icon,
+        c.color,
+        creator.id as created_by_id,
+        creator.username as created_username,
+        reviewer.id as reviewed_by_id,
+        reviewer.username as reviewed_username
+        FROM solutions s
+        JOIN categories c ON s.category_id = c.id
+        LEFT JOIN users creator ON s.created_by = creator.id
+        LEFT JOIN users reviewer ON s.reviewed_by = reviewer.id
+        WHERE s.created_by = #{creatorId}
+        <if test="status != null">
+            AND s.status = #{status}
+        </if>
+        ORDER BY s.updated_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 创建者记录数 -->
+    <select id="countByCreator" resultType="int">
+        SELECT COUNT(*)
+        FROM solutions
+        WHERE created_by = #{creatorId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <!-- 根据状态查找 -->
+    <select id="findByStatus" resultMap="SolutionResultMap">
+        SELECT
+            s.*,
+            c.name AS category_name,
+            c.icon,
+            c.color,
+            creator.id as created_by_id,
+            creator.username as created_username,
+            reviewer.id as reviewed_by_id,
+            reviewer.username as reviewed_username
+        FROM solutions s
+                 JOIN categories c ON s.category_id = c.id
+                 LEFT JOIN users creator ON s.created_by = creator.id
+                 LEFT JOIN users reviewer ON s.reviewed_by = reviewer.id
+        WHERE s.status = #{status}
+        ORDER BY s.updated_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 状态记录数 -->
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*) FROM solutions WHERE status = #{status}
+    </select>
+
+    <!-- 已发布的解决方案（分页） -->
+    <select id="findPublishedSolutions" resultMap="SolutionResultMap">
+        SELECT
+            s.id, s.category_id, s.title, s.difficulty, s.version, s.description,
+            s.notes, s.status, s.created_at, s.updated_at, s.reviewed_by,
+            c.name AS category_name, c.icon, c.color,
+            creator.id as created_by_id,
+            creator.username as created_username,
+            reviewer.id as reviewed_by_id,
+            reviewer.username as reviewed_username
+        FROM solutions s
+                 JOIN categories c ON s.category_id = c.id
+                 LEFT JOIN users creator ON s.created_by = creator.id
+                 LEFT JOIN users reviewer ON s.reviewed_by = reviewer.id
+        WHERE s.status = '已发布'
+        ORDER BY s.updated_at DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- 已发布解决方案数量 -->
+    <select id="countPublishedSolutions" resultType="int">
+        SELECT COUNT(*) FROM solutions WHERE status = '已发布'
+    </select>
+
+    <!-- 根据ID查找已发布的解决方案 -->
+    <select id="findPublishedById" resultMap="SolutionResultMap">
+        SELECT
+            s.*,
+            c.name AS category_name,
+            c.icon,
+            c.color,
+            creator.id as created_by_id,
+            creator.username as created_username,
+            reviewer.id as reviewed_by_id,
+            reviewer.username as reviewed_username
+        FROM solutions s
+                 JOIN categories c ON s.category_id = c.id
+                 LEFT JOIN users creator ON s.created_by = creator.id
+                 LEFT JOIN users reviewer ON s.reviewed_by = reviewer.id
+        WHERE s.id = #{solutionId} AND s.status = '已发布'
+    </select>
+
+</mapper>

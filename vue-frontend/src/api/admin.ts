@@ -1,12 +1,12 @@
-import api, { handleResponse } from '@/utils/api';
-import { handleApiError } from '@/utils/message';
+import { apiGet, apiPost, apiPut, apiDelete } from '@/utils/apiBase';
 import type {
   UserInfoApiResponse,
   SolutionApiResponse,
   SolutionListApiResponse,
   SolutionCreateDTO,
   SolutionUpdateDTO,
-  CategoryListApiResponse
+  CategoryListApiResponse,
+  VoidApiResponse
 } from '@/types/api';
 
 // ===================== 用户管理接口 =====================
@@ -15,13 +15,8 @@ import type {
  * 根据ID获取用户信息
  * GET /api/admin/users/{userId}
  */
-export const getUserById = async (userId: number): Promise<UserInfoApiResponse> => {
-  try {
-    const response = await api.get(`/admin/users/${userId}`);
-    return handleResponse(response);
-  } catch (error: any) {
-    return handleApiError(error, '获取用户信息失败');
-  }
+export const getUserById = (userId: number): Promise<UserInfoApiResponse> => {
+  return apiGet(`/admin/users/${userId}`, '获取用户信息失败');
 };
 
 // ===================== 解决方案管理接口 =====================
@@ -30,86 +25,58 @@ export const getUserById = async (userId: number): Promise<UserInfoApiResponse> 
  * 创建解决方案
  * POST /api/admin/solutions
  */
-export const createSolution = async (createDTO: SolutionCreateDTO): Promise<SolutionApiResponse> => {
-  try {
-    const response = await api.post('/admin/solutions', createDTO);
-    return handleResponse(response);
-  } catch (error: any) {
-    return handleApiError(error, '创建解决方案失败');
-  }
+export const createSolution = (createDTO: SolutionCreateDTO): Promise<SolutionApiResponse> => {
+  return apiPost('/admin/solutions', createDTO, '创建解决方案失败');
 };
 
 /**
  * 更新解决方案
  * PUT /api/admin/solutions/{solutionId}
  */
-export const updateSolution = async (
+export const updateSolution = (
   solutionId: string,
   updateDTO: SolutionUpdateDTO
 ): Promise<SolutionApiResponse> => {
-  try {
-    const response = await api.put(`/admin/solutions/${solutionId}`, updateDTO);
-    return handleResponse(response);
-  } catch (error: any) {
-    return handleApiError(error, '更新解决方案失败');
-  }
+  return apiPut(`/admin/solutions/${solutionId}`, updateDTO, '更新解决方案失败');
 };
 
 /**
  * 删除解决方案
  * DELETE /api/admin/solutions/{solutionId}
  */
-export const deleteSolution = async (solutionId: string): Promise<void> => {
-  try {
-    await api.delete(`/admin/solutions/${solutionId}`);
-  } catch (error: any) {
-    return handleApiError(error, '删除解决方案失败');
-  }
+export const deleteSolution = (solutionId: string): Promise<VoidApiResponse> => {
+  return apiDelete(`/admin/solutions/${solutionId}`, '删除解决方案失败');
 };
 
 /**
  * 提交解决方案审核
  * POST /api/admin/solutions/{solutionId}/submit-review
  */
-export const submitSolutionForReview = async (solutionId: string): Promise<void> => {
-  try {
-    await api.post(`/admin/solutions/${solutionId}/submit-review`);
-  } catch (error: any) {
-    return handleApiError(error, '提交解决方案审核失败');
-  }
+export const submitSolutionForReview = (solutionId: string): Promise<VoidApiResponse> => {
+  return apiPost(`/admin/solutions/${solutionId}/submit-review`, undefined, '提交解决方案审核失败');
 };
 
 /**
  * 获取管理员创建的解决方案列表
  * GET /api/admin/solutions/my
  */
-export const getAdminSolutions = async (
+export const getAdminSolutions = (
   page: number,
   size: number,
   status?: string
 ): Promise<SolutionListApiResponse> => {
-  try {
-    const params: Record<string, any> = { page, size };
-    if (status) params.status = status;
-
-    const response = await api.get('/admin/solutions/my', { params });
-    return handleResponse(response);
-  } catch (error: any) {
-    return handleApiError(error, '获取解决方案列表失败');
-  }
+  const params: Record<string, any> = { page, size };
+  if (status) params.status = status;
+  
+  return apiGet('/admin/solutions/my', '获取解决方案列表失败', { params });
 };
 
 /**
  * 获取解决方案详情
  * GET /api/admin/solutions/{solutionId}
  */
-export const getSolutionById = async (solutionId: string): Promise<SolutionApiResponse> => {
-  try {
-    const response = await api.get(`/admin/solutions/${solutionId}`);
-    return handleResponse(response);
-  } catch (error: any) {
-    return handleApiError(error, '获取解决方案详情失败');
-  }
+export const getSolutionById = (solutionId: string): Promise<SolutionApiResponse> => {
+  return apiGet(`/admin/solutions/${solutionId}`, '获取解决方案详情失败');
 };
 
 // ===================== 分类管理接口 =====================
@@ -118,11 +85,6 @@ export const getSolutionById = async (solutionId: string): Promise<SolutionApiRe
  * 获取所有问题分类
  * GET /api/admin/categories
  */
-export const getAllCategories = async (): Promise<CategoryListApiResponse> => {
-  try {
-    const response = await api.get('/admin/categories');
-    return handleResponse(response);
-  } catch (error: any) {
-    return handleApiError(error, '获取分类列表失败');
-  }
+export const getAllCategories = (): Promise<CategoryListApiResponse> => {
+  return apiGet('/admin/categories', '获取分类列表失败');
 };

@@ -88,26 +88,85 @@ export interface ApiError extends Error {
 }
 
 /**
- * 统一处理API错误
+ * 根据HTTP状态码获取用户友好的错误消息
+ * @param status HTTP状态码
+ * @param defaultMessage 默认消息
+ */
+const getErrorMessageByStatus = (status: number, defaultMessage: string): string => {
+  const statusMessages: Record<number, string> = {
+    400: '请求参数错误，请检查输入信息',
+    401: '您的身份已过期，请重新登录',
+    403: '您没有权限执行此操作',
+    404: '请求的资源不存在',
+    409: '数据冲突，请刷新页面后重试',
+    422: '输入数据验证失败，请检查表单内容',
+    429: '请求过于频繁，请稍后再试',
+    500: '服务器内部错误，请联系管理员',
+    502: '网关错误，请稍后重试',
+    503: '服务暂时不可用，请稍后重试',
+    504: '请求超时，请检查网络连接'
+  };
+  
+  return statusMessages[status] || defaultMessage;
+};
+
+/**
+ * 统一处理API错误，提供更友好的错误提示
  * @param error 错误对象
  * @param defaultMessage 默认错误消息
  * @param showMessage 是否显示错误消息
+ * @param context 错误发生的上下文，用于提供更具体的提示
  */
 export const handleApiError = (
   error: ApiError,
   defaultMessage: string = '操作失败，请稍后重试',
-  showMessage: boolean = true
+  showMessage: boolean = true,
+  context?: string
 ): never => {
   let errorMessage = defaultMessage;
+  let showAsNotification = false;
 
-  if (error.response?.data?.message) {
-    errorMessage = error.response.data.message;
+  // 根据不同的错误类型提供具体的错误信息
+  if (error.response) {
+    const status = error.response.status ?? 0; // 使用默认值避免 undefined
+    const serverMessage = error.response.data?.message;
+    
+    // 如果服务器提供了具体的错误消息，优先使用
+    if (serverMessage && !serverMessage.includes('Exception') && !serverMessage.includes('Error')) {
+      errorMessage = serverMessage;
+    } else {
+      // 根据状态码提供友好的错误消息
+      errorMessage = getErrorMessageByStatus(status, defaultMessage);
+    }
+    
+    // 对于某些错误类型，使用通知形式显示
+    showAsNotification = [401, 403, 500, 503].includes(status);
+    
+    // 为401错误提供额外的操作建议
+    if (status === 401) {
+      errorMessage += ' (点击任意页面跳转到登录页)';
+    }
+    
   } else if (error.message) {
-    errorMessage = error.message;
+    // 网络错误或其他客户端错误
+    if (error.message.includes('Network Error') || error.message.includes('ERR_NETWORK')) {
+      errorMessage = '网络连接失败，请检查网络设置';
+      showAsNotification = true;
+    } else if (error.message.includes('timeout')) {
+      errorMessage = '请求超时，请检查网络连接后重试';
+      showAsNotification = true;
+    } else {
+      errorMessage = error.message;
+    }
+  }
+  
+  // 如果提供了上下文，在错误消息中包含上下文信息
+  if (context) {
+    errorMessage = `${context}: ${errorMessage}`;
   }
 
   if (showMessage) {
-    showError(errorMessage);
+    showError(errorMessage, '操作失败', showAsNotification);
   }
 
   throw new Error(errorMessage);

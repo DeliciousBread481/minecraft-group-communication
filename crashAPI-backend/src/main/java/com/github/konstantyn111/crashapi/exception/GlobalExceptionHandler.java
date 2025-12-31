@@ -5,11 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -50,11 +54,16 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<RestResponse<?>> handleBadCredentialsException(BadCredentialsException ex) {
-        log.warn("用户名和密码错误{}", ex.getMessage());
+        log.warn("用户认证失败: {}", ex.getMessage());
+        Map<String, Object> details = new HashMap<>();
+        details.put("loginAttempts", "请检查用户名和密码是否正确");
+        details.put("suggestion", "如连续失败多次，请联系管理员重置密码");
+        
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(RestResponse.fail(HttpStatus.UNAUTHORIZED.value(),
                         ErrorCode.INVALID_CREDENTIALS,
-                        "用户名或密码错误"));
+                        "用户名或密码错误，请仔细检查后重新输入",
+                        details));
     }
 
     /**
@@ -69,14 +78,29 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RestResponse<?>> handleValidationException(MethodArgumentNotValidException ex) {
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> 
+            fieldErrors.put(error.getField(), error.getDefaultMessage())
+        );
+
         String errorMsg = ex.getBindingResult().getFieldErrors().stream()
-                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                .map(fieldError -> {
+                    String fieldName = fieldError.getField();
+                    String friendlyName = getFriendlyFieldName(fieldName);
+                    String message = fieldError.getDefaultMessage();
+                    return friendlyName + ": " + message;
+                })
                 .collect(Collectors.joining("; "));
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("fieldErrors", fieldErrors);
+        details.put("suggestion", "请检查表单中标记为红色的字段");
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(RestResponse.fail(HttpStatus.BAD_REQUEST.value(),
                         ErrorCode.INVALID_PARAMETER,
-                        errorMsg));
+                        "输入信息有误: " + errorMsg,
+                        details));
     }
 
     /**
@@ -91,19 +115,82 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<RestResponse<?>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("数据库完整性约束违反: {}", ex.getMessage());
         Throwable rootCause = ex.getRootCause();
-        String errorMsg = "数据库操作失败";
+        String errorMsg = "数据保存失败";
+        String suggestion = "请检查输入数据是否重复";
+        String conflictField = null;
 
-        if (rootCause != null && rootCause.getMessage().contains("unique_email")) {
-            errorMsg = "邮箱已被使用";
-        } else if (rootCause != null && rootCause.getMessage().contains("unique_username")) {
-            errorMsg = "用户名已被使用";
+        if (rootCause != null) {
+            String message = rootCause.getMessage().toLowerCase();
+            if (message.contains("unique_email") || message.contains("email")) {
+                errorMsg = "该邮箱地址已被注册";
+                suggestion = "请使用其他邮箱地址，或尝试找回密码";
+                conflictField = "email";
+            } else if (message.contains("unique_username") || message.contains("username")) {
+                errorMsg = "该用户名已被使用";
+                suggestion = "请选择其他用户名";
+                conflictField = "username";
+            } else if (message.contains("foreign key")) {
+                errorMsg = "引用的数据不存在";
+                suggestion = "请检查关联的数据是否正确";
+            }
         }
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("conflictField", conflictField);
+        details.put("suggestion", suggestion);
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(RestResponse.fail(HttpStatus.CONFLICT.value(),
                         ErrorCode.DUPLICATE_EMAIL,
-                        errorMsg));
+                        errorMsg,
+                        details));
+    }
+
+    /**
+     * 处理其他未捕获异常
+     * <p>
+     * 捕获所有未被特定处理器处理的异常，返回500状态码和通用错误消息。
+     * </p>
+     *
+     * @param ex 未捕获的异常实例
+     * @return 包含通用错误信息的响应实体
+     */
+    /**
+     * 处理文件上传大小超限异常
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<RestResponse<?>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        log.warn("文件上传大小超限: {}", ex.getMessage());
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("maxSize", ex.getMaxUploadSize());
+        details.put("suggestion", "请选择较小的文件或联系管理员增加上传限制");
+        
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(RestResponse.fail(HttpStatus.PAYLOAD_TOO_LARGE.value(),
+                        ErrorCode.FILE_SIZE_EXCEEDED,
+                        "上传文件过大，请选择小于限制的文件",
+                        details));
+    }
+
+    /**
+     * 处理权限不足异常
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<RestResponse<?>> handleAccessDenied(AccessDeniedException ex) {
+        log.warn("权限不足: {}", ex.getMessage());
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("requiredRole", "需要更高的权限级别");
+        details.put("suggestion", "请联系管理员申请相应权限，或使用有权限的账号登录");
+        
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(RestResponse.fail(HttpStatus.FORBIDDEN.value(),
+                        ErrorCode.ACCESS_DENIED,
+                        "您没有权限执行此操作",
+                        details));
     }
 
     /**
@@ -117,10 +204,36 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse<?>> handleGenericException(Exception ex) {
-        log.error("服务器错误，请联系管理员处理{}",ex.getMessage(), ex);
+        log.error("服务器内部错误: {}", ex.getMessage(), ex);
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("errorId", System.currentTimeMillis()); // 用于用户反馈时追踪错误
+        details.put("timestamp", System.currentTimeMillis());
+        details.put("suggestion", "请稍后重试，如问题持续存在请联系管理员并提供错误ID");
+        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(RestResponse.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         ErrorCode.UNKNOWN_ERROR,
-                        "服务器内部错误"));
+                        "服务器遇到了意外错误，我们正在努力修复",
+                        details));
+    }
+
+    /**
+     * 将字段名转换为用户友好的名称
+     */
+    private String getFriendlyFieldName(String fieldName) {
+        Map<String, String> friendlyNames = new HashMap<>();
+        friendlyNames.put("username", "用户名");
+        friendlyNames.put("email", "邮箱地址");
+        friendlyNames.put("password", "密码");
+        friendlyNames.put("nickname", "昵称");
+        friendlyNames.put("oldPassword", "原密码");
+        friendlyNames.put("newPassword", "新密码");
+        friendlyNames.put("confirmPassword", "确认密码");
+        friendlyNames.put("title", "标题");
+        friendlyNames.put("content", "内容");
+        friendlyNames.put("categoryId", "分类");
+        
+        return friendlyNames.getOrDefault(fieldName, fieldName);
     }
 }

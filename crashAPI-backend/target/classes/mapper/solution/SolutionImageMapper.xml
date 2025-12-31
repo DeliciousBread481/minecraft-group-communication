@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.solution.SolutionImageMapper">
+    <resultMap id="ImageResultMap" type="com.github.konstantyn111.crashapi.entity.solution.SolutionImage">
+        <id property="id" column="id" />
+        <result property="imageOrder" column="image_order" />
+        <result property="imageUrl" column="image_url" />
+        <association property="solution" javaType="com.github.konstantyn111.crashapi.entity.solution.Solution">
+            <id property="id" column="solution_id" />
+        </association>
+    </resultMap>
+
+    <!-- 基本CRUD操作 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO solution_images (solution_id, image_order, image_url)
+        VALUES (#{solution.id}, #{imageOrder}, #{imageUrl})
+    </insert>
+
+    <update id="update">
+        UPDATE solution_images SET
+                                   image_order = #{imageOrder},
+                                   image_url = #{imageUrl}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM solution_images WHERE id = #{imageId}
+    </delete>
+
+    <!-- 批量操作 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO solution_images (solution_id, image_order, image_url)
+        VALUES
+        <foreach collection="list" item="image" separator=",">
+            (#{image.solution.id}, #{image.imageOrder}, #{image.imageUrl})
+        </foreach>
+    </insert>
+
+    <delete id="deleteBySolutionId">
+        DELETE FROM solution_images WHERE solution_id = #{solutionId}
+    </delete>
+
+    <!-- 查询方法 -->
+    <select id="findImagesBySolutionId" resultMap="ImageResultMap">
+        SELECT * FROM solution_images
+        WHERE solution_id = #{solutionId}
+        ORDER BY image_order
+    </select>
+
+    <select id="findImagesBySolutionIds"
+            resultType="com.github.konstantyn111.crashapi.entity.solution.SolutionImage">
+    SELECT
+        id,
+        solution_id,
+        image_order,
+        image_url
+        FROM solution_images
+        WHERE solution_id IN
+        <foreach collection="solutionIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY solution_id, image_order
+    </select>
+</mapper>

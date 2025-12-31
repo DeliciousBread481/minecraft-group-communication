@@ -19,10 +19,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/crashAPI': {
+      '/crashapi/api': {
         target: 'http://localhost:9090',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/crashapi/, '/crashapi')
+        rewrite: (path) => path.replace(/^\/crashapi\/api/, '/crashapi/api')
       }
     }
   },

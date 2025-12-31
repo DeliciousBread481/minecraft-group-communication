@@ -1,6 +1,7 @@
 package com.github.konstantyn111.crashapi.mapper.user;
 
 import com.github.konstantyn111.crashapi.entity.user.User;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Mapper
 public interface UserMapper {
 
     Set<String> findRolesByUserId(@Param("userId") Long userId);

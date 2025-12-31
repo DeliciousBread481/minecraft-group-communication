@@ -36,12 +36,18 @@ public class RestResponse<T> {
      */
     private T data;
 
-    private RestResponse(boolean success, int status, Integer code, String message, T data) {
+    /**
+     * 错误详情信息（可选）
+     */
+    private Object details;
+
+    private RestResponse(boolean success, int status, Integer code, String message, T data, Object details) {
         this.success = success;
         this.status = status;
         this.code = code;
         this.message = message;
         this.data = data;
+        this.details = details;
     }
 
     /**
@@ -52,7 +58,7 @@ public class RestResponse<T> {
      */
     public static <T> RestResponse<T> success(T data, String message) {
         return new RestResponse<>(true, HttpStatus.OK.value(),
-                ErrorCode.SUCCESS.getCode(), message, data);
+                ErrorCode.SUCCESS.getCode(), message, data, null);
     }
 
     /**
@@ -61,7 +67,18 @@ public class RestResponse<T> {
      * @return 标准化成功响应
      */
     public static <T> RestResponse<T> success(String message) {
-        return success(null, message);
+        return new RestResponse<>(true, HttpStatus.OK.value(),
+                ErrorCode.SUCCESS.getCode(), message, null, null);
+    }
+
+    /**
+     * 创建成功响应（仅数据）
+     * @param data 返回的业务数据
+     * @return 标准化成功响应
+     */
+    public static <T> RestResponse<T> success(T data) {
+        return new RestResponse<>(true, HttpStatus.OK.value(),
+                ErrorCode.SUCCESS.getCode(), "操作成功", data, null);
     }
 
     /**
@@ -75,7 +92,22 @@ public class RestResponse<T> {
         return new RestResponse<>(false, httpStatus,
                 errorCode.getCode(),
                 message != null ? message : errorCode.getMessage(),
-                null);
+                null, null);
+    }
+
+    /**
+     * 创建失败响应（含详情）
+     * @param httpStatus HTTP状态码
+     * @param errorCode 业务错误码
+     * @param message 自定义错误信息
+     * @param details 错误详情信息
+     * @return 标准化错误响应
+     */
+    public static <T> RestResponse<T> fail(int httpStatus, ErrorCode errorCode, String message, Object details) {
+        return new RestResponse<>(false, httpStatus,
+                errorCode.getCode(),
+                message != null ? message : errorCode.getMessage(),
+                null, details);
     }
 
     /**
@@ -87,6 +119,6 @@ public class RestResponse<T> {
         return new RestResponse<>(false, ex.getHttpStatus().value(),
                 ex.getErrorCode().getCode(),
                 ex.getMessage(),
-                null);
+                null, null);
     }
 }

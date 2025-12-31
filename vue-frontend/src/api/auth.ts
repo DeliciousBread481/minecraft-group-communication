@@ -1,5 +1,4 @@
-import api from '@/utils/api';
-import { handleResponse } from '@/utils/api';
+import { apiPost } from '@/utils/apiBase';
 import type {
   AuthApiResponse,
   VoidApiResponse,
@@ -14,8 +13,7 @@ import type {
  */
 export const register = async (data: RegisterRequest): Promise<AuthApiResponse> => {
   try {
-    const response = await api.post('/auth/register', data);
-    return handleResponse<AuthResponseData>(response);
+    return await apiPost<AuthApiResponse>('/auth/register', data, '注册失败');
   } catch (error: any) {
     if (error.response) {
       const status = error.response.status;
@@ -35,8 +33,7 @@ export const register = async (data: RegisterRequest): Promise<AuthApiResponse> 
  */
 export const login = async (data: LoginRequest): Promise<AuthApiResponse> => {
   try {
-    const response = await api.post('/auth/login', data);
-    return handleResponse<AuthResponseData>(response);
+    return await apiPost<AuthApiResponse>('/auth/login', data, '登录失败');
   } catch (error: any) {
     if (error.response) {
       const status = error.response.status;
@@ -56,8 +53,7 @@ export const login = async (data: LoginRequest): Promise<AuthApiResponse> => {
  */
 export const refreshToken = async (data: RefreshRequest): Promise<AuthApiResponse> => {
   try {
-    const response = await api.post('/auth/refresh-token', data);
-    return handleResponse<AuthResponseData>(response);
+    return await apiPost<AuthApiResponse>('/auth/refresh-token', data, '刷新令牌失败');
   } catch (error: any) {
     if (error.response) {
       const status = error.response.status;
@@ -73,18 +69,7 @@ export const refreshToken = async (data: RefreshRequest): Promise<AuthApiRespons
  * 用户登出
  */
 export const logout = async (): Promise<VoidApiResponse> => {
-  try {
-    const response = await api.post('/auth/logout');
-    return handleResponse<void>(response);
-  } catch (error: any) {
-    // 登出失败时返回模拟成功响应
-    return {
-      success: true,
-      status: 200,
-      message: '登出成功',
-      data: undefined
-    } as VoidApiResponse;
-  }
+  return apiPost<VoidApiResponse>('/auth/logout', undefined, '登出失败');
 };
 
 /**
@@ -93,10 +78,9 @@ export const logout = async (): Promise<VoidApiResponse> => {
  */
 export const revokeToken = async (username: string): Promise<VoidApiResponse> => {
   try {
-    const response = await api.post('/auth/revoke-token', null, {
+    return await apiPost<VoidApiResponse>('/auth/revoke-token', null, '撤销令牌失败', {
       params: { username }
     });
-    return handleResponse<void>(response);
   } catch (error: any) {
     throw new Error('撤销令牌失败');
   }

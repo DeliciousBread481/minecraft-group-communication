@@ -172,7 +172,7 @@ public enum ErrorCode {
     SOLUTION_CATEGORY_MISMATCH(50013, "解决方案分类不匹配"),
 
     /** 无效的状态操作 */
-    INVALID_OPERATION(50014, "无效的状态操作"),;
+    INVALID_OPERATION(50014, "无效的状态操作");
 
     /** 业务错误码 */
     private final int code;

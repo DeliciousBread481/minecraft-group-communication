@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.solution.CategoryMapper">
+    <resultMap id="CategoryResultMap" type="com.github.konstantyn111.crashapi.entity.solution.Category">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="icon" column="icon" />
+        <result property="description" column="description" />
+        <result property="color" column="color" />
+        <result property="createdAt" column="created_at" />
+        <association property="createdBy" javaType="com.github.konstantyn111.crashapi.entity.user.User">
+            <id property="id" column="created_by" />
+            <result property="username" column="created_username"/>
+        </association>
+    </resultMap>
+
+    <!-- 基本CRUD操作 -->
+    <insert id="insert">
+        INSERT INTO categories (id, name, icon, description, color, created_by)
+        VALUES (#{id}, #{name}, #{icon}, #{description}, #{color}, #{createdBy.id})
+    </insert>
+
+    <select id="findById" resultMap="CategoryResultMap">
+        SELECT * FROM categories WHERE id = #{id}
+    </select>
+
+    <update id="update">
+        UPDATE categories SET
+                              name = #{name},
+                              icon = #{icon},
+                              description = #{description},
+                              color = #{color}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM categories WHERE id = #{id}
+    </delete>
+
+    <!-- 查询方法 -->
+    <select id="findAll" resultMap="CategoryResultMap">
+        SELECT c.*,
+               creator.username as created_username
+               FROM categories c
+                 JOIN users creator on c.created_by = creator.id
+                 ORDER BY name
+    </select>
+</mapper>

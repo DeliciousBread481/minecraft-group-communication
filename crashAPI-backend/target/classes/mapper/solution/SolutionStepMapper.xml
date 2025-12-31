@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.konstantyn111.crashapi.mapper.solution.SolutionStepMapper">
+
+    <resultMap id="StepResultMap" type="com.github.konstantyn111.crashapi.entity.solution.SolutionStep">
+        <id property="id" column="id" />
+        <result property="solutionId" column="solution_id" />
+        <result property="stepOrder" column="step_order" />
+        <result property="content" column="content" />
+    </resultMap>
+
+    <!-- 基本CRUD操作 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO solution_steps (solution_id, step_order, content)
+        VALUES (#{solutionId}, #{stepOrder}, #{content})
+    </insert>
+
+    <update id="update">
+        UPDATE solution_steps SET
+                                  step_order = #{stepOrder},
+                                  content = #{content}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM solution_steps WHERE id = #{stepId}
+    </delete>
+
+    <!-- 批量操作 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO solution_steps (solution_id, step_order, content)
+        VALUES
+        <foreach collection="list" item="step" separator=",">
+            (#{step.solutionId}, #{step.stepOrder}, #{step.content})
+        </foreach>
+    </insert>
+
+    <delete id="deleteBySolutionId">
+        DELETE FROM solution_steps WHERE solution_id = #{solutionId}
+    </delete>
+
+    <select id="findStepsBySolutionId" resultMap="StepResultMap">
+        SELECT * FROM solution_steps
+        WHERE solution_id = #{solutionId}
+        ORDER BY step_order
+    </select>
+
+    <select id="findStepsBySolutionIds" resultType="com.github.konstantyn111.crashapi.entity.solution.SolutionStep">
+        SELECT id,
+        solution_id AS solutionId,
+        step_order AS stepOrder,
+        content
+        FROM solution_steps
+        WHERE solution_id IN
+        <foreach collection="solutionIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY solution_id, step_order
+    </select>
+
+
+</mapper>
