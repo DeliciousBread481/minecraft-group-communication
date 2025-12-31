@@ -528,4 +528,17 @@ p {
   border-radius: var(--border-radius-sm);
   margin: var(--spacing-lg) 0;
 }
+
+.el-button{
+  background-color: var(--card-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 4px 12px var(--shadow-color);
+  transition: all var(--transition-speed);
+
+  &:hover {
+    border-color: var(--primary-hover-color);
+    box-shadow: 0 8px 20px var(--shadow-color);
+  }
+}
 </style>

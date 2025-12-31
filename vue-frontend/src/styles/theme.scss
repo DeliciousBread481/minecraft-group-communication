@@ -10,9 +10,20 @@ $light-theme: (
 
         input-bg-color: #ffffff,
         input-border-color: #dcdfe6,
+        input-text-color: #37474f,
         input-placeholder-color: #c0c4cc,
         input-hover-border-color: #c0c4cc,
         input-focus-border-color: #409eff,
+
+        button-primary-bg: linear-gradient(135deg, #4a90e2, #357abd),
+        button-success-bg: linear-gradient(135deg, #5cd85a, #4caf50),
+        button-warning-bg: linear-gradient(135deg, #ffb74d, #ff9800),
+        button-danger-bg: linear-gradient(135deg, #f44336, #d32f2f),
+        button-info-bg: linear-gradient(135deg, #4a90e2, #357abd),
+
+        scrollbar-track: #f1f3f4,
+        scrollbar-thumb: #c8d0d7,
+        scrollbar-thumb-hover: #a8b2bc,
 
         card-bg-color: #ffffff,
         card-border-color: #ebeef5,
@@ -83,9 +94,20 @@ $dark-theme: (
 
         input-bg-color: #1f1f1f,
         input-border-color: #434343,
+        input-text-color: #fff,
         input-placeholder-color: #6b7280,
         input-hover-border-color: #555555,
         input-focus-border-color: #165dff,
+
+        button-primary-bg: linear-gradient(135deg, #5a9ae6, #4a8ad6),
+        button-success-bg: linear-gradient(135deg, #6ce86a, #5cd85a),
+        button-warning-bg: linear-gradient(135deg, #ffc76d, #ffb74d),
+        button-danger-bg: linear-gradient(135deg, #ff5555, #f44336),
+        button-info-bg: linear-gradient(135deg, #5a9ae6, #4a8ad6),
+
+        scrollbar-track: #3d3d3d,
+        scrollbar-thumb: #555555,
+        scrollbar-thumb-hover: #666666,
 
         card-bg-color: #1f1f1f,
         card-border-color: #303030,

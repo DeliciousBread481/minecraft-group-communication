@@ -77,3 +77,128 @@ a {
 .mb-md { margin-bottom: var(--spacing-md); }
 .mb-lg { margin-bottom: var(--spacing-lg); }
 .mb-xl { margin-bottom: var(--spacing-xl); }
+
+.el-dialog{
+  background-color: var(--card-bg-color);
+}
+
+.el-dialog__title{
+  color: var(--text-color);
+}
+
+.el-image__error, .el-image__placeholder{
+  background-color: var(--card-bg-color);
+}
+
+//下拉菜单
+.el-dropdown-menu {
+  background-color: var(--menu-bg-color);
+  border-color: var(--bg-tertiary-color);
+}
+
+.el-dropdown-menu__item {
+  color: var(--text-primary);
+}
+
+.el-dropdown-menu__item:hover {
+  background-color: var(--menu-hover);
+}
+
+//输入框样式重写
+.el-input__wrapper {
+  background-color: var(--input-bg-color) !important;
+  border: 1px solid var(--input-border-color) !important;
+  box-shadow: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.el-textarea .el-input__count{
+  background-color: var(--input-bg-color) !important;
+}
+
+.el-input__wrapper:hover {
+  border-color: var(--primary-color) !important;
+}
+
+.el-input__wrapper.is-focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2) !important;
+}
+
+.el-input__inner {
+  background: transparent !important;
+  color: var(--input-text-color) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.el-input__inner::placeholder {
+  color: var(--input-placeholder) !important;
+}
+
+.el-input__prefix,
+.el-input__suffix {
+  color: var(--text-secondary-color) !important;
+}
+
+.el-input__suffix-inner .el-icon {
+  color: var(--text-secondary-color) !important;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+//按钮重写
+.el-button--modern {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  color: white;
+}
+
+.el-button--modern:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.el-button--modern:active {
+  transform: translateY(0);
+}
+
+.el-button--primary {
+  background: var(--button-primary-bg);
+}
+
+.el-button--success {
+  background: var(--button-success-bg);
+}
+
+.el-button--warning {
+  background: var(--button-warning-bg);
+}
+
+.el-button--danger {
+  background: var(--button-danger-bg);
+}
+
+.el-button--info {
+  background: var(--button-info-bg);
+}

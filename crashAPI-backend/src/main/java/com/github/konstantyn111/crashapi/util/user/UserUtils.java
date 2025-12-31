@@ -29,7 +29,10 @@ public class UserUtils {
     public static class Convert {
 
         public static UserInfo toUserInfo(User user, Set<String> roles) {
-            if (user == null) return null;
+            if (user == null) {
+                log.error("数据实体为空");
+                return null;
+            }
             return UserInfo.builder()
                     .id(user.getId())
                     .username(null)

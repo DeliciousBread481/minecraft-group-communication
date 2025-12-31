@@ -192,6 +192,7 @@ public class SolutionService {
     @Transactional
     public RestResponse<Void> deleteSolution(String solutionId) {
         try {
+            logger.info("删除{},", solutionId);
             User admin = SecurityValidationUtils.validateAdminPermissions(userMapper);
             Solution solution = SecurityValidationUtils.validateSolutionExists(solutionMapper, solutionId);
             SecurityValidationUtils.validateSolutionOwnership(solution, admin, "删除");
