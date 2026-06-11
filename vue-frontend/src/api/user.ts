@@ -3,7 +3,7 @@ import type {
   AdminApplicationStatusApiResponse,
   StringApiResponse,
   UpdateUserInfo,
-  UserInfoApiResponse,
+  UserInfoData,
   VoidApiResponse
 } from '@/types/api';
 
@@ -11,16 +11,16 @@ import type {
  * 获取当前登录用户信息
  * GET /api/user/me
  */
-export const getCurrentUser = (): Promise<UserInfoApiResponse> => {
-  return apiGet<UserInfoApiResponse>('/user/me', '获取用户信息失败');
+export const getCurrentUser = (): Promise<UserInfoData> => {
+  return apiGet<UserInfoData>('/user/me', '获取用户信息失败');
 };
 
 /**
  * 更新当前用户信息
  * PATCH /api/user/me
  */
-export const updateUserInfo = (updateData: UpdateUserInfo): Promise<UserInfoApiResponse> => {
-  return apiPatch<UserInfoApiResponse>('/user/me', updateData, '更新用户信息失败');
+export const updateUserInfo = (updateData: UpdateUserInfo): Promise<UserInfoData> => {
+  return apiPatch<UserInfoData>('/user/me', updateData, '更新用户信息失败');
 };
 
 /**

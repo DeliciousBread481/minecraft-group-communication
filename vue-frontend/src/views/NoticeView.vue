@@ -277,6 +277,7 @@ const progressWidth = computed(() => {
 
 // 选择主分类
 const selectCategory = (categoryId: string) => {
+  if (window.getSelection()?.toString()) return;
   selectedCategoryId.value = categoryId;
   selectedSubCategoryId.value = "";
 
@@ -288,6 +289,7 @@ const selectCategory = (categoryId: string) => {
 
 // 选择子分类
 const selectSubCategory = (subCategoryId: string) => {
+  if (window.getSelection()?.toString()) return;
   selectedSubCategoryId.value = subCategoryId;
   const currentSubCategory = getCurrentSubCategory();
 
@@ -470,7 +472,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-color);
+  color: var(--bg-color);
   font-size: var(--font-size-xl);
 }
 

@@ -6,11 +6,11 @@ import {
   register as apiRegister
 } from '@/api/auth';
 import { getCurrentUser } from '@/api/user';
+import type { AuthResponseData } from '@/api/auth';
 import type {
   LoginRequest,
   RegisterRequest,
-  AuthApiResponse,
-  UserInfoApiResponse
+  UserInfoData
 } from '@/types/api';
 
 interface UserState {
@@ -50,8 +50,7 @@ export const useUserStore = defineStore('user', {
      */
     async login(credentials: LoginRequest): Promise<boolean> {
       try {
-        const response: AuthApiResponse = await apiLogin(credentials);
-        const authData = response.data;
+        const authData: AuthResponseData = await apiLogin(credentials);
         const { accessToken, refreshToken } = authData;
 
         // 保存令牌
@@ -80,8 +79,7 @@ export const useUserStore = defineStore('user', {
      */
     async register(userData: RegisterRequest): Promise<boolean> {
       try {
-        const response: AuthApiResponse = await apiRegister(userData);
-        const authData = response.data;
+        const authData: AuthResponseData = await apiRegister(userData);
         const { accessToken, refreshToken } = authData;
 
         // 保存令牌
@@ -109,8 +107,8 @@ export const useUserStore = defineStore('user', {
      */
     async fetchUserInfo(): Promise<void> {
       try {
-        const response: UserInfoApiResponse = await getCurrentUser();
-        this.userInfo = response.data;
+        const userInfo: UserInfoData = await getCurrentUser();
+        this.userInfo = userInfo;
         this.lastUserInfoFetch = Date.now();
         localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
       } catch (error) {
@@ -129,10 +127,9 @@ export const useUserStore = defineStore('user', {
       }
 
       try {
-        const response: AuthApiResponse = await apiRefreshToken({
+        const authData: AuthResponseData = await apiRefreshToken({
           refreshToken: this.refreshTokenValue
         });
-        const authData = response.data;
         const { accessToken, refreshToken } = authData;
 
         // 更新令牌

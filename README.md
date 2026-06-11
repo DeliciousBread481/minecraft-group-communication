@@ -78,7 +78,7 @@ mysql -u root -p < crashAPI-backend/crash_api.sql
 ```bash
 cd crashAPI-backend
 # 修改 src/main/resources/application.properties 中的数据库连接信息
-mvn spring-boot:run
+mvnw.cmd spring-boot:run
 ```
 
 ### 3. 启动前端

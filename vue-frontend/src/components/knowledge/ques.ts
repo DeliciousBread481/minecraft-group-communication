@@ -9,7 +9,7 @@ interface Category {
   color: string;
 }
 
-export const categories = ref<Category[]>([
+export const categories : Category[] = [
   {
     id: 'crash',
     name: '游戏崩溃类',
@@ -38,4 +38,4 @@ export const categories = ref<Category[]>([
     description: '其他问题',
     color: '#67C23A'
   }
-])
+]

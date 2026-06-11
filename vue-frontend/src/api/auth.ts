@@ -1,6 +1,5 @@
 import { apiPost } from '@/utils/apiBase';
 import type {
-  AuthApiResponse,
   VoidApiResponse,
   LoginRequest,
   RegisterRequest,
@@ -11,9 +10,9 @@ import type {
  * 用户注册
  * @param data 注册请求数据
  */
-export const register = async (data: RegisterRequest): Promise<AuthApiResponse> => {
+export const register = async (data: RegisterRequest): Promise<AuthResponseData> => {
   try {
-    return await apiPost<AuthApiResponse>('/auth/register', data, '注册失败');
+    return await apiPost<AuthResponseData>('/auth/register', data, '注册失败');
   } catch (error: any) {
     if (error.response) {
       const status = error.response.status;
@@ -31,9 +30,9 @@ export const register = async (data: RegisterRequest): Promise<AuthApiResponse> 
  * 用户登录
  * @param data 登录请求数据
  */
-export const login = async (data: LoginRequest): Promise<AuthApiResponse> => {
+export const login = async (data: LoginRequest): Promise<AuthResponseData> => {
   try {
-    return await apiPost<AuthApiResponse>('/auth/login', data, '登录失败');
+    return await apiPost<AuthResponseData>('/auth/login', data, '登录失败');
   } catch (error: any) {
     if (error.response) {
       const status = error.response.status;
@@ -51,9 +50,9 @@ export const login = async (data: LoginRequest): Promise<AuthApiResponse> => {
  * 刷新访问令牌
  * @param data 刷新令牌请求数据
  */
-export const refreshToken = async (data: RefreshRequest): Promise<AuthApiResponse> => {
+export const refreshToken = async (data: RefreshRequest): Promise<AuthResponseData> => {
   try {
-    return await apiPost<AuthApiResponse>('/auth/refresh-token', data, '刷新令牌失败');
+    return await apiPost<AuthResponseData>('/auth/refresh-token', data, '刷新令牌失败');
   } catch (error: any) {
     if (error.response) {
       const status = error.response.status;
