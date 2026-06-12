@@ -18,191 +18,191 @@
     <!-- 主内容区域 -->
     <div class="content-container">
       <!-- 分类选择区域 -->
-      <div class="category-section" v-if="!selectedSubCategoryId">
-        <div class="section-header">
-          <h2>
-            <el-icon v-if="!selectedCategoryId"><Bottom /></el-icon>
-            <el-icon v-else><Right /></el-icon>
-            <span v-if="!selectedCategoryId">选择你的问题类型：</span>
-            <span v-else>{{ getSelectedCategoryName() }}</span>
-          </h2>
-        </div>
+      <transition name="slide-fade" mode="out-in">
+        <div :key="selectedSubCategoryId ? 'document' : 'categories'">
+          <div class="category-section" v-if="!selectedSubCategoryId">
+            <transition name="slide-fade" mode="out-in">
+              <div :key="selectedCategoryId ? 'sub' : 'main'">
+                <div class="section-header">
+                  <h2>
+                    <el-icon v-if="!selectedCategoryId"><Bottom /></el-icon>
+                    <el-icon v-else><Right /></el-icon>
+                    <span v-if="!selectedCategoryId">选择你的问题类型：</span>
+                    <span v-else>{{ getSelectedCategoryName() }}</span>
+                  </h2>
+                </div>
 
-        <!-- 主分类列表 -->
-        <transition name="slide-fade">
-          <div v-if="!selectedCategoryId" class="category-grid">
-            <el-card
-              v-for="category in categories"
-              :key="category.id"
-              class="category-card"
-              @click="selectCategory(category.id)"
-              shadow="hover"
-            >
-              <div class="category-icon" :style="{ backgroundColor: category.color }">
-                <el-icon size="24"><component :is="category.icon" /></el-icon>
+                <!-- 主分类列表 -->
+                <div v-if="!selectedCategoryId" class="category-grid">
+                  <el-card
+                    v-for="category in categories"
+                    :key="category.id"
+                    class="category-card"
+                    @click="selectCategory(category.id)"
+                    shadow="hover"
+                  >
+                    <div class="category-icon" :style="{ backgroundColor: category.color }">
+                      <el-icon size="24"><component :is="category.icon" /></el-icon>
+                    </div>
+                    <h3>{{ category.name }}</h3>
+                    <p>{{ category.description }}</p>
+                  </el-card>
+                </div>
+
+                <!-- 子分类选择区域 -->
+                <div v-if="selectedCategoryId" class="sub-category-section">
+                  <div class="section-header">
+                    <h2>
+                      <el-icon><Bottom /></el-icon>
+                      选择符合具体情况的问题
+                      <el-button
+                        v-if="selectedCategoryId === 'disconnect'"
+                        type="warning"
+                        @click="showDisconnectInfoManually"
+                        class="info-button"
+                      >
+                        <el-icon><Warning /></el-icon>
+                        <span>注意事项</span>
+                      </el-button>
+                      <el-button
+                        type="primary"
+                        @click="backToCategories"
+                        class="back-button"
+                      >
+                        <el-icon><ArrowLeft /></el-icon>
+                        <span>上一步</span>
+                      </el-button>
+                    </h2>
+                  </div>
+
+                  <!-- 游戏崩溃类子分类 -->
+                  <div v-if="selectedCategoryId === 'crash'" class="category-grid">
+                    <el-card
+                      v-for="subCategory in subCategories.crash"
+                      :key="subCategory.id"
+                      class="category-card"
+                      @click="selectSubCategory(subCategory.id)"
+                      shadow="hover"
+                    >
+                      <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
+                        <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                      </div>
+                      <h3>{{ subCategory.name }}</h3>
+                      <p>{{ subCategory.description }}</p>
+                    </el-card>
+                  </div>
+
+                  <!-- 连接失败类子分类 -->
+                  <div v-if="selectedCategoryId === 'disconnect'" class="category-grid">
+                    <el-card
+                      v-for="subCategory in subCategories.disconnect"
+                      :key="subCategory.id"
+                      class="category-card"
+                      @click="selectSubCategory(subCategory.id)"
+                      shadow="hover"
+                    >
+                      <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
+                        <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                      </div>
+                      <h3>{{ subCategory.name }}</h3>
+                      <p>{{ subCategory.description }}</p>
+                    </el-card>
+                  </div>
+
+                  <!-- 启动器问题子分类 -->
+                  <div v-if="selectedCategoryId === 'laucher'" class="category-grid">
+                    <el-card
+                      v-for="subCategory in subCategories.laucher"
+                      :key="subCategory.id"
+                      class="category-card"
+                      @click="selectSubCategory(subCategory.id)"
+                      shadow="hover"
+                    >
+                      <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
+                        <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                      </div>
+                      <h3>{{ subCategory.name }}</h3>
+                      <p>{{ subCategory.description }}</p>
+                    </el-card>
+                  </div>
+
+                  <!-- 其他问题子分类 -->
+                  <div v-if="selectedCategoryId === 'other'" class="category-grid">
+                    <el-card
+                      v-for="subCategory in subCategories.other"
+                      :key="subCategory.id"
+                      class="category-card"
+                      @click="selectSubCategory(subCategory.id)"
+                      shadow="hover"
+                    >
+                      <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
+                        <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                      </div>
+                      <h3>{{ subCategory.name }}</h3>
+                      <p>{{ subCategory.description }}</p>
+                    </el-card>
+                  </div>
+                </div>
               </div>
-              <h3>{{ category.name }}</h3>
-              <p>{{ category.description }}</p>
-            </el-card>
-          </div>
-        </transition>
+            </transition>
+          </div>    
+          <div v-else class="document-section"> 
+            <div class="document-header">
+              <el-button type="primary" @click="backToSubCategories" class="back-button">
+                <el-icon><ArrowLeft /></el-icon>
+                <span>返回</span>
+              </el-button>
+              <h2>{{ getSelectedSubCategoryName() }}</h2>
+            </div>
 
-        <!-- 子分类选择区域 -->
-        <transition name="slide-fade">
-          <div v-if="selectedCategoryId" class="sub-category-section">
-            <div class="section-header">
-              <h2>
-                <el-icon><Bottom /></el-icon>
-                选择符合具体情况的问题
+            <el-card class="document-card" shadow="never">
+              <!-- 文档进度指示器 -->
+              <div class="document-progress">
+                <div class="progress-indicator">
+                  <div
+                    v-for="(step, index) in documentSteps"
+                    :key="index"
+                    class="progress-step"
+                    :class="{
+                      'active': index === activeDocStep,
+                      'completed': index < activeDocStep
+                    }"
+                    @click="setActiveDocStep(index)"
+                  >
+                    <div class="step-number">{{ index + 1 }}</div>
+                    <div class="step-title">{{ step.title }}</div>
+                  </div>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" :style="{ width: progressWidth }"></div>
+                </div>
+              </div>
+
+              <!-- 文档内容 -->
+              <div class="document-content" v-loading="isLoading">
+                <div class="markdown-body" v-html="markdownHtml"></div>
+              </div>
+
+              <!-- 文档导航按钮 -->
+              <div class="document-navigation">
                 <el-button
-                  v-if="selectedCategoryId === 'disconnect'"
-                  type="warning"
-                  @click="showDisconnectInfoManually"
-                  class="info-button"
-                >
-                  <el-icon><Warning /></el-icon>
-                  <span>注意事项</span>
-                </el-button>
-                <el-button
+                  @click="navigateDocStep(-1)"
+                  :disabled="activeDocStep === 0"
                   type="primary"
-                  @click="backToCategories"
-                  class="back-button"
+                  plain
                 >
-                  <el-icon><ArrowLeft /></el-icon>
-                  <span>上一步</span>
+                  <el-icon><ArrowLeft /></el-icon> 上一步
                 </el-button>
-              </h2>
-            </div>
-
-            <!-- 游戏崩溃类子分类 -->
-            <div v-if="selectedCategoryId === 'crash'" class="category-grid">
-              <el-card
-                v-for="subCategory in subCategories.crash"
-                :key="subCategory.id"
-                class="category-card"
-                @click="selectSubCategory(subCategory.id)"
-                shadow="hover"
-              >
-                <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
-                  <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
-                </div>
-                <h3>{{ subCategory.name }}</h3>
-                <p>{{ subCategory.description }}</p>
-              </el-card>
-            </div>
-
-            <!-- 连接失败类子分类 -->
-            <div v-if="selectedCategoryId === 'disconnect'" class="category-grid">
-              <el-card
-                v-for="subCategory in subCategories.disconnect"
-                :key="subCategory.id"
-                class="category-card"
-                @click="selectSubCategory(subCategory.id)"
-                shadow="hover"
-              >
-                <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
-                  <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
-                </div>
-                <h3>{{ subCategory.name }}</h3>
-                <p>{{ subCategory.description }}</p>
-              </el-card>
-            </div>
-
-            <!-- 启动器问题子分类 -->
-            <div v-if="selectedCategoryId === 'laucher'" class="category-grid">
-              <el-card
-                v-for="subCategory in subCategories.laucher"
-                :key="subCategory.id"
-                class="category-card"
-                @click="selectSubCategory(subCategory.id)"
-                shadow="hover"
-              >
-                <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
-                  <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
-                </div>
-                <h3>{{ subCategory.name }}</h3>
-                <p>{{ subCategory.description }}</p>
-              </el-card>
-            </div>
-
-            <!-- 其他问题子分类 -->
-            <div v-if="selectedCategoryId === 'other'" class="category-grid">
-              <el-card
-                v-for="subCategory in subCategories.other"
-                :key="subCategory.id"
-                class="category-card"
-                @click="selectSubCategory(subCategory.id)"
-                shadow="hover"
-              >
-                <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
-                  <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
-                </div>
-                <h3>{{ subCategory.name }}</h3>
-                <p>{{ subCategory.description }}</p>
-              </el-card>
-            </div>
-          </div>
-        </transition>
-      </div>
-
-      <!-- 文档显示区域 -->
-      <transition name="slide-fade">
-        <div v-if="selectedSubCategoryId" class="document-section">
-          <div class="document-header">
-            <el-button type="primary" @click="backToSubCategories" class="back-button">
-              <el-icon><ArrowLeft /></el-icon>
-              <span>返回</span>
-            </el-button>
-            <h2>{{ getSelectedSubCategoryName() }}</h2>
-          </div>
-
-          <el-card class="document-card" shadow="never">
-            <!-- 文档进度指示器 -->
-            <div class="document-progress">
-              <div class="progress-indicator">
-                <div
-                  v-for="(step, index) in documentSteps"
-                  :key="index"
-                  class="progress-step"
-                  :class="{
-                    'active': index === activeDocStep,
-                    'completed': index < activeDocStep
-                  }"
-                  @click="setActiveDocStep(index)"
+                <el-button
+                  @click="navigateDocStep(1)"
+                  :disabled="activeDocStep >= documentSteps.length - 1"
+                  type="primary"
                 >
-                  <div class="step-number">{{ index + 1 }}</div>
-                  <div class="step-title">{{ step.title }}</div>
-                </div>
+                  下一步 <el-icon><ArrowRight /></el-icon>
+                </el-button>
               </div>
-              <div class="progress-bar">
-                <div class="progress-fill" :style="{ width: progressWidth }"></div>
-              </div>
-            </div>
-
-            <!-- 文档内容 -->
-            <div class="document-content" v-loading="isLoading">
-              <div class="markdown-body" v-html="markdownHtml"></div>
-            </div>
-
-            <!-- 文档导航按钮 -->
-            <div class="document-navigation">
-              <el-button
-                @click="navigateDocStep(-1)"
-                :disabled="activeDocStep === 0"
-                type="primary"
-                plain
-              >
-                <el-icon><ArrowLeft /></el-icon> 上一步
-              </el-button>
-              <el-button
-                @click="navigateDocStep(1)"
-                :disabled="activeDocStep >= documentSteps.length - 1"
-                type="primary"
-              >
-                下一步 <el-icon><ArrowRight /></el-icon>
-              </el-button>
-            </div>
-          </el-card>
+            </el-card>
+          </div>    
         </div>
       </transition>
     </div>
@@ -596,5 +596,20 @@ p {
   overflow-y: auto;
   color: var(--text-color);
   line-height: 1.6;
+}
+
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+.slide-fade-leave-active {
+  transition: all 0.2s ease-in;
+}
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>
