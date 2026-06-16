@@ -5,11 +5,12 @@ export interface DocStep {
   title: string;
   description: string;
   icon: string;
-  docSuffix: string;
+  docSuffix?: string;
+  jsonPath?: string;
 }
 
 export interface LauncherDoc {
-  docPath: string;
+  docPath?: string;
   docSteps: DocStep[];
 }
 
@@ -27,34 +28,25 @@ export const crashCategories = [
     icon: Close,
     description: '游戏无法启动或启动过程中崩溃',
     color: '#9c27b0',
-    launcherDocs: {  
-      pcl2: {  
-        docPath: '/docs/crash_startup_pcl2.md',  
-        docSteps: [  
-          { title: "问题描述", description: "启动失败的现象", icon: "Document", docSuffix: "_desc" },  
-          { title: "常见原因", description: "启动失败的常见原因分析", icon: "InfoFilled", docSuffix: "_cause" },  
-          { title: "解决方法", description: "可行的解决步骤", icon: "Loading", docSuffix: "_solution" },  
-          { title: "日志分析", description: "如何分析日志找出问题", icon: "Search", docSuffix: "_logs" }  
-        ]  
-      },  
-      hmcl: {  
-        docPath: '/docs/crash_startup_hmcl.md',  
-        docSteps: [  
-          { title: "问题描述", description: "启动失败的现象", icon: "Document", docSuffix: "_desc" },  
-          { title: "常见原因", description: "启动失败的常见原因分析", icon: "InfoFilled", docSuffix: "_cause" },  
-          { title: "解决方法", description: "可行的解决步骤", icon: "Loading", docSuffix: "_solution" },  
-          { title: "日志分析", description: "如何分析日志找出问题", icon: "Search", docSuffix: "_logs" }  
-        ]  
-      },  
-      fcl: {  
-        docPath: '/docs/crash_startup_fcl.md',  
-        docSteps: [  
-          { title: "问题描述", description: "启动失败的现象", icon: "Document", docSuffix: "_desc" },  
-          { title: "常见原因", description: "启动失败的常见原因分析", icon: "InfoFilled", docSuffix: "_cause" },  
-          { title: "解决方法", description: "可行的解决步骤", icon: "Loading", docSuffix: "_solution" },  
-          { title: "日志分析", description: "如何分析日志找出问题", icon: "Search", docSuffix: "_logs" }  
-        ]  
-      }  
+    launcherDocs: {
+      pcl2: {
+        docSteps: [
+          { title: "导出错误报告", description: "在 PCL2 中导出启动错误报告", icon: "Document", jsonPath: "/docs/crash_startup_pcl2_export.json" },
+          { title: "补充更多信息", description: "提供更多问题相关信息", icon: "InfoFilled", jsonPath: "/docs/crash_startup_pcl2_info.json" }
+        ]
+      },
+      hmcl: {
+        docSteps: [
+          { title: "导出错误报告", description: "在 HMCL 中导出启动错误报告", icon: "Document", jsonPath: "/docs/crash_startup_hmcl_export.json" },
+          { title: "补充更多信息", description: "提供更多问题相关信息", icon: "InfoFilled", jsonPath: "/docs/crash_startup_hmcl_info.json" }
+        ]
+      },
+      fcl: {
+        docSteps: [
+          { title: "导出错误报告", description: "在 FCL 中导出启动错误报告", icon: "Document", jsonPath: "/docs/crash_startup_fcl_export.json" },
+          { title: "补充更多信息", description: "提供更多问题相关信息", icon: "InfoFilled", jsonPath: "/docs/crash_startup_fcl_info.json" }
+        ]
+      }
     }
   },
   {

@@ -1,0 +1,31 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p>请按照以下步骤在 PCL2/PCLCE 中导出错误报告：</p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "待启动器弹出崩溃提示弹窗后"
+        },
+        {
+          "title": "点击「导出错误报告」",
+          "image": {
+            "src": "/docs/images/pcl2_export_step2.png",
+            "alt": "崩溃弹窗"
+          }
+        },
+        {
+          "title": "待资源管理器弹出后，找到选中的错误报告压缩包"
+        }
+      ]
+    },
+    {
+      "type": "alert",
+      "level": "warning",
+      "content": "请确保导出完整的错误报告，不要只截图，或者只发错误报告压缩包里的部分文件。"
+    }
+  ]
+}

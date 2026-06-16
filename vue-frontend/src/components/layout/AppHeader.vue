@@ -7,7 +7,7 @@
           alt="logo"
           class="logo-img"
         />
-        <el-text class="home-link-text">Minecraft 疑难杂症交流群</el-text>
+        <el-text class="home-link-text">Minecraft 疑难杂症交流群文档</el-text>
       </div>
     </el-button>
 
@@ -93,7 +93,7 @@ const handleLogout = async () => {
 };
 
 const buttons = [
-  { type: 'default', text: '群公告文档', path: '/notice' },
+  { type: 'default', text: '询问文档', path: '/notice' },
   { type: 'default', text: '解决方案', path: '/solutions' },
 ]
 

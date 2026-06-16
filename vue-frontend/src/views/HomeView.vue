@@ -91,7 +91,7 @@ import {
 const features = [
   {
     icon: Document,
-    title: "群公告文档",
+    title: "询问文档",
     description: "Text1"
   },
   {

@@ -51,7 +51,7 @@ const userStore = useUserStore()
 // 静态菜单
 const menuItems = ref([
   { path: '/', title: '首页', icon: HomeFilled },
-  { path: '/notice', title: '群公告文档', icon: Notebook },
+  { path: '/notice', title: '询问文档', icon: Notebook },
   { path: '/solutions', title: '解决方案', icon: CollectionTag },
   { path: '/faq', title: '常见问题', icon: QuestionFilled },
   { path: '/admin', title: '后台管理', icon: Setting, requiresRole: ['ROLE_DEV', 'ROLE_ADMIN'] }

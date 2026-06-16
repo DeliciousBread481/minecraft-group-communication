@@ -18,7 +18,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', name: 'home', component: HomeView, meta: { title: '首页' } },
       { path: '/auth', name: 'auth', component: AuthView, meta: { fullScreenAuth: true, public: true } },
-      { path: '/notice', name: 'notice', component: NoticeView, meta: { title: '群公告文档' } },
+      { path: '/notice', name: 'notice', component: NoticeView, meta: { title: '询问文档' } },
       { path: '/solutions', name: 'solutions', component: SolutionView, meta: { title: '解决方案' } },
       {
         path: '/settings',
@@ -55,7 +55,7 @@ router.beforeEach((to, from, next) => {
 
   // 设置页面标题
   if (meta?.title) {
-    document.title = `${meta.title} - Minecraft 疑难杂症交流群`
+    document.title = `${meta.title} - Minecraft 疑难杂症交流群文档`
   }
 
   // 已认证用户访问登录页，重定向首页

@@ -12,9 +12,8 @@
         <el-breadcrumb-item v-if="selectedSubCategoryId" @click="backToSubCategories">
           {{ getSelectedSubCategoryName() }}
         </el-breadcrumb-item>
-        <!-- 新增：启动器层级面包屑 -->
         <el-breadcrumb-item
-          v-if="selectedCategoryId === 'crash' && selectedLauncherId"
+          v-if="selectedLauncherId"
           @click="backToLauncherSelection"
         >
           {{ getSelectedLauncherName() }}
@@ -26,15 +25,23 @@
     <div class="content-container">
       <!-- 分类选择区域 -->
       <transition name="slide-fade" mode="out-in">
-        <!-- 修改：crash 类别需同时有 selectedSubCategoryId 和 selectedLauncherId 才切换到文档视图 -->
-        <div :key="(selectedCategoryId === 'crash' ? !!(selectedSubCategoryId && selectedLauncherId) : !!selectedSubCategoryId) ? 'document' : 'categories'">
-          <div class="category-section" v-if="!(selectedCategoryId === 'crash' ? (selectedSubCategoryId && selectedLauncherId) : selectedSubCategoryId)">
+        <div :key="!!(selectedSubCategoryId && selectedLauncherId) ? 'document' : 'categories'">
+          <div class="category-section" v-if="!(selectedSubCategoryId && selectedLauncherId)">
             <transition name="slide-fade" mode="out-in">
-              <!-- 修改：crash 且已选子分类时用 'launcher' key 触发过渡动画 -->
-              <div :key="selectedCategoryId === 'crash' && selectedSubCategoryId ? 'launcher' : (selectedCategoryId ? 'sub' : 'main')">
-
-                <!-- 新增：启动器选择区域（仅 crash 类别，已选子分类但未选启动器时显示） -->
-                <div v-if="selectedCategoryId === 'crash' && selectedSubCategoryId && !selectedLauncherId">
+              <div :key="selectedSubCategoryId ? 'launcher' : (selectedCategoryId ? 'sub' : 'main')">
+                <div v-if="selectedSubCategoryId && !selectedLauncherId">
+                  <div class="section-header">
+                    <h2>
+                      <el-icon><Right /></el-icon>
+                      {{ getSelectedCategoryName() }}
+                    </h2>
+                  </div>
+                  <div class="section-header">
+                    <h2>
+                      <el-icon><Right /></el-icon>
+                      {{ getSelectedSubCategoryName() }}
+                    </h2>
+                  </div>
                   <div class="section-header">
                     <h2>
                       <el-icon><Bottom /></el-icon>
@@ -51,7 +58,7 @@
                   </div>
                   <div class="category-grid">
                     <el-card
-                      v-for="launcher in launchers"
+                      v-for="launcher in currentLaunchers"
                       :key="launcher.id"
                       class="category-card"
                       @click="selectLauncher(launcher.id)"
@@ -66,7 +73,6 @@
                   </div>
                 </div>
 
-                <!-- 原有的主分类/子分类选择区域（包在 v-else 里） -->
                 <div v-else>
                   <div class="section-header">
                     <h2>
@@ -194,13 +200,15 @@
             </transition>
           </div>    
           <div v-else class="document-section"> 
-            <div class="document-header">
-              <!-- 修改：返回按钮改为 backFromDocument，crash 类别退回启动器选择，其他退回子分类选择 -->
-              <el-button type="primary" @click="backFromDocument" class="back-button">
-                <el-icon><ArrowLeft /></el-icon>
-                <span>返回</span>
-              </el-button>
-              <h2>{{ getSelectedSubCategoryName() }}</h2>
+            <div class="section-header">
+              <h2>
+                <el-icon><Right /></el-icon>
+                {{ getSelectedSubCategoryName() }}
+                <el-button type="primary" @click="backFromDocument" class="back-button">
+                  <el-icon><ArrowLeft /></el-icon>
+                  <span>返回</span>
+                </el-button>
+              </h2>
             </div>
 
             <el-card class="document-card" shadow="never">
@@ -228,7 +236,67 @@
 
               <!-- 文档内容 -->
               <div class="document-content" v-loading="isLoading">
-                <div class="markdown-body" v-html="markdownHtml"></div>
+                <!-- JSON 模式渲染 -->
+                <div v-if="jsonBlocks.length > 0" class="json-content">
+                  <template v-for="(block, blockIndex) in jsonBlocks" :key="blockIndex">
+                    <!-- 文本块 -->
+                    <div
+                      v-if="block.type === 'text'"
+                      class="json-block-text markdown-body"
+                      v-html="block.content"
+                    ></div>
+                    <!-- 提示/警告块 -->
+                    <el-alert
+                      v-else-if="block.type === 'alert'"
+                      :title="block.content"
+                      :type="block.level || 'info'"
+                      show-icon
+                      :closable="false"
+                      class="json-block-alert"
+                    />
+                    <!-- 输入框块 -->
+                    <div v-else-if="block.type === 'input'" class="json-block-input">
+                      <label class="json-input-label">{{ block.label }}</label>
+                      <el-input
+                        v-model="inputValues[block.key]"
+                        :placeholder="block.placeholder"
+                        :type="block.multiline ? 'textarea' : 'text'"
+                        :rows="block.rows || 4"
+                      />
+                    </div>
+                    <!-- 步骤列表块 -->
+                    <div v-else-if="block.type === 'steps'" class="json-block-steps">  
+                      <el-steps direction="vertical" :active="block.items.length">  
+                        <el-step  
+                          v-for="(item, i) in block.items"  
+                          :key="i"  
+                          :title="typeof item === 'string' ? item : item.title"  
+                        >  
+                          <template v-if="typeof item !== 'string' && item.image" #description>  
+                            <div class="json-step-image">  
+                              <img  
+                                :src="item.image.src"  
+                                :alt="item.image.alt || ''"  
+                                style="max-width: 100%; border-radius: 6px; border: 1px solid var(--el-border-color); margin-top: 8px;"  
+                              />  
+                              <p v-if="item.image.caption" class="json-image-caption">{{ item.image.caption }}</p>  
+                            </div>  
+                          </template>  
+                        </el-step>  
+                      </el-steps>  
+                    </div>
+                    <div v-else-if="block.type === 'image'" class="json-block-image">
+                      <img
+                        :src="block.src"
+                        :alt="block.alt || ''"
+                        :style="{ maxWidth: block.maxWidth || '100%' }"
+                      />
+                      <p v-if="block.caption" class="json-image-caption">{{ block.caption }}</p>
+                    </div>
+                  </template>
+                </div>
+                <!-- Markdown 模式渲染（原有） -->
+                <div v-else class="markdown-body" v-html="markdownHtml"></div>
               </div>
 
               <!-- 文档导航按钮 -->
@@ -242,13 +310,48 @@
                   <el-icon><ArrowLeft /></el-icon> 上一步
                 </el-button>
                 <el-button
+                  v-if="activeDocStep < documentSteps.length - 1"
                   @click="navigateDocStep(1)"
-                  :disabled="activeDocStep >= documentSteps.length - 1"
                   type="primary"
                 >
                   下一步 <el-icon><ArrowRight /></el-icon>
                 </el-button>
+                <el-button
+                  v-else
+                  @click="handleComplete"
+                  type="success"
+                >
+                  完成 <el-icon><Check /></el-icon>
+                </el-button>
               </div>
+              <!-- 总结信息弹窗 -->
+              <el-dialog
+                v-model="showSummary"
+                title="总结信息"
+                width="600px"
+                :close-on-click-modal="false"
+              >
+                <el-alert
+                  title="请将错误报告压缩包和下方总结信息一起发送到群内，方便管理员排查问题。"
+                  type="warning"
+                  show-icon
+                  :closable="false"
+                  style="margin-bottom: 16px;"
+                />
+                <el-input
+                  v-model="summaryText"
+                  type="textarea"
+                  :rows="8"
+                  readonly
+                />
+                <template #footer>
+                  <el-button type="primary" @click="copySummary">
+                    <el-icon><CopyDocument /></el-icon>
+                    一键复制
+                  </el-button>
+                  <el-button @click="showSummary = false">关闭</el-button>
+                </template>
+              </el-dialog>
             </el-card>
           </div>    
         </div>
@@ -280,6 +383,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onUnmounted, computed } from 'vue'
+import { ElMessage } from 'element-plus';
 import {
   Bottom, Right, ArrowLeft, ArrowRight, Warning
 } from "@element-plus/icons-vue";
@@ -297,6 +401,11 @@ const selectedSubCategoryId = ref<string>("");
 
 // 文档内容状态
 const markdownHtml = ref<string>("");
+const jsonBlocks = ref<any[]>([]);
+const inputValues = ref<Record<string, string>>({});
+const inputLabels = ref<Record<string, string>>({});
+const showSummary = ref<boolean>(false);
+const summaryText = ref<string>('');
 const isLoading = ref<boolean>(false);
 const documentSteps = ref<any[]>([]);
 const activeDocStep = ref<number>(0);
@@ -318,11 +427,18 @@ const subCategories = reactive({
 });
 
 const selectedLauncherId = ref<string>("");
-const launchers = [
+const launchersAll = [
   { id: 'pcl2', name: 'PCL2/PCLCE启动器', icon: 'Monitor', color: '#2444fd', description: '使用 PCL2 或 PCLCE 启动器' },
   { id: 'hmcl', name: 'HMCL启动器', icon: 'Monitor', color: '#bb633a', description: '使用 HMCL 启动器' },
   { id: 'fcl', name: 'FCL启动器', icon: 'Monitor', color: '#9b0093', description: '使用 FCL 启动器（手机端）' },
 ]
+const launchersNoFCL = [
+  { id: 'pcl2', name: 'PCL2/PCLCE启动器', icon: 'Monitor', color: '#2444fd', description: '使用 PCL2 或 PCLCE 启动器' },
+  { id: 'hmcl', name: 'HMCL启动器', icon: 'Monitor', color: '#bb633a', description: '使用 HMCL 启动器' },
+]
+const currentLaunchers = computed(() =>
+  selectedCategoryId.value === 'crash' ? launchersAll : launchersNoFCL
+)
 
 // 计算文档进度条宽度
 const progressWidth = computed(() => {
@@ -347,25 +463,15 @@ const selectSubCategory = (subCategoryId: string) => {
   if (window.getSelection()?.toString()) return;
   selectedSubCategoryId.value = subCategoryId;
   selectedLauncherId.value = "";
-  if (selectedCategoryId.value !== 'crash') {
-    const currentSubCategory = getCurrentSubCategory();
-    if (currentSubCategory && currentSubCategory.docSteps) {
-      documentSteps.value = currentSubCategory.docSteps;
-    } else {
-      documentSteps.value = [
-        { title: "问题描述", icon: "Document", docSuffix: "_desc" },
-        { title: "原因分析", icon: "InfoFilled", docSuffix: "_cause" },
-        { title: "解决方案", icon: "SuccessFilled", docSuffix: "_solution" }
-      ];
-    }
-    activeDocStep.value = 0;
-    loadMarkdownDocument();
-  }
 }
 
 const selectLauncher = (launcherId: string) => {
   if (window.getSelection()?.toString()) return;
   selectedLauncherId.value = launcherId;
+  showSummary.value = false;
+  summaryText.value = '';
+  inputValues.value = {};
+  inputLabels.value = {};
   const currentSubCategory = getCurrentSubCategory() as any;
   if (currentSubCategory?.launcherDocs) {
     const launcherDoc = currentSubCategory.launcherDocs[launcherId as 'pcl2' | 'hmcl' | 'fcl'];
@@ -383,6 +489,9 @@ const loadMarkdownDocument = async () => {
   if (selectedCategoryId.value === 'crash' && !selectedLauncherId.value) return;
 
   isLoading.value = true;
+  markdownHtml.value = "";
+  jsonBlocks.value = [];
+
   try {
     const currentSubCategory = getCurrentSubCategory() as any;
     if (!currentSubCategory) {
@@ -390,10 +499,29 @@ const loadMarkdownDocument = async () => {
       return;
     }
 
+    const currentStep = documentSteps.value[activeDocStep.value];
+
+    // json 模式：步骤上有 jsonPath
+    if (currentStep?.jsonPath) {
+      const response = await axios.get(currentStep.jsonPath);
+      jsonBlocks.value = response.data.blocks || [];
+      inputValues.value = {};
+        response.data.blocks?.forEach((block: any) => {
+          if (block.type === 'input' && block.key && block.label) {
+            inputLabels.value[block.key] = block.label;
+          }
+        });
+      return;
+    }
+
+    // md 模式：通过 docPath + docSuffix 拼接
     let docPath: string;
     if (selectedCategoryId.value === 'crash' && currentSubCategory.launcherDocs) {
       const launcherDoc = currentSubCategory.launcherDocs[selectedLauncherId.value as 'pcl2' | 'hmcl' | 'fcl'];
-      const currentStep = documentSteps.value[activeDocStep.value];
+      if (!launcherDoc?.docPath) {
+        markdownHtml.value = "<h1>文档不存在</h1>";
+        return;
+      }
       const docSuffix = currentStep ? currentStep.docSuffix : "_desc";
       const basePath = launcherDoc.docPath.replace(/\.md$/, '');
       docPath = `${basePath}${docSuffix}.md`;
@@ -402,14 +530,13 @@ const loadMarkdownDocument = async () => {
         markdownHtml.value = "<h1>文档不存在</h1>";
         return;
       }
-      const currentStep = documentSteps.value[activeDocStep.value];
       const docSuffix = currentStep ? currentStep.docSuffix : "_desc";
       const basePath = currentSubCategory.docPath.replace(/\.md$/, '');
       docPath = `${basePath}${docSuffix}.md`;
     }
 
     const response = await axios.get(docPath);
-    markdownHtml.value = marked(response.data);
+    markdownHtml.value = marked(response.data) as string;
   } catch (error) {
     console.error('加载文档失败:', error);
     markdownHtml.value = "<h1>加载文档失败</h1><p>请稍后再试</p>";
@@ -434,6 +561,39 @@ const navigateDocStep = (step: number) => {
   }
 }
 
+// 完成并生成总结
+const handleComplete = () => {
+  const lines: string[] = [];
+  lines.push(`问题类型：${getSelectedCategoryName()} - ${getSelectedSubCategoryName()}`);
+  if (selectedLauncherId.value) {
+    lines.push(`启动器：${getSelectedLauncherName()}`);
+  }
+
+  const hasInputs = Object.keys(inputValues.value).some(k => inputValues.value[k]);
+  if (hasInputs) {
+    for (const key of Object.keys(inputValues.value)) {
+      const value = inputValues.value[key];
+      if (value) {
+        const label = inputLabels.value[key] || key;
+        lines.push(`${label}：\n${value}`);
+      }
+    }
+  }
+
+  summaryText.value = lines.join('\n');
+  showSummary.value = true;
+}
+
+// 复制总结到剪贴板
+const copySummary = async () => {
+  try {
+    await navigator.clipboard.writeText(summaryText.value);
+    ElMessage.success('已复制到剪贴板');
+  } catch (error) {
+    ElMessage.error('复制失败，请手动复制');
+  }
+}
+
 // 设置文档步骤
 const setActiveDocStep = (step: number) => {
   if (step >= 0 && step < documentSteps.value.length) {
@@ -447,18 +607,26 @@ const backToCategories = () => {
   selectedCategoryId.value = "";
   selectedSubCategoryId.value = "";
   selectedLauncherId.value = "";
+  showSummary.value = false;
+  summaryText.value = '';
+  inputValues.value = {};
+  inputLabels.value = {};
 }
 
-const backFromDocument = () => {
-  if (selectedCategoryId.value === 'crash') {  
+const backFromDocument = () => {  
+  showSummary.value = false;
+  summaryText.value = '';
+  inputValues.value = {};
+  inputLabels.value = {};
+  if (selectedCategoryId.value === 'crash') {
     selectedLauncherId.value = "";
-  } else { 
+  } else {
     selectedSubCategoryId.value = "";
   }
 }
 
 const getSelectedLauncherName = () => {
-  return launchers.find(l => l.id === selectedLauncherId.value)?.name || "";
+  return launchersAll.find(l => l.id === selectedLauncherId.value)?.name || "";
 }
 
 const backToSubCategories = () => {
@@ -536,7 +704,7 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--border-color);
 }
 
-.categories-grid {
+.category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: var(--spacing-lg);
@@ -624,7 +792,7 @@ p {
   }
 
   &.completed .step-number {
-    background-color: var(--success-color);
+    background-color: var(--primary-color);
   }
 }
 
@@ -650,8 +818,8 @@ p {
 .progress-bar {
   position: absolute;
   top: 15px;
-  left: 0;
-  right: 0;
+  left: 15px;
+  right: 15px;
   height: 2px;
   background-color: var(--border-light-color);
   z-index: 0;

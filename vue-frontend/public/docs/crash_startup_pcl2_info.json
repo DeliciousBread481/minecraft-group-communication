@@ -1,0 +1,30 @@
+{  
+  "blocks": [
+    {  
+      "type": "text",
+      "content": "<p>请补充以下信息，以便更准确地排查问题：</p>"
+    },
+    {
+      "type": "text",
+      "content": "==>如果你遇到这个情况，请优先自行检查模组依赖的问题，这是缺少模组前置，黄名模组需要橙名模组，且要保证满足版本要求。"
+    },
+    {
+      "type": "image",
+      "src": "/docs/images/startup_crash_info.png",
+      "alt": "模组依赖问题截图"
+    },
+    {
+      "type": "input",
+      "label": "问题描述",
+      "placeholder": "什么时候开始出现？做了什么操作后出现？",
+      "key": "description",
+      "multiline": true,
+      "rows": 4
+    },
+    {
+      "type": "alert",
+      "level": "info",
+      "content": "填写越详细，越容易找到问题原因。"
+    }
+  ]
+}
