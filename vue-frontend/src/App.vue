@@ -1,6 +1,5 @@
 <template>
   <router-view />
-/*  <ThemeDebugger />*/
 </template>
 
 <script setup lang="ts">

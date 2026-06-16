@@ -409,7 +409,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-color);
+  color: var(--bg-color);
   font-size: var(--font-size-xxl);
 }
 

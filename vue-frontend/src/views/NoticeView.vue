@@ -157,25 +157,25 @@
 
             <el-card class="document-card" shadow="never">
               <!-- 文档进度指示器 -->
-              <div class="document-progress">
-                <div class="progress-indicator">
-                  <div
-                    v-for="(step, index) in documentSteps"
-                    :key="index"
-                    class="progress-step"
-                    :class="{
-                      'active': index === activeDocStep,
-                      'completed': index < activeDocStep
-                    }"
-                    @click="setActiveDocStep(index)"
-                  >
-                    <div class="step-number">{{ index + 1 }}</div>
-                    <div class="step-title">{{ step.title }}</div>
-                  </div>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill" :style="{ width: progressWidth }"></div>
-                </div>
+              <div class="document-progress">  
+                <div class="progress-steps">  
+                  <div  
+                    v-for="(step, index) in documentSteps"  
+                    :key="index"  
+                    class="progress-step"  
+                    :class="{  
+                      'active': index === activeDocStep,  
+                      'completed': index < activeDocStep  
+                    }"  
+                    @click="setActiveDocStep(index)"  
+                  >  
+                    <div class="step-number">{{ index + 1 }}</div>  
+                    <div class="step-title">{{ step.title }}</div>  
+                  </div>  
+                  <div class="progress-bar">  
+                    <div class="progress-fill" :style="{ width: progressWidth }"></div>  
+                  </div>  
+                </div>  
               </div>
 
               <!-- 文档内容 -->
@@ -495,12 +495,14 @@ p {
   border-radius: var(--border-radius-lg);
   box-shadow: 0 4px 12px var(--shadow-color);
   overflow: hidden;
+  backface-visibility: hidden; 
 }
 
 .document-progress {
   padding: var(--spacing-md);
   background-color: var(--bg-secondary-color);
   border-bottom: 1px solid var(--border-color);
+  position: relative;
 }
 
 .progress-steps {
@@ -600,9 +602,11 @@ p {
 
 .slide-fade-enter-active {
   transition: all 0.3s ease-out;
+  will-change: transform, opacity;
 }
 .slide-fade-leave-active {
   transition: all 0.2s ease-in;
+  will-change: transform, opacity;
 }
 .slide-fade-enter-from {
   opacity: 0;
@@ -611,5 +615,9 @@ p {
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+.content-container {  
+  overflow: hidden;  
 }
 </style>
