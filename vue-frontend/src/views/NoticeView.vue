@@ -12,6 +12,13 @@
         <el-breadcrumb-item v-if="selectedSubCategoryId" @click="backToSubCategories">
           {{ getSelectedSubCategoryName() }}
         </el-breadcrumb-item>
+        <!-- 新增：启动器层级面包屑 -->
+        <el-breadcrumb-item
+          v-if="selectedCategoryId === 'crash' && selectedLauncherId"
+          @click="backToLauncherSelection"
+        >
+          {{ getSelectedLauncherName() }}
+        </el-breadcrumb-item>
       </el-breadcrumb>
     </div>
 
@@ -19,54 +26,22 @@
     <div class="content-container">
       <!-- 分类选择区域 -->
       <transition name="slide-fade" mode="out-in">
-        <div :key="selectedSubCategoryId ? 'document' : 'categories'">
-          <div class="category-section" v-if="!selectedSubCategoryId">
+        <!-- 修改：crash 类别需同时有 selectedSubCategoryId 和 selectedLauncherId 才切换到文档视图 -->
+        <div :key="(selectedCategoryId === 'crash' ? !!(selectedSubCategoryId && selectedLauncherId) : !!selectedSubCategoryId) ? 'document' : 'categories'">
+          <div class="category-section" v-if="!(selectedCategoryId === 'crash' ? (selectedSubCategoryId && selectedLauncherId) : selectedSubCategoryId)">
             <transition name="slide-fade" mode="out-in">
-              <div :key="selectedCategoryId ? 'sub' : 'main'">
-                <div class="section-header">
-                  <h2>
-                    <el-icon v-if="!selectedCategoryId"><Bottom /></el-icon>
-                    <el-icon v-else><Right /></el-icon>
-                    <span v-if="!selectedCategoryId">选择你的问题类型：</span>
-                    <span v-else>{{ getSelectedCategoryName() }}</span>
-                  </h2>
-                </div>
+              <!-- 修改：crash 且已选子分类时用 'launcher' key 触发过渡动画 -->
+              <div :key="selectedCategoryId === 'crash' && selectedSubCategoryId ? 'launcher' : (selectedCategoryId ? 'sub' : 'main')">
 
-                <!-- 主分类列表 -->
-                <div v-if="!selectedCategoryId" class="category-grid">
-                  <el-card
-                    v-for="category in categories"
-                    :key="category.id"
-                    class="category-card"
-                    @click="selectCategory(category.id)"
-                    shadow="hover"
-                  >
-                    <div class="category-icon" :style="{ backgroundColor: category.color }">
-                      <el-icon size="24"><component :is="category.icon" /></el-icon>
-                    </div>
-                    <h3>{{ category.name }}</h3>
-                    <p>{{ category.description }}</p>
-                  </el-card>
-                </div>
-
-                <!-- 子分类选择区域 -->
-                <div v-if="selectedCategoryId" class="sub-category-section">
+                <!-- 新增：启动器选择区域（仅 crash 类别，已选子分类但未选启动器时显示） -->
+                <div v-if="selectedCategoryId === 'crash' && selectedSubCategoryId && !selectedLauncherId">
                   <div class="section-header">
                     <h2>
                       <el-icon><Bottom /></el-icon>
-                      选择符合具体情况的问题
-                      <el-button
-                        v-if="selectedCategoryId === 'disconnect'"
-                        type="warning"
-                        @click="showDisconnectInfoManually"
-                        class="info-button"
-                      >
-                        <el-icon><Warning /></el-icon>
-                        <span>注意事项</span>
-                      </el-button>
+                      你是使用的哪个启动器？
                       <el-button
                         type="primary"
-                        @click="backToCategories"
+                        @click="backToSubCategories"
                         class="back-button"
                       >
                         <el-icon><ArrowLeft /></el-icon>
@@ -74,81 +49,154 @@
                       </el-button>
                     </h2>
                   </div>
-
-                  <!-- 游戏崩溃类子分类 -->
-                  <div v-if="selectedCategoryId === 'crash'" class="category-grid">
+                  <div class="category-grid">
                     <el-card
-                      v-for="subCategory in subCategories.crash"
-                      :key="subCategory.id"
+                      v-for="launcher in launchers"
+                      :key="launcher.id"
                       class="category-card"
-                      @click="selectSubCategory(subCategory.id)"
+                      @click="selectLauncher(launcher.id)"
                       shadow="hover"
                     >
-                      <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
-                        <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                      <div class="category-icon" :style="{ backgroundColor: launcher.color }">
+                        <el-icon size="24"><Monitor /></el-icon>
                       </div>
-                      <h3>{{ subCategory.name }}</h3>
-                      <p>{{ subCategory.description }}</p>
-                    </el-card>
-                  </div>
-
-                  <!-- 连接失败类子分类 -->
-                  <div v-if="selectedCategoryId === 'disconnect'" class="category-grid">
-                    <el-card
-                      v-for="subCategory in subCategories.disconnect"
-                      :key="subCategory.id"
-                      class="category-card"
-                      @click="selectSubCategory(subCategory.id)"
-                      shadow="hover"
-                    >
-                      <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
-                        <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
-                      </div>
-                      <h3>{{ subCategory.name }}</h3>
-                      <p>{{ subCategory.description }}</p>
-                    </el-card>
-                  </div>
-
-                  <!-- 启动器问题子分类 -->
-                  <div v-if="selectedCategoryId === 'laucher'" class="category-grid">
-                    <el-card
-                      v-for="subCategory in subCategories.laucher"
-                      :key="subCategory.id"
-                      class="category-card"
-                      @click="selectSubCategory(subCategory.id)"
-                      shadow="hover"
-                    >
-                      <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
-                        <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
-                      </div>
-                      <h3>{{ subCategory.name }}</h3>
-                      <p>{{ subCategory.description }}</p>
-                    </el-card>
-                  </div>
-
-                  <!-- 其他问题子分类 -->
-                  <div v-if="selectedCategoryId === 'other'" class="category-grid">
-                    <el-card
-                      v-for="subCategory in subCategories.other"
-                      :key="subCategory.id"
-                      class="category-card"
-                      @click="selectSubCategory(subCategory.id)"
-                      shadow="hover"
-                    >
-                      <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
-                        <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
-                      </div>
-                      <h3>{{ subCategory.name }}</h3>
-                      <p>{{ subCategory.description }}</p>
+                      <h3>{{ launcher.name }}</h3>
+                      <p>{{ launcher.description }}</p>
                     </el-card>
                   </div>
                 </div>
+
+                <!-- 原有的主分类/子分类选择区域（包在 v-else 里） -->
+                <div v-else>
+                  <div class="section-header">
+                    <h2>
+                      <el-icon v-if="!selectedCategoryId"><Bottom /></el-icon>
+                      <el-icon v-else><Right /></el-icon>
+                      <span v-if="!selectedCategoryId">选择你的问题类型：</span>
+                      <span v-else>{{ getSelectedCategoryName() }}</span>
+                    </h2>
+                  </div>
+
+                  <!-- 主分类列表 -->
+                  <div v-if="!selectedCategoryId" class="category-grid">
+                    <el-card
+                      v-for="category in categories"
+                      :key="category.id"
+                      class="category-card"
+                      @click="selectCategory(category.id)"
+                      shadow="hover"
+                    >
+                      <div class="category-icon" :style="{ backgroundColor: category.color }">
+                        <el-icon size="24"><component :is="category.icon" /></el-icon>
+                      </div>
+                      <h3>{{ category.name }}</h3>
+                      <p>{{ category.description }}</p>
+                    </el-card>
+                  </div>
+
+                  <!-- 子分类选择区域 -->
+                  <div v-if="selectedCategoryId" class="sub-category-section">
+                    <div class="section-header">
+                      <h2>
+                        <el-icon><Bottom /></el-icon>
+                        选择符合具体情况的问题
+                        <el-button
+                          v-if="selectedCategoryId === 'disconnect'"
+                          type="warning"
+                          @click="showDisconnectInfoManually"
+                          class="info-button"
+                        >
+                          <el-icon><Warning /></el-icon>
+                          <span>注意事项</span>
+                        </el-button>
+                        <el-button
+                          type="primary"
+                          @click="backToCategories"
+                          class="back-button"
+                        >
+                          <el-icon><ArrowLeft /></el-icon>
+                          <span>上一步</span>
+                        </el-button>
+                      </h2>
+                    </div>
+
+                    <!-- 游戏崩溃类子分类 -->
+                    <div v-if="selectedCategoryId === 'crash'" class="category-grid">
+                      <el-card
+                        v-for="subCategory in subCategories.crash"
+                        :key="subCategory.id"
+                        class="category-card"
+                        @click="selectSubCategory(subCategory.id)"
+                        shadow="hover"
+                      >
+                        <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
+                          <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                        </div>
+                        <h3>{{ subCategory.name }}</h3>
+                        <p>{{ subCategory.description }}</p>
+                      </el-card>
+                    </div>
+
+                    <!-- 连接失败类子分类 -->
+                    <div v-if="selectedCategoryId === 'disconnect'" class="category-grid">
+                      <el-card
+                        v-for="subCategory in subCategories.disconnect"
+                        :key="subCategory.id"
+                        class="category-card"
+                        @click="selectSubCategory(subCategory.id)"
+                        shadow="hover"
+                      >
+                        <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
+                          <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                        </div>
+                        <h3>{{ subCategory.name }}</h3>
+                        <p>{{ subCategory.description }}</p>
+                      </el-card>
+                    </div>
+
+                    <!-- 启动器问题子分类 -->
+                    <div v-if="selectedCategoryId === 'laucher'" class="category-grid">
+                      <el-card
+                        v-for="subCategory in subCategories.laucher"
+                        :key="subCategory.id"
+                        class="category-card"
+                        @click="selectSubCategory(subCategory.id)"
+                        shadow="hover"
+                      >
+                        <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
+                          <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                        </div>
+                        <h3>{{ subCategory.name }}</h3>
+                        <p>{{ subCategory.description }}</p>
+                      </el-card>
+                    </div>
+
+                    <!-- 其他问题子分类 -->
+                    <div v-if="selectedCategoryId === 'other'" class="category-grid">
+                      <el-card
+                        v-for="subCategory in subCategories.other"
+                        :key="subCategory.id"
+                        class="category-card"
+                        @click="selectSubCategory(subCategory.id)"
+                        shadow="hover"
+                      >
+                        <div class="category-icon" :style="{ backgroundColor: subCategory.color }">
+                          <el-icon size="24"><component :is="subCategory.icon" /></el-icon>
+                        </div>
+                        <h3>{{ subCategory.name }}</h3>
+                        <p>{{ subCategory.description }}</p>
+                      </el-card>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </transition>
           </div>    
           <div v-else class="document-section"> 
             <div class="document-header">
-              <el-button type="primary" @click="backToSubCategories" class="back-button">
+              <!-- 修改：返回按钮改为 backFromDocument，crash 类别退回启动器选择，其他退回子分类选择 -->
+              <el-button type="primary" @click="backFromDocument" class="back-button">
                 <el-icon><ArrowLeft /></el-icon>
                 <span>返回</span>
               </el-button>
@@ -269,6 +317,13 @@ const subCategories = reactive({
   other: otherCategories,
 });
 
+const selectedLauncherId = ref<string>("");
+const launchers = [
+  { id: 'pcl2', name: 'PCL2/PCLCE启动器', icon: 'Monitor', color: '#2444fd', description: '使用 PCL2 或 PCLCE 启动器' },
+  { id: 'hmcl', name: 'HMCL启动器', icon: 'Monitor', color: '#bb633a', description: '使用 HMCL 启动器' },
+  { id: 'fcl', name: 'FCL启动器', icon: 'Monitor', color: '#9b0093', description: '使用 FCL 启动器（手机端）' },
+]
+
 // 计算文档进度条宽度
 const progressWidth = computed(() => {
   if (documentSteps.value.length <= 1) return '100%';
@@ -291,20 +346,33 @@ const selectCategory = (categoryId: string) => {
 const selectSubCategory = (subCategoryId: string) => {
   if (window.getSelection()?.toString()) return;
   selectedSubCategoryId.value = subCategoryId;
-  const currentSubCategory = getCurrentSubCategory();
-
-  // 设置文档步骤
-  if (currentSubCategory && currentSubCategory.docSteps) {
-    documentSteps.value = currentSubCategory.docSteps;
-  } else {
-    // 默认文档步骤
-    documentSteps.value = [
-      { title: "问题描述", icon: "Document", docSuffix: "_desc" },
-      { title: "原因分析", icon: "InfoFilled", docSuffix: "_cause" },
-      { title: "解决方案", icon: "SuccessFilled", docSuffix: "_solution" }
-    ];
+  selectedLauncherId.value = "";
+  if (selectedCategoryId.value !== 'crash') {
+    const currentSubCategory = getCurrentSubCategory();
+    if (currentSubCategory && currentSubCategory.docSteps) {
+      documentSteps.value = currentSubCategory.docSteps;
+    } else {
+      documentSteps.value = [
+        { title: "问题描述", icon: "Document", docSuffix: "_desc" },
+        { title: "原因分析", icon: "InfoFilled", docSuffix: "_cause" },
+        { title: "解决方案", icon: "SuccessFilled", docSuffix: "_solution" }
+      ];
+    }
+    activeDocStep.value = 0;
+    loadMarkdownDocument();
   }
+}
 
+const selectLauncher = (launcherId: string) => {
+  if (window.getSelection()?.toString()) return;
+  selectedLauncherId.value = launcherId;
+  const currentSubCategory = getCurrentSubCategory() as any;
+  if (currentSubCategory?.launcherDocs) {
+    const launcherDoc = currentSubCategory.launcherDocs[launcherId as 'pcl2' | 'hmcl' | 'fcl'];
+    if (launcherDoc) {
+      documentSteps.value = launcherDoc.docSteps;
+    }
+  }
   activeDocStep.value = 0;
   loadMarkdownDocument();
 }
@@ -312,19 +380,33 @@ const selectSubCategory = (subCategoryId: string) => {
 // 加载Markdown文档
 const loadMarkdownDocument = async () => {
   if (!selectedSubCategoryId.value) return;
+  if (selectedCategoryId.value === 'crash' && !selectedLauncherId.value) return;
 
   isLoading.value = true;
   try {
-    const currentSubCategory = getCurrentSubCategory();
-    if (!currentSubCategory || !currentSubCategory.docPath) {
+    const currentSubCategory = getCurrentSubCategory() as any;
+    if (!currentSubCategory) {
       markdownHtml.value = "<h1>文档不存在</h1>";
       return;
     }
 
-    const currentStep = documentSteps.value[activeDocStep.value];
-    const docSuffix = currentStep ? currentStep.docSuffix : "_desc";
-    const basePath = currentSubCategory.docPath.replace(/\.md$/, '');
-    const docPath = `${basePath}${docSuffix}.md`;
+    let docPath: string;
+    if (selectedCategoryId.value === 'crash' && currentSubCategory.launcherDocs) {
+      const launcherDoc = currentSubCategory.launcherDocs[selectedLauncherId.value as 'pcl2' | 'hmcl' | 'fcl'];
+      const currentStep = documentSteps.value[activeDocStep.value];
+      const docSuffix = currentStep ? currentStep.docSuffix : "_desc";
+      const basePath = launcherDoc.docPath.replace(/\.md$/, '');
+      docPath = `${basePath}${docSuffix}.md`;
+    } else {
+      if (!currentSubCategory.docPath) {
+        markdownHtml.value = "<h1>文档不存在</h1>";
+        return;
+      }
+      const currentStep = documentSteps.value[activeDocStep.value];
+      const docSuffix = currentStep ? currentStep.docSuffix : "_desc";
+      const basePath = currentSubCategory.docPath.replace(/\.md$/, '');
+      docPath = `${basePath}${docSuffix}.md`;
+    }
 
     const response = await axios.get(docPath);
     markdownHtml.value = marked(response.data);
@@ -364,6 +446,19 @@ const setActiveDocStep = (step: number) => {
 const backToCategories = () => {
   selectedCategoryId.value = "";
   selectedSubCategoryId.value = "";
+  selectedLauncherId.value = "";
+}
+
+const backFromDocument = () => {
+  if (selectedCategoryId.value === 'crash') {  
+    selectedLauncherId.value = "";
+  } else { 
+    selectedSubCategoryId.value = "";
+  }
+}
+
+const getSelectedLauncherName = () => {
+  return launchers.find(l => l.id === selectedLauncherId.value)?.name || "";
 }
 
 const backToSubCategories = () => {
