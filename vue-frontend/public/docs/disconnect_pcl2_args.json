@@ -1,0 +1,40 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p>请按以下步骤配置 JVM 参数：</p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "点击启动器的「版本设置」",
+          "image": {
+            "src": "/docs/images/disconnect_pcl2_args_step1.png",
+            "alt": "版本设置"
+          }
+        },
+        {
+          "title": "点击「设置」，往下翻找到「高级选项」，点开后找到「Java虚拟机参数」",
+          "image": {
+            "src": "/docs/images/disconnect_pcl2_args_step2.png",
+            "alt": "Java虚拟机参数位置"
+          }
+        },
+        {
+          "title": "复制以下参数",
+          "code": {
+            "lang": "bash",
+            "content": "-Dlog4j2.formatMsgNoLookups=false -Dlog4j.configurationFile=config/log4j2.xml -Dforge.logging.marker.networking=ACCEPT"
+          }
+        },
+        {
+          "title": "然后将参数填入「Java虚拟机参数」"
+        },
+        {
+          "title": "随后启动游戏，重新触发「连接已丢失」的情况"
+        }
+      ]
+    }
+  ]
+}

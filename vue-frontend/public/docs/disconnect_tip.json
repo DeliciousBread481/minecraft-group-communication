@@ -1,0 +1,63 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p><strong>1. 首先根据「连接已丢失」的界面判断问题类型</strong></p>"
+    },
+    {
+      "type": "alert",
+      "level": "warning",
+      "content": "请保存你的连接已丢失的界面的截图以便后续使用"
+    },
+    {
+      "type": "alert",
+      "level": "warning",
+      "content": "主机端指开联机的房主的端、服务端；客机端为连接房间或连接服务端的端"
+    },
+    {
+      "type": "text",
+      "content": "<p>(1) DecoderException 类型</p>"
+    },
+    {
+      "type": "text",
+      "content": "DecoderException为客机端发生异常，需要客机端操作文档内的步骤。"
+    },
+    {
+      "type": "image",
+      "src": "docs/images/disconnect_decoder.png",
+      "alt": "DecoderException 示例"
+    },
+    {
+      "type": "text",
+      "content": "<p>(2) EncoderException 类型</p>"
+    },
+    {
+      "type": "text",
+      "content": "EncoderException为主机端发生异常，需要主机端操作文档内的步骤。"
+    },
+    {
+      "type": "image",
+      "src": "docs/images/disconnect_encoder.png",
+      "alt": "EncoderException 示例"
+    },
+    {
+      "type": "text",
+      "content": "<p>(3) 单纯网络问题类型</p>"
+    },
+    {
+      "type": "alert",
+      "level": "info",
+      "content": "以下仅做两个例子，和上面两类作区分，详情见此类对应文档内容"
+    },
+    {
+      "type": "image",
+      "src": "docs/images/disconnect1.png",
+      "alt": "网络问题示例 1"
+    },
+    {
+      "type": "image",
+      "src": "docs/images/disconnect2.png",
+      "alt": "网络问题示例 2"
+    }
+  ]
+}

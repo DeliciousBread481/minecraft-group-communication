@@ -2,7 +2,7 @@
   "blocks": [
     {
       "type": "text",
-      "content": "<p>请按照以下步骤在 PCL2/PCLCE 中导出错误报告：</p>"
+      "content": "<p>请按照以下步骤在 HMCL 中导出错误报告：</p>"
     },
     {
       "type": "steps",
@@ -11,9 +11,9 @@
           "title": "待启动器弹出崩溃提示弹窗后"
         },
         {
-          "title": "点击「导出错误报告」",
+          "title": "点击「导出游戏崩溃信息」",
           "image": {
-            "src": "/docs/images/pcl2_export_step1.png",
+            "src": "/docs/images/hmcl_export_step1.png",
             "alt": "崩溃弹窗"
           }
         },

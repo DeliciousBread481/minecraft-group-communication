@@ -1,0 +1,21 @@
+{  
+  "blocks": [
+    {  
+      "type": "text",
+      "content": "<p>请补充以下信息，以便更准确地排查问题：</p>"
+    },
+    {
+      "type": "input",
+      "label": "问题描述",
+      "placeholder": "什么时候开始出现？做了什么操作后出现？",
+      "key": "description",
+      "multiline": true,
+      "rows": 7
+    },
+    {
+      "type": "alert",
+      "level": "info",
+      "content": "填写越详细，越容易找到问题原因。"
+    }
+  ]
+}

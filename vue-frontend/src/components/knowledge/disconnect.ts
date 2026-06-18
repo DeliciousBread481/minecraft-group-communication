@@ -1,27 +1,36 @@
 import { Close, Connection, Switch } from "@element-plus/icons-vue";
+import type { DocStep, LauncherDoc, LauncherDocs } from "./crash";
 
 export const disconnectCategories = [
   {
-    id: 'disconnect_reset',
-    name: 'Connection reset',
-    icon: Switch,
-    description: '连接重置',
+    id: 'disconnect_decoder',
+    name: 'DecoderException',
+    icon: Close,
+    description: '客机端发生异常',
     color: '#409EFF',
     launcherDocs: {
       pcl2: {
-        docPath: '/docs/disconnect_reset_pcl2.md',
         docSteps: [
-          { title: "问题表现", description: "连接重置的具体表现", icon: "Document", docSuffix: "_desc" },
-          { title: "网络分析", description: "网络问题分析", icon: "Connection", docSuffix: "_network" },
-          { title: "解决方案", description: "修复连接重置的方法", icon: "Tools", docSuffix: "_solution" }
+          { title: "放置文件", description: "放置配置文件", icon: "Document", jsonPath: "/docs/disconnect_put_file.json" },
+          { title: "填写参数", description: "填写JVM参数", icon: "Document", jsonPath: "/docs/disconnect_pcl2_args.json" },
+          { title: "获取文件", description: "获取Debug文件", icon: "InfoFilled", jsonPath: "/docs/disconnect_get_file.json" },
+          { title: "补充信息", description: "补充信息", icon: "Loading", jsonPath: "/docs/crash_info.json" }
         ]
       },
       hmcl: {
-        docPath: '/docs/disconnect_reset_hmcl.md',
         docSteps: [
-          { title: "问题表现", description: "连接重置的具体表现", icon: "Document", docSuffix: "_desc" },
-          { title: "网络分析", description: "网络问题分析", icon: "Connection", docSuffix: "_network" },
-          { title: "解决方案", description: "修复连接重置的方法", icon: "Tools", docSuffix: "_solution" }
+          { title: "放置文件", description: "放置配置文件", icon: "Document", jsonPath: "/docs/disconnect_put_file.json" },
+          { title: "填写参数", description: "填写JVM参数", icon: "Document", jsonPath: "/docs/disconnect_hmcl_args.json" },
+          { title: "获取文件", description: "获取Debug文件", icon: "InfoFilled", jsonPath: "/docs/disconnect_get_file.json" },
+          { title: "补充信息", description: "补充信息", icon: "Loading", jsonPath: "/docs/crash_info.json" }
+        ]
+      },
+      fcl: {
+        docSteps: [
+          { title: "放置文件", description: "放置配置文件", icon: "Document", jsonPath: "/docs/disconnect_put_file.json" },
+          { title: "填写参数", description: "填写JVM参数", icon: "Document", jsonPath: "/docs/disconnect_fcl_args.json" },
+          { title: "获取文件", description: "获取Debug文件", icon: "InfoFilled", jsonPath: "/docs/disconnect_get_file.json" },
+          { title: "补充信息", description: "补充信息", icon: "Loading", jsonPath: "/docs/crash_info.json" }
         ]
       }
     }
@@ -33,72 +42,65 @@ export const disconnectCategories = [
     description: '主机端发生异常',
     color: '#409EFF',
     launcherDocs: {
-      pcl2: {
-        docPath: '/docs/disconnect_encoder_pcl2.md',
+      server: {
         docSteps: [
-          { title: "问题描述", description: "主机端异常的表现", icon: "Document", docSuffix: "_desc" },
-          { title: "错误分析", description: "主机端异常的原因", icon: "InfoFilled", docSuffix: "_cause" },
-          { title: "解决方法", description: "修复主机端异常的方法", icon: "Tools", docSuffix: "_solution" }
+          { title: "放置文件", description: "放置配置文件", icon: "Document", jsonPath: "/docs/disconnect_put_file.json" },
+          { title: "填写参数", description: "填写JVM参数", icon: "Document", jsonPath: "/docs/disconnect_server_args.json" },
+          { title: "获取文件", description: "获取Debug文件", icon: "InfoFilled", jsonPath: "/docs/disconnect_get_file.json" },
+          { title: "补充信息", description: "补充信息", icon: "Tools", jsonPath: "/docs/crash_info.json" }
+        ]
+      },
+      pcl2: {
+        docSteps: [
+          { title: "放置文件", description: "放置配置文件", icon: "Document", jsonPath: "/docs/disconnect_put_file.json" },
+          { title: "填写参数", description: "填写JVM参数", icon: "Document", jsonPath: "/docs/disconnect_pcl2_args.json" },
+          { title: "获取文件", description: "获取Debug文件", icon: "InfoFilled", jsonPath: "/docs/disconnect_get_file.json" },
+          { title: "补充信息", description: "补充信息", icon: "Tools", jsonPath: "/docs/crash_info.json" }
         ]
       },
       hmcl: {
-        docPath: '/docs/disconnect_encoder_hmcl.md',
         docSteps: [
-          { title: "问题描述", description: "主机端异常的表现", icon: "Document", docSuffix: "_desc" },
-          { title: "错误分析", description: "主机端异常的原因", icon: "InfoFilled", docSuffix: "_cause" },
-          { title: "解决方法", description: "修复主机端异常的方法", icon: "Tools", docSuffix: "_solution" }
+          { title: "放置文件", description: "放置配置文件", icon: "Document", jsonPath: "/docs/disconnect_put_file.json" },
+          { title: "填写参数", description: "填写JVM参数", icon: "Document", jsonPath: "/docs/disconnect_hmcl_args.json" },
+          { title: "获取文件", description: "获取Debug文件", icon: "InfoFilled", jsonPath: "/docs/disconnect_get_file.json" },
+          { title: "补充信息", description: "补充信息", icon: "Tools", jsonPath: "/docs/crash_info.json" }
+        ]
+      },
+      fcl: {
+        docSteps: [
+          { title: "放置文件", description: "放置配置文件", icon: "Document", jsonPath: "/docs/disconnect_put_file.json" },
+          { title: "填写参数", description: "填写JVM参数", icon: "Document", jsonPath: "/docs/disconnect_fcl_args.json" },
+          { title: "获取文件", description: "获取Debug文件", icon: "InfoFilled", jsonPath: "/docs/disconnect_get_file.json" },
+          { title: "补充信息", description: "补充信息", icon: "Tools", jsonPath: "/docs/crash_info.json" }
         ]
       }
     }
   },
   {
-    id: 'disconnect_decoder',
-    name: 'DecoderException',
-    icon: Close,
-    description: '客机端发生异常',
-    color: '#409EFF',
-    launcherDocs: {
-      pcl2: {
-        docPath: '/docs/disconnect_kicked_pcl2.md',
-        docSteps: [
-          { title: "异常表现", description: "客机端异常的表现", icon: "Document", docSuffix: "_desc" },
-          { title: "客户端分析", description: "客户端问题分析", icon: "InfoFilled", docSuffix: "_analysis" },
-          { title: "解决步骤", description: "解决客机端异常的步骤", icon: "Loading", docSuffix: "_solution" }
-        ]
-      },
-      hmcl: {
-        docPath: '/docs/disconnect_kicked_hmcl.md',
-        docSteps: [
-          { title: "异常表现", description: "客机端异常的表现", icon: "Document", docSuffix: "_desc" },
-          { title: "客户端分析", description: "客户端问题分析", icon: "InfoFilled", docSuffix: "_analysis" },
-          { title: "解决步骤", description: "解决客机端异常的步骤", icon: "Loading", docSuffix: "_solution" }
-        ]
-      }
-    }
-  },
-  {
-    id: 'disconnect_refused',
-    name: 'Connection refused',
+    id: 'disconnect_common',
+    name: '单纯网络问题类型',
     icon: Connection,
-    description: '连接被拒绝',
+    description: '单纯网络问题类型',
     color: '#409EFF',
     launcherDocs: {
       pcl2: {
-        docPath: '/docs/disconnect_lan_pcl2.md',
         docSteps: [
-          { title: "拒绝现象", description: "连接被拒绝的表现", icon: "Document", docSuffix: "_desc" },
-          { title: "防火墙检查", description: "检查防火墙设置", icon: "Lock", docSuffix: "_firewall" },
-          { title: "网络设置", description: "检查网络设置", icon: "Setting", docSuffix: "_network" },
-          { title: "解决方案", description: "解决连接被拒绝的方法", icon: "SuccessFilled", docSuffix: "_solution" }
+          { title: "拒绝现象", description: "连接被拒绝的表现", icon: "Document", jsonPath: "/docs/disconnect_refused_pcl2_desc.json" },
         ]
       },
       hmcl: {
-        docPath: '/docs/disconnect_lan_hmcl.md',
         docSteps: [
-          { title: "拒绝现象", description: "连接被拒绝的表现", icon: "Document", docSuffix: "_desc" },
-          { title: "防火墙检查", description: "检查防火墙设置", icon: "Lock", docSuffix: "_firewall" },
-          { title: "网络设置", description: "检查网络设置", icon: "Setting", docSuffix: "_network" },
-          { title: "解决方案", description: "解决连接被拒绝的方法", icon: "SuccessFilled", docSuffix: "_solution" }
+          { title: "拒绝现象", description: "连接被拒绝的表现", icon: "Document", jsonPath: "/docs/disconnect_refused_hmcl_desc.json" },
+        ]
+      },
+      fcl: {
+        docSteps: [
+          { title: "拒绝现象", description: "连接被拒绝的表现", icon: "Document", jsonPath: "/docs/disconnect_refused_fcl_desc.json" },
+        ]
+      },
+      server: {
+        docSteps: [
+          { title: "网络问题", description: "服务端网络问题的表现", icon: "Document", jsonPath: "/docs/disconnect_refused_server_desc.json" },
         ]
       }
     }

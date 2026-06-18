@@ -266,21 +266,38 @@
                     </div>
                     <!-- 步骤列表块 -->
                     <div v-else-if="block.type === 'steps'" class="json-block-steps">  
-                      <el-steps direction="vertical" :active="block.items.length">  
+                      <el-steps direction="vertical" :active="block.items.length" :space="45">  
                         <el-step  
                           v-for="(item, i) in block.items"  
                           :key="i"  
                           :title="typeof item === 'string' ? item : item.title"  
                         >  
-                          <template v-if="typeof item !== 'string' && item.image" #description>  
-                            <div class="json-step-image">  
-                              <img  
-                                :src="item.image.src"  
-                                :alt="item.image.alt || ''"  
-                                style="max-width: 100%; border-radius: 6px; border: 1px solid var(--el-border-color); margin-top: 8px;"  
-                              />  
-                              <p v-if="item.image.caption" class="json-image-caption">{{ item.image.caption }}</p>  
-                            </div>  
+                          <template v-if="typeof item !== 'string'" #description>  
+                            <div v-if="item.image" class="json-step-image">
+                              <img
+                                :src="item.image.src"
+                                :alt="item.image.alt || ''"
+                                style="max-width: 100%; border-radius: 6px; border: 1px solid var(--el-border-color); margin-top: 8px;"
+                              />
+                              <p v-if="item.image.caption" class="json-image-caption">{{ item.image.caption }}</p>
+                            </div>
+                            <div v-if="item.code" class="json-block-code" style="margin-top: 8px;">
+                              <span v-if="item.code.lang" class="json-code-lang">{{ item.code.lang }}</span>
+                              <button
+                                class="json-code-copy-btn"
+                                @click="copyCode(item.code.content, `step-${i}`)"
+                                :class="{ copied: copiedCodeIndex === `step-${i}` }"
+                              >
+                                {{ copiedCodeIndex === `step-${i}` ? '已复制' : '复制' }}
+                              </button>
+                              <div class="json-code-content">
+                                <pre><code>{{ item.code.content }}</code></pre>
+                              </div>
+                            </div>
+                            <div v-if="item.description" class="json-step-desc" v-html="linkify(item.description)"></div>
+                            <div v-if="item.url" class="json-step-link">
+                              <a :href="item.url" target="_blank" rel="noopener noreferrer">{{ item.urlText || item.url }}</a>
+                            </div>
                           </template>  
                         </el-step>  
                       </el-steps>  
@@ -292,6 +309,19 @@
                         :style="{ maxWidth: block.maxWidth || '100%' }"
                       />
                       <p v-if="block.caption" class="json-image-caption">{{ block.caption }}</p>
+                    </div>
+                    <div v-else-if="block.type === 'code'" class="json-block-code">
+                      <span v-if="block.lang" class="json-code-lang">{{ block.lang }}</span>
+                      <button
+                        class="json-code-copy-btn"
+                        @click="copyCode(block.content, blockIndex)"
+                        :class="{ copied: copiedCodeIndex === blockIndex }"
+                      >
+                        {{ copiedCodeIndex === blockIndex ? '已复制' : '复制' }}
+                      </button>
+                      <div class="json-code-content">
+                        <pre><code>{{ block.content }}</code></pre>
+                      </div>
                     </div>
                   </template>
                 </div>
@@ -366,7 +396,52 @@
       top="5vh"
     >
       <div class="dialog-content" v-loading="isDialogLoading">
-        <div class="markdown-body" v-html="disconnectInfoHtml"></div>
+        <template v-for="(block, blockIndex) in disconnectBlocks" :key="blockIndex">
+          <div v-if="block.type === 'text'" class="json-block-text markdown-body" v-html="block.content"></div>
+          <el-alert
+            v-else-if="block.type === 'alert'"
+            :title="block.content"
+            :type="block.level || 'info'"
+            show-icon
+            :closable="false"
+            class="json-block-alert"
+          />
+          <div v-else-if="block.type === 'steps'" class="json-block-steps">
+            <el-steps direction="vertical" :active="block.items.length">
+              <el-step
+                v-for="(item, i) in block.items"
+                :key="i"
+                :title="typeof item === 'string' ? item : item.title"
+              >
+                <template v-if="typeof item !== 'string'" #description>
+                  <div v-if="item.image" class="json-step-image">
+                    <img :src="item.image.src" :alt="item.image.alt || ''"
+                      style="max-width: 100%; border-radius: 6px; border: 1px solid var(--el-border-color); margin-top: 8px;" />
+                    <p v-if="item.image.caption" class="json-image-caption">{{ item.image.caption }}</p>
+                  </div>
+                  <div v-if="item.code" class="json-block-code json-step-inner-block">
+                    <span v-if="item.code.lang" class="json-code-lang">{{ item.code.lang }}</span>
+                    <button class="json-code-copy-btn" @click="copyCode(item.code.content, `dstep-${i}`)"
+                      :class="{ copied: copiedCodeIndex === `dstep-${i}` }">
+                      {{ copiedCodeIndex === `dstep-${i}` ? '已复制' : '复制' }}
+                    </button>
+                    <div class="json-code-content">
+                      <pre><code>{{ item.code.content }}</code></pre>
+                    </div>
+                  </div>
+                  <div v-if="item.description" class="json-step-desc" v-html="linkify(item.description)"></div>
+                  <div v-if="item.url" class="json-step-link">
+                    <a :href="item.url" target="_blank" rel="noopener noreferrer">{{ item.urlText || item.url }}</a>
+                  </div>
+                </template>
+              </el-step>
+            </el-steps>
+          </div>
+          <div v-else-if="block.type === 'image'" class="json-block-image">
+            <img :src="block.src" :alt="block.alt || ''" :style="{ maxWidth: block.maxWidth || '100%' }" />
+            <p v-if="block.caption" class="json-image-caption">{{ block.caption }}</p>
+          </div>
+        </template>
       </div>
       <template #footer>
         <el-button
@@ -409,10 +484,11 @@ const summaryText = ref<string>('');
 const isLoading = ref<boolean>(false);
 const documentSteps = ref<any[]>([]);
 const activeDocStep = ref<number>(0);
+const copiedCodeIndex = ref<string | number | null>(null);
 
 // 弹窗相关状态
 const showDisconnectDialog = ref<boolean>(false);
-const disconnectInfoHtml = ref<string>("");
+const disconnectBlocks = ref<any[]>([]);
 const isDialogLoading = ref<boolean>(false);
 const countdownValue = ref<number>(0);
 const hasReadDisconnectInfo = ref<boolean>(false);
@@ -431,14 +507,27 @@ const launchersAll = [
   { id: 'pcl2', name: 'PCL2/PCLCE启动器', icon: 'Monitor', color: '#2444fd', description: '使用 PCL2 或 PCLCE 启动器' },
   { id: 'hmcl', name: 'HMCL启动器', icon: 'Monitor', color: '#bb633a', description: '使用 HMCL 启动器' },
   { id: 'fcl', name: 'FCL启动器', icon: 'Monitor', color: '#9b0093', description: '使用 FCL 启动器（手机端）' },
+  { id: 'server', name: '服务端', icon: 'Monitor', color: '#707070', description: '使用服务端核心启动的' }
 ]
 const launchersNoFCL = [
   { id: 'pcl2', name: 'PCL2/PCLCE启动器', icon: 'Monitor', color: '#2444fd', description: '使用 PCL2 或 PCLCE 启动器' },
   { id: 'hmcl', name: 'HMCL启动器', icon: 'Monitor', color: '#bb633a', description: '使用 HMCL 启动器' },
 ]
-const currentLaunchers = computed(() =>
-  selectedCategoryId.value === 'crash' ? launchersAll : launchersNoFCL
-)
+const currentLaunchers = computed(() => {
+  if (selectedCategoryId.value === 'disconnect') {
+    if (selectedSubCategoryId.value === 'disconnect_decoder') {
+      return launchersAll.filter(l => l.id !== 'server');
+    }
+    if (selectedSubCategoryId.value === 'disconnect_encoder') {
+      const serverLauncher = launchersAll.find(l => l.id === 'server');
+      return serverLauncher
+        ? [serverLauncher, ...launchersAll.filter(l => l.id !== 'server')]
+        : launchersAll;
+    }
+    return launchersAll;
+  }
+  return launchersNoFCL;
+})
 
 // 计算文档进度条宽度
 const progressWidth = computed(() => {
@@ -594,6 +683,29 @@ const copySummary = async () => {
   }
 }
 
+const copyCode = async (content: string, index: string | number) => {
+  try {
+    await navigator.clipboard.writeText(content);
+    copiedCodeIndex.value = index;
+    setTimeout(() => { copiedCodeIndex.value = null; }, 2000);
+  } catch {
+
+  }
+};
+
+// 将文本中的 URL 转为可点击的 HTML 链接（简单处理，保留换行）
+const linkify = (text?: string): string => {
+  if (!text) return '';
+  const escaped = String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return escaped.replace(urlRegex, (url) => {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+  }).replace(/\n/g, '<br/>');
+};
+
 // 设置文档步骤
 const setActiveDocStep = (step: number) => {
   if (step >= 0 && step < documentSteps.value.length) {
@@ -643,6 +755,14 @@ const getSelectedSubCategoryName = () => {
   return currentSubCategory?.name || "";
 }
 
+const backToLauncherSelection = () => {
+  selectedLauncherId.value = "";
+  showSummary.value = false;
+  summaryText.value = '';
+  inputValues.value = {};
+  inputLabels.value = {};
+}
+
 // 显示连接失败信息弹窗
 const showDisconnectInfoManually = () => {
   loadDisconnectInfoDialog(false);
@@ -652,15 +772,15 @@ const showDisconnectInfoManually = () => {
 const loadDisconnectInfoDialog = async (needCountdown: boolean = true) => {
   showDisconnectDialog.value = true;
   isDialogLoading.value = true;
-  countdownValue.value = needCountdown ? 8 : 0;
+  countdownValue.value = needCountdown ? 6 : 0;
 
   try {
-    const response = await axios.get('/docs/disconnect_info.md');
-    disconnectInfoHtml.value = marked(response.data);
+    const response = await axios.get('/docs/disconnect_tip.json');
+    disconnectBlocks.value = response.data.blocks || [];
     startCountdown();
   } catch (error) {
     console.error('加载连接失败信息失败:', error);
-    disconnectInfoHtml.value = "<h1>加载失败</h1><p>无法加载连接失败信息，请稍后再试。</p>";
+    disconnectBlocks.value = [{ type: 'alert', level: 'error', content: '加载失败，请稍后再试。' }];
   } finally {
     isDialogLoading.value = false;
   }
@@ -739,6 +859,46 @@ onUnmounted(() => {
   font-size: var(--font-size-xl);
 }
 
+.json-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.markdown-body .md-alert {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 8px 0;
+}
+
+.markdown-body .md-alert-info {
+  background-color: var(--el-color-info-light-9);
+  border-left: 4px solid var(--el-color-info);
+  color: var(--el-color-info);
+}
+
+.markdown-body .md-alert-warning {
+  background-color: var(--el-color-warning-light-9);
+  border-left: 4px solid var(--el-color-warning);
+  color: var(--el-color-warning-dark-2);
+}
+
+.markdown-body .md-alert-success {
+  background-color: var(--el-color-success-light-9);
+  border-left: 4px solid var(--el-color-success);
+  color: var(--el-color-success-dark-2);
+}
+
+.markdown-body .md-alert-error {
+  background-color: var(--el-color-danger-light-9);
+  border-left: 4px solid var(--el-color-danger);
+  color: var(--el-color-danger-dark-2);
+}
+
 h3 {
   color: var(--text-color);
   margin-bottom: var(--spacing-sm);
@@ -758,7 +918,12 @@ p {
   border-radius: var(--border-radius-lg);
   box-shadow: 0 4px 12px var(--shadow-color);
   overflow: hidden;
-  backface-visibility: hidden; 
+  backface-visibility: hidden;
+
+  :deep(.el-card__body) {
+    min-width: 0;
+    overflow: hidden;
+  }
 }
 
 .document-progress {
@@ -835,6 +1000,9 @@ p {
   padding: var(--spacing-xl);
   color: var(--text-color);
   line-height: 1.8;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .document-navigation {
@@ -857,10 +1025,12 @@ p {
 }
 
 .dialog-content {
-  max-height: 70vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
   color: var(--text-color);
-  line-height: 1.6;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .slide-fade-enter-active {
@@ -882,5 +1052,129 @@ p {
 
 .content-container {  
   overflow: hidden;  
+}
+
+.json-block-code {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  background-color: var(--bg-secondary-color);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.json-code-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.json-code-content pre {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  padding: 22px 20px 20px 16px;
+  white-space: pre;
+  box-sizing: border-box;
+  word-break: normal;
+}
+
+.json-code-content code {
+  display: block;
+  white-space: pre;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-color);
+}
+
+.json-block-steps {
+  min-width: 0;
+  max-width: 100%;
+
+  :deep(.el-step__main) {
+    min-width: 0;
+    flex: 1;
+  }
+
+  :deep(.el-step__description) {
+    min-width: 0;
+    max-width: 100%;
+    padding-top: 6px;
+  }
+}
+
+.json-code-lang {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-size: 11px;
+  color: var(--text-secondary-color);
+  font-family: monospace;
+  opacity: 0.6;
+}
+
+.json-code-copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  padding: 3px 10px;
+  font-size: 12px;
+  background-color: rgba(128, 128, 128, 0.2);
+  color: var(--text-secondary-color);
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.json-block-code:hover .json-code-copy-btn {
+  opacity: 1;
+}
+
+.json-code-copy-btn.copied {
+  background-color: rgba(103, 194, 58, 0.25);
+  color: var(--el-color-success);
+  border-color: rgba(103, 194, 58, 0.3);
+}
+
+.json-step-desc {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-color);
+  white-space: pre-wrap;
+}
+
+.json-step-desc a,
+.json-step-link a {
+  font-size: 17px;
+  color: var(--primary-color);
+  text-decoration: underline;
+  word-break: break-word;
+}
+
+.json-step-link {
+  margin-top: 8px;
+}
+
+.json-step-inner-block {
+  margin-top: 12px;
+}
+
+.json-block-steps .el-step {
+  margin-bottom: 16px;
+}
+
+.json-block-steps .el-step:last-child {
+  margin-bottom: 0;
 }
 </style>

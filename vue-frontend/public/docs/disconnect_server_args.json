@@ -1,0 +1,30 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p>请按以下步骤配置 JVM 参数：</p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "编辑服务端的启动脚本（如 start.bat 或 start.sh）"
+        },
+        {
+          "title": "复制以下参数",
+          "code": {
+            "lang": "bash",
+            "content": "-Dlog4j2.formatMsgNoLookups=false -Dlog4j.configurationFile=config/log4j2.xml -Dforge.logging.marker.networking=ACCEPT"
+          }
+        },
+        {
+          "title": "将参数添加到 Java 启动命令中，例如：",
+          "code": {
+            "lang": "bash",
+            "content": "java -Xmx4G -Xms2G -Dlog4j2.formatMsgNoLookups=false -Dlog4j.configurationFile=config/log4j2.xml -Dforge.logging.marker.networking=ACCEPT -jar forge-1.20.1.jar nogui"
+          }
+        }
+      ]
+    }
+  ]
+}

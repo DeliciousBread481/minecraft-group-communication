@@ -1,0 +1,30 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p>找到debug.log文件</p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "打开游戏版本文件夹",
+          "image": {
+            "src": "/docs/images/open_version_folder.png",
+            "alt": "版本文件夹"
+          }
+        },
+        {
+          "title": "打开logs文件夹,选中debug.log，右键压缩为zip压缩包",
+          "image": {
+            "src": "/docs/images/get_debug_log.png",
+            "alt": "选中文件"
+          }
+        },
+        {
+          "title": "准备好截图和debug.log的压缩包"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p>请按照以下步骤在 FCL 中导出错误报告：</p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "待启动器弹出崩溃提示弹窗后"
+        },
+        {
+          "title": "点击「分享日志」",
+          "image": {
+            "src": "/docs/images/fcl_export_step1.png",
+            "alt": "崩溃弹窗"
+          }
+        },
+        {
+          "title": "待分享悬浮窗弹出后，点击分享至QQ，然后选中Minecraft疑难杂症交流群"
+        }
+      ]
+    },
+    {
+      "type": "alert",
+      "level": "warning",
+      "content": "不要点击「复制日志」，移动端的复制粘贴板字符有限，无法复制完整日志。"
+    },
+    {
+      "type": "alert",
+      "level": "error",
+      "content": "如果存在点击分享日志没反应的情况，前往fcl的文件夹找到latest_game.log文件发过来。"
+    }
+  ]
+}
