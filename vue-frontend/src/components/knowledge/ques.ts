@@ -1,5 +1,5 @@
 import { ref, type Component } from "vue";
-import { CircleCloseFilled, More, Switch, VideoPlay } from "@element-plus/icons-vue";
+import { CircleCloseFilled, More, Odometer, Switch, VideoPause, VideoPlay } from "@element-plus/icons-vue";
 
 interface Category {
   id: string;
@@ -23,6 +23,20 @@ export const categories : Category[] = [
     icon: Switch,
     description: '联机失败 连接服务器失败 单人存档被踢出等',
     color: '#409EFF'
+  },
+  {
+    id: 'lag',
+    name: '游戏卡顿',
+    icon: Odometer,
+    description: 'FPS低 TPS低 画面或逻辑卡顿',
+    color: '#F56C6C'
+  },
+  {
+    id: 'freeze',
+    name: '游戏卡死',
+    icon: VideoPause,
+    description: '游戏无响应 画面冻结 无法操作',
+    color: '#909399'
   },
   {
     id: 'laucher',

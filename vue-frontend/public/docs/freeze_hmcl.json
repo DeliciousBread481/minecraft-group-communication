@@ -1,0 +1,38 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p><strong>按以下步骤重新复现卡死现象并导出文件</strong></p>"
+    },
+    {
+      "type": "text",
+      "content": "如果你不想重新复现卡死现象，并且你的游戏还保持着卡死状态，则返回前往「服务端/控制台」子类别查看文档，按照文档中的步骤操作即可"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "点击「实例管理」",
+          "image": {
+            "src": "/docs/images/disconnect_hmcl_args_step1.png",
+            "alt": "版本设置"
+          }
+        },
+        {
+          "title": "点击左下角的「测试游戏」并点击，从而启动游戏",
+          "image": {
+            "src": "/docs/images/disconnect_hmcl_args_step2.png",
+            "alt": "测试游戏"
+          }
+        },
+        {
+          "title": "当游戏卡死后，依次点击「导出游戏运行栈」和「导出」按钮，将保存的两个文件找到",
+          "image": {
+            "src": "/docs/images/freeze_hmcl_step3.png",
+            "alt": "导出运行栈"
+          }
+        }
+      ]
+    }
+  ]
+}

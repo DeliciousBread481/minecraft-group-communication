@@ -1,0 +1,40 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p><strong>按以下步骤导出文件</strong></p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "首先打开任务管理器",
+          "image": {
+            "src": "/docs/images/freeze_server_step1.png",
+            "alt": "任务管理器"
+          }
+        },
+        {
+          "title": "找到Java程序的PID号，如果有多个Java程序，建议按照CPU使用率排序，找到那个CPU使用率较高的Java程序对应的PID号",
+          "image": {
+            "src": "/docs/images/freeze_server_step2.png",
+            "alt": "Java程序PID"
+          }
+        },
+        {
+          "title": "然后在QQ群文件下载这个bat程序文件",
+          "image": {
+            "src": "/docs/images/freeze_server_step3.png",
+            "alt": "bat程序文件"
+          }
+        },
+        {
+          "title": "双击运行dump_jstack.bat，在弹出的命令行窗口中输入刚才找到的PID号，然后按下回车键。"
+        },
+        {
+          "title": "等待导出完成后，程序会自动弹窗帮你指出导出的文件位置，选中它随后上传至群里。"
+        }
+      ]
+    }
+  ]
+}

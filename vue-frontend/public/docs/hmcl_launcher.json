@@ -1,0 +1,23 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p><strong>HMCL：</strong></p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "出现问题后不要退出启动器，在启动器的 设置 -- 通用 中导出启动器日志，然后把导出的文件发出来"
+        },
+        {
+          "title": "如图：",
+          "image": {
+            "src": "/docs/images/hmcl_launcher_log.png",
+            "alt": "HMCL LOG"
+          }
+        }
+      ]
+    }
+  ]
+}

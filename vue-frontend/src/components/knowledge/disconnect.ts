@@ -83,24 +83,10 @@ export const disconnectCategories = [
     description: '单纯网络问题类型',
     color: '#409EFF',
     launcherDocs: {
-      pcl2: {
-        docSteps: [
-          { title: "拒绝现象", description: "连接被拒绝的表现", icon: "Document", jsonPath: "/docs/disconnect_refused_pcl2_desc.json" },
-        ]
-      },
-      hmcl: {
-        docSteps: [
-          { title: "拒绝现象", description: "连接被拒绝的表现", icon: "Document", jsonPath: "/docs/disconnect_refused_hmcl_desc.json" },
-        ]
-      },
-      fcl: {
-        docSteps: [
-          { title: "拒绝现象", description: "连接被拒绝的表现", icon: "Document", jsonPath: "/docs/disconnect_refused_fcl_desc.json" },
-        ]
-      },
       server: {
         docSteps: [
           { title: "网络问题", description: "服务端网络问题的表现", icon: "Document", jsonPath: "/docs/disconnect_refused_server_desc.json" },
+          { title: "补充信息", description: "补充信息", icon: "Document", jsonPath: "/docs/crash_info.json" }
         ]
       }
     }

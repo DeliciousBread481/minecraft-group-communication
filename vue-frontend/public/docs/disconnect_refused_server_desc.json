@@ -6,12 +6,7 @@
     },
     {
       "type": "text",
-      "content": "<strong>常见现象：</strong><br/>1. 连接超时 - 无法连接到服务器<br/>2. 连接被拒绝 - 服务端未开启或端口错误<br/>3. 连接中断 - 网络不稳定或服务端崩溃<br/>4. 数据包丢失 - 网络波动导致"
-    },
-    {
-      "type": "alert",
-      "level": "warning",
-      "content": "请检查：1) 服务端是否正常运行 2) 防火墙设置 3) 端口是否正确开放 4) 网络连接是否稳定"
+      "content": "<strong>常见现象：</strong><br/>1. Connection timed out - 连接超时<br/>2. Connection refused - 服务端未开启或端口错误<br/>3. Connection reset - 网络不稳定或服务端崩溃<br/>4. 远程主机强迫关闭了一个现有的连接 - 网络不稳定或服务端崩溃<br/>"
     }
   ]
 }

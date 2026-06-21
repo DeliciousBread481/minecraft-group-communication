@@ -13,7 +13,7 @@
           {{ getSelectedSubCategoryName() }}
         </el-breadcrumb-item>
         <el-breadcrumb-item
-          v-if="selectedLauncherId"
+          v-if="selectedLauncherId && selectedLauncherId !== DIRECT_LAUNCHER_ID"
           @click="backToLauncherSelection"
         >
           {{ getSelectedLauncherName() }}
@@ -25,18 +25,18 @@
     <div class="content-container">
       <!-- 分类选择区域 -->
       <transition name="slide-fade" mode="out-in">
-        <div :key="!!(selectedSubCategoryId && selectedLauncherId) ? 'document' : 'categories'">
-          <div class="category-section" v-if="!(selectedSubCategoryId && selectedLauncherId)">
+        <div :key="showDocumentSection ? 'document' : 'categories'">
+          <div class="category-section" v-if="!showDocumentSection">
             <transition name="slide-fade" mode="out-in">
-              <div :key="selectedSubCategoryId ? 'launcher' : (selectedCategoryId ? 'sub' : 'main')">
-                <div v-if="selectedSubCategoryId && !selectedLauncherId">
+              <div :key="shouldShowLauncherSelection ? 'launcher' : (selectedCategoryId ? 'sub' : 'main')">
+                <div v-if="shouldShowLauncherSelection">
                   <div class="section-header">
                     <h2>
                       <el-icon><Right /></el-icon>
                       {{ getSelectedCategoryName() }}
                     </h2>
                   </div>
-                  <div class="section-header">
+                  <div v-if="getSelectedSubCategoryName()" class="section-header">
                     <h2>
                       <el-icon><Right /></el-icon>
                       {{ getSelectedSubCategoryName() }}
@@ -101,7 +101,7 @@
                   </div>
 
                   <!-- 子分类选择区域 -->
-                  <div v-if="selectedCategoryId" class="sub-category-section">
+                  <div v-if="selectedCategoryId && selectedCategoryId !== 'laucher'" class="sub-category-section">
                     <div class="section-header">
                       <h2>
                         <el-icon><Bottom /></el-icon>
@@ -143,10 +143,10 @@
                       </el-card>
                     </div>
 
-                    <!-- 连接失败类子分类 -->
-                    <div v-if="selectedCategoryId === 'disconnect'" class="category-grid">
+                    <!-- 游戏卡顿子分类 -->
+                    <div v-if="selectedCategoryId === 'lag'" class="category-grid">
                       <el-card
-                        v-for="subCategory in subCategories.disconnect"
+                        v-for="subCategory in subCategories.lag"
                         :key="subCategory.id"
                         class="category-card"
                         @click="selectSubCategory(subCategory.id)"
@@ -160,10 +160,10 @@
                       </el-card>
                     </div>
 
-                    <!-- 启动器问题子分类 -->
-                    <div v-if="selectedCategoryId === 'laucher'" class="category-grid">
+                    <!-- 连接失败类子分类 -->
+                    <div v-if="selectedCategoryId === 'disconnect'" class="category-grid">
                       <el-card
-                        v-for="subCategory in subCategories.laucher"
+                        v-for="subCategory in subCategories.disconnect"
                         :key="subCategory.id"
                         class="category-card"
                         @click="selectSubCategory(subCategory.id)"
@@ -203,7 +203,7 @@
             <div class="section-header">
               <h2>
                 <el-icon><Right /></el-icon>
-                {{ getSelectedSubCategoryName() }}
+                {{ getSelectedSubCategoryName() || getSelectedCategoryName() }}
                 <el-button type="primary" @click="backFromDocument" class="back-button">
                   <el-icon><ArrowLeft /></el-icon>
                   <span>返回</span>
@@ -273,6 +273,7 @@
                           :title="typeof item === 'string' ? item : item.title"  
                         >  
                           <template v-if="typeof item !== 'string'" #description>  
+                            <div v-if="item.text" class="json-step-desc" v-html="item.text"></div>
                             <div v-if="item.image" class="json-step-image">
                               <img
                                 :src="item.image.src"
@@ -362,7 +363,7 @@
                 :close-on-click-modal="false"
               >
                 <el-alert
-                  title="请将错误报告压缩包和下方总结信息一起发送到群内，方便管理员排查问题。"
+                  title="请将所需要发送的文件或内容和下方总结信息一起发送到群内，方便管理员排查问题。"
                   type="warning"
                   show-icon
                   :closable="false"
@@ -467,8 +468,12 @@ import axios from 'axios';
 import { categories } from "@/components/knowledge/ques"
 import { crashCategories } from "@/components/knowledge/crash";
 import { disconnectCategories } from "@/components/knowledge/disconnect";
-import { lauchercategories } from "@/components/knowledge/laucher";
+import { freezeCategory } from "@/components/knowledge/freeze";
+import { lagCategories } from "@/components/knowledge/lag";
+import { launcherCategories } from "@/components/knowledge/laucher";
 import { otherCategories } from "@/components/knowledge/other";
+
+const DIRECT_LAUNCHER_ID = '__direct__';
 
 // 分类状态
 const selectedCategoryId = ref<string>("");
@@ -498,7 +503,8 @@ let countdownTimer: number | null = null;
 const subCategories = reactive({
   crash: crashCategories,
   disconnect: disconnectCategories,
-  laucher: lauchercategories,
+  lag: lagCategories,
+  laucher: launcherCategories,
   other: otherCategories,
 });
 
@@ -513,7 +519,26 @@ const launchersNoFCL = [
   { id: 'pcl2', name: 'PCL2/PCLCE启动器', icon: 'Monitor', color: '#2444fd', description: '使用 PCL2 或 PCLCE 启动器' },
   { id: 'hmcl', name: 'HMCL启动器', icon: 'Monitor', color: '#bb633a', description: '使用 HMCL 启动器' },
 ]
+const shouldShowLauncherSelection = computed(() => {
+  if (selectedLauncherId.value) return false;
+  if (selectedCategoryId.value === 'freeze') return true;
+  if (selectedCategoryId.value === 'laucher') return true;
+  return !!selectedSubCategoryId.value;
+});
+
+const showDocumentSection = computed(() => {
+  if (!selectedLauncherId.value) return false;
+  return !!selectedSubCategoryId.value || selectedCategoryId.value === 'freeze' || selectedCategoryId.value === 'laucher';
+});
+
 const currentLaunchers = computed(() => {
+  if (selectedCategoryId.value === 'freeze') {
+    return launchersAll
+      .filter(l => ['pcl2', 'hmcl', 'server'].includes(l.id))
+      .map(l => l.id === 'server'
+        ? { ...l, name: '服务端/控制台', description: '使用服务端核心或控制台' }
+        : l);
+  }
   if (selectedCategoryId.value === 'disconnect') {
     if (selectedSubCategoryId.value === 'disconnect_decoder') {
       return launchersAll.filter(l => l.id !== 'server');
@@ -540,6 +565,7 @@ const selectCategory = (categoryId: string) => {
   if (window.getSelection()?.toString()) return;
   selectedCategoryId.value = categoryId;
   selectedSubCategoryId.value = "";
+  selectedLauncherId.value = "";
 
   // 当选择连接失败类时，如果没读过则显示弹窗
   if (categoryId === "disconnect" && !hasReadDisconnectInfo.value) {
@@ -552,6 +578,31 @@ const selectSubCategory = (subCategoryId: string) => {
   if (window.getSelection()?.toString()) return;
   selectedSubCategoryId.value = subCategoryId;
   selectedLauncherId.value = "";
+
+  const currentSubCategory = getCurrentSubCategory() as any;
+
+  // 游戏卡顿子类直接进入文档，跳过启动器选择
+  if (selectedCategoryId.value === 'lag' && currentSubCategory?.docSteps) {
+    selectedLauncherId.value = DIRECT_LAUNCHER_ID;
+    showSummary.value = false;
+    summaryText.value = '';
+    inputValues.value = {};
+    inputLabels.value = {};
+    documentSteps.value = currentSubCategory.docSteps;
+    activeDocStep.value = 0;
+    loadMarkdownDocument();
+    return;
+  }
+
+  // 单纯网络问题类型直接进入文档，跳过“你是使用的哪个启动器”选择
+  if (selectedCategoryId.value === 'disconnect' && subCategoryId === 'disconnect_common') {
+    const defaultLauncherId = currentSubCategory?.launcherDocs
+      ? Object.keys(currentSubCategory.launcherDocs)[0]
+      : undefined;
+    if (defaultLauncherId) {
+      selectLauncher(defaultLauncherId);
+    }
+  }
 }
 
 const selectLauncher = (launcherId: string) => {
@@ -563,7 +614,7 @@ const selectLauncher = (launcherId: string) => {
   inputLabels.value = {};
   const currentSubCategory = getCurrentSubCategory() as any;
   if (currentSubCategory?.launcherDocs) {
-    const launcherDoc = currentSubCategory.launcherDocs[launcherId as 'pcl2' | 'hmcl' | 'fcl'];
+    const launcherDoc = currentSubCategory.launcherDocs[launcherId as 'pcl2' | 'hmcl' | 'fcl' | 'server'];
     if (launcherDoc) {
       documentSteps.value = launcherDoc.docSteps;
     }
@@ -574,7 +625,7 @@ const selectLauncher = (launcherId: string) => {
 
 // 加载Markdown文档
 const loadMarkdownDocument = async () => {
-  if (!selectedSubCategoryId.value) return;
+  if (!selectedSubCategoryId.value && selectedCategoryId.value !== 'freeze' && selectedCategoryId.value !== 'laucher') return;
   if (selectedCategoryId.value === 'crash' && !selectedLauncherId.value) return;
 
   isLoading.value = true;
@@ -593,13 +644,30 @@ const loadMarkdownDocument = async () => {
     // json 模式：步骤上有 jsonPath
     if (currentStep?.jsonPath) {
       const response = await axios.get(currentStep.jsonPath);
-      jsonBlocks.value = response.data.blocks || [];
-      inputValues.value = {};
-        response.data.blocks?.forEach((block: any) => {
-          if (block.type === 'input' && block.key && block.label) {
-            inputLabels.value[block.key] = block.label;
-          }
+      const json = response.data;
+      if (json.blocks) {
+        jsonBlocks.value = json.blocks;
+      } else if (json.steps) {
+        jsonBlocks.value = [];
+        if (json.summary) {
+          jsonBlocks.value.push({ type: 'text', content: json.summary });
+        }
+        jsonBlocks.value.push({
+          type: 'steps',
+          items: json.steps.map((step: any) => ({
+            title: step.title,
+            description: step.instruction,
+          })),
         });
+      } else {
+        jsonBlocks.value = [];
+      }
+      inputValues.value = {};
+      json.blocks?.forEach((block: any) => {
+        if (block.type === 'input' && block.key && block.label) {
+          inputLabels.value[block.key] = block.label;
+        }
+      });
       return;
     }
 
@@ -636,9 +704,15 @@ const loadMarkdownDocument = async () => {
 
 // 获取当前子分类
 const getCurrentSubCategory = () => {
-  if (!selectedCategoryId.value || !selectedSubCategoryId.value) return null;
+  if (!selectedCategoryId.value) return null;
+  if (selectedCategoryId.value === 'freeze') return freezeCategory;
+  if (selectedCategoryId.value === 'laucher') {
+    return launcherCategories[0];
+  }
+  if (!selectedSubCategoryId.value) return null;
   const category = subCategories[selectedCategoryId.value as keyof typeof subCategories];
-  return category.find(sc => sc.id === selectedSubCategoryId.value);
+  if (!Array.isArray(category)) return null;
+  return category.find(sc => sc.id === selectedSubCategoryId.value) ?? null;
 };
 
 // 文档导航
@@ -653,8 +727,12 @@ const navigateDocStep = (step: number) => {
 // 完成并生成总结
 const handleComplete = () => {
   const lines: string[] = [];
-  lines.push(`问题类型：${getSelectedCategoryName()} - ${getSelectedSubCategoryName()}`);
-  if (selectedLauncherId.value) {
+  const categoryName = getSelectedCategoryName();
+  const subCategoryName = getSelectedSubCategoryName();
+  lines.push(subCategoryName
+    ? `问题类型：${categoryName} - ${subCategoryName}`
+    : `问题类型：${categoryName}`);
+  if (selectedLauncherId.value && selectedLauncherId.value !== DIRECT_LAUNCHER_ID) {
     lines.push(`启动器：${getSelectedLauncherName()}`);
   }
 
@@ -730,7 +808,12 @@ const backFromDocument = () => {
   summaryText.value = '';
   inputValues.value = {};
   inputLabels.value = {};
-  if (selectedCategoryId.value === 'crash') {
+  if (selectedCategoryId.value === 'crash' || selectedCategoryId.value === 'freeze') {
+    selectedLauncherId.value = "";
+  } else if (selectedCategoryId.value === 'lag') {
+    selectedSubCategoryId.value = "";
+    selectedLauncherId.value = "";
+  } else if (selectedCategoryId.value === 'laucher') {
     selectedLauncherId.value = "";
   } else {
     selectedSubCategoryId.value = "";
@@ -742,6 +825,10 @@ const getSelectedLauncherName = () => {
 }
 
 const backToSubCategories = () => {
+  if (selectedCategoryId.value === 'freeze' || selectedCategoryId.value === 'laucher') {
+    backToCategories();
+    return;
+  }
   selectedSubCategoryId.value = "";
 }
 
@@ -751,6 +838,7 @@ const getSelectedCategoryName = () => {
 }
 
 const getSelectedSubCategoryName = () => {
+  if (selectedCategoryId.value === 'freeze') return "";
   const currentSubCategory = getCurrentSubCategory();
   return currentSubCategory?.name || "";
 }

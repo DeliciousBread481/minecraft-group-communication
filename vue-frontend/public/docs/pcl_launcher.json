@@ -1,0 +1,37 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p><strong>PCL官方版：</strong></p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "在启动 PCL 后，它所在的文件夹中会生成一个名为 PCL 的文件夹。打开它，其中的 Log1.txt 至 Log5.txt 即为日志文件。将第一篇 Log1.txt 发送至群里。"
+        }
+      ]
+    },
+    {
+      "type": "alert",
+      "level": "info",
+      "content": "推荐你在提交日志前，先在“设置 → 启动器 → 调试选项”中打开调试模式，并重现 Bug。"
+    },
+    {
+      "type": "text",
+      "content": "<p><strong>PCLCE(社区版)：</strong></p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "如图：",
+          "image": {
+            "src": "/docs/images/pclce_launcher_log.png",
+            "alt": "PCLCE LOG"
+          }
+        }
+      ]
+    }
+  ]
+}

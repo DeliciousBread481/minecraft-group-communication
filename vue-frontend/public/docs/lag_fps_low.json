@@ -1,0 +1,37 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p><strong>FPS 低</strong>通常表现为画面帧数明显下降、视角转动或操作不跟手。</p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "下载安装这个模组",
+          "url": "https://www.mcmod.cn/class/4073.html"
+        },
+        {
+          "title": "打开游戏后，首先在游戏内按下F3，然后截图保存"
+        },
+        {
+          "title": "在游戏中运行以下指令",
+          "code": {
+            "lang": "bash",
+            "content": "/sparkc profiler start"
+          }
+        },
+        {
+          "title": "重新触发 FPS 低的情况，持续5分钟后再运行以下指令",
+          "code": {
+            "lang": "bash",
+            "content": "/sparkc profiler stop"
+          }
+        },
+        {
+          "title": "在报告生成后，会被自动上传到一个网页上，网址会显示在聊天栏 把网址复制发到群里即可"
+        }
+      ]
+    }
+  ]
+}

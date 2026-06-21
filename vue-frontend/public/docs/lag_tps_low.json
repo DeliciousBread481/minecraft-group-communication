@@ -1,0 +1,55 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<p><strong>TPS 低</strong>通常表现为方块放置/破坏有延迟、实体移动不流畅、红石或机器运行变慢。</p>"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "下载安装这个模组",
+          "url": "https://www.mcmod.cn/class/4073.html"
+        },
+        {
+          "title": "运行tick滞后峰值检测指令",
+          "code": {
+            "lang": "bash",
+            "content": "/spark tickmonitor"
+          }
+        },
+        {
+          "title": "然后，你只需要正常游玩（或者直接试着重复那些会导致你游戏卡顿的操作），并且观察聊天栏里输出的监测结果即可。",
+          "text": "为了演示，这里将使用WorldEdit来制造一个“滞后峰值”。<br/>可以看到，当对应的操作被执行的时候，一个tick的持续时间达到了通常的十倍以上。",
+          "image": {
+            "src": "/docs/images/lag_tps_eg.png",
+            "alt": "tickmonitor输出示例"
+          }
+        },
+        {
+          "title": "运行监测结果分析指令",
+          "text": "<strong>首先确定需要设定的最低tick滞后时长有效值<br/>如上图 最低一次的tick延迟大概延迟了300ms，那我们需要的值就设定为150ms<br/>运行以下指令（其中的150只是示例，请根据实际情况修改数值）</strong>",
+          "code": {
+            "lang": "bash",
+            "content": "/spark profiler --only-ticks-over 150"
+          }
+        },
+        {
+          "title": "重新触发 TPS 低的情况，持续8分钟后再运行以下指令",
+          "code": {
+            "lang": "bash",
+            "content": "/sparkc profiler stop"
+          }
+        },
+        {
+          "title": "在报告生成后，会被自动上传到一个网页上，网址会显示在聊天栏 把网址复制发到群里即可"
+        }
+      ]
+    },
+    {
+      "type": "alert",
+      "level": "info",
+      "content": "参考自：https://www.mcmod.cn/post/2523.html"
+    }
+  ]
+}
