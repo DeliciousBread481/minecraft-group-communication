@@ -329,7 +329,6 @@ import { useUserStore } from '@/store/user';
 import { updateUserInfo, updatePassword, updateAvatar, applyForAdmin, getAdminApplicationStatus } from '@/api/user'
 import { showMessage } from '@/utils/message';
 import { copyToClipboard } from '@/utils/clipboard';
-import type { VoidApiResponse } from '@/types/api'
 
 const userStore = useUserStore();
 const activeMenu = ref('profile');
@@ -534,17 +533,13 @@ const changePassword = async () => {
 
   try {
     isChangingPassword.value = true;
-    const response = await updatePassword(
+    await updatePassword(
       passwordForm.oldPassword,
       passwordForm.newPassword
     );
 
-    if (response.success) {
-      showMessage('密码修改成功', 'success');
-      resetPasswordForm();
-    } else {
-      showMessage(response.message || '密码修改失败', 'error');
-    }
+    showMessage('密码修改成功', 'success');
+    resetPasswordForm();
   } catch (error) {
     showMessage('密码修改失败，请稍后再试', 'error');
     console.error('修改密码错误:', error);
@@ -583,12 +578,12 @@ const saveSettings = async () => {
         const file = new File([blob], 'avatar.png', { type: 'image/png' });
 
         // 上传头像
-        const avatarResponse = await updateAvatar(file);
-        if (avatarResponse.success && avatarResponse.data) {
-          updateData.avatar = avatarResponse.data;
+        const avatarUrl = await updateAvatar(file);
+        if (avatarUrl) {
+          updateData.avatar = avatarUrl;
           avatarUpdated = true;
         } else {
-          throw new Error(avatarResponse.message || '头像上传失败');
+          throw new Error('头像上传失败');
         }
       } else {
         // 如果是URL，直接使用
@@ -598,19 +593,15 @@ const saveSettings = async () => {
     }
 
     if (Object.keys(updateData).length > 0) {
-      const response = await updateUserInfo(updateData);
+      await updateUserInfo(updateData);
 
-      if (response.success) {
-        showMessage('设置保存成功', 'success');
-        // 更新本地存储
-        if (avatarUpdated) {
-          userForm.avatar = updateData.avatar;
-        }
-        // 刷新用户信息
-        await userStore.fetchUserInfo();
-      } else {
-        showMessage(response.message || '保存设置失败', 'error');
+      showMessage('设置保存成功', 'success');
+      // 更新本地存储
+      if (avatarUpdated) {
+        userForm.avatar = updateData.avatar;
       }
+      // 刷新用户信息
+      await userStore.fetchUserInfo();
     } else {
       showMessage('没有更改需要保存', 'info');
     }
@@ -641,13 +632,13 @@ const canSubmitAdminApplication = computed(() => adminForm.reason.length >= 100)
 
 const fetchAdminApplicationStatus = async () => {
   try {
-    const response = await getAdminApplicationStatus();
-    if (response.success && response.data) {
+    const status = await getAdminApplicationStatus();
+    if (status) {
       adminForm.isApplied = true;
-      adminForm.status = response.data.status;
-      adminForm.adminFeedback = response.data.feedback || '';
-      adminForm.lastAppliedAt = response.data.createdAt
-        ? new Date(response.data.createdAt).toLocaleString()
+      adminForm.status = status.status;
+      adminForm.adminFeedback = status.feedback || '';
+      adminForm.lastAppliedAt = status.createdAt
+        ? new Date(status.createdAt).toLocaleString()
         : '';
       updateStatusDisplay();
     } else {
@@ -686,17 +677,13 @@ const submitAdminApplication = async () => {
   }
   try {
     adminForm.isSubmitting = true;
-    const response: VoidApiResponse = await applyForAdmin(adminForm.reason);
-    if (response.success) {
-      showMessage('申请已提交，请等待审核', 'success');
-      adminForm.isApplied = true;
-      adminForm.status = 'pending';
-      adminForm.lastAppliedAt = new Date().toLocaleString();
-      updateStatusDisplay();
-      await fetchAdminApplicationStatus();
-    } else {
-      showMessage(response.message || '申请提交失败，请稍后再试', 'error');
-    }
+    await applyForAdmin(adminForm.reason);
+    showMessage('申请已提交，请等待审核', 'success');
+    adminForm.isApplied = true;
+    adminForm.status = 'pending';
+    adminForm.lastAppliedAt = new Date().toLocaleString();
+    updateStatusDisplay();
+    await fetchAdminApplicationStatus();
   } catch (error) {
     console.error('提交管理员申请失败:', error);
     showMessage('申请提交失败，请稍后再试', 'error');

@@ -216,6 +216,7 @@ import { ArrowLeft } from '@element-plus/icons-vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/store/user';
 import type { LoginRequest, RegisterRequest } from '@/types/api';
+import { sanitizeApiMessage } from '@/utils/message';
 
 const router = useRouter();
 const route = useRoute();
@@ -361,9 +362,9 @@ const submitLogin = async () => {
       password: loginForm.password
     };
 
-    const success = await userStore.login(credentials);
+    const loginResult = await userStore.login(credentials);
 
-    if (success) {
+    if (loginResult.success) {
       // 处理"记住我"选项
       if (loginForm.remember) {
         localStorage.setItem('rememberedUsername', loginForm.username);
@@ -371,7 +372,8 @@ const submitLogin = async () => {
         localStorage.removeItem('rememberedUsername');
       }
 
-      ElMessage.success('登录成功');
+      const successMessage = sanitizeApiMessage(loginResult.message, '登录成功');
+      ElMessage.success(successMessage);
       handleLoginRedirect();
     } else {
       ElMessage.error('用户名或密码错误');
@@ -398,10 +400,11 @@ const submitRegister = async () => {
       password: registerForm.password
     };
 
-    const success = await userStore.register(userData);
+    const registerResult = await userStore.register(userData);
 
-    if (success) {
-      ElMessage.success('注册成功，请登录');
+    if (registerResult.success) {
+      const successMessage = sanitizeApiMessage(registerResult.message, '注册成功，请登录');
+      ElMessage.success(successMessage);
       handlePostRegistration();
     } else {
       ElMessage.error('注册失败，请稍后再试');
@@ -485,7 +488,7 @@ const handleLoginError = (error: any) => {
     errorMsg = error.message;
   }
 
-  ElMessage.error(errorMsg);
+  ElMessage.error(sanitizeApiMessage(errorMsg, '登录失败，请稍后再试'));
   console.error('登录错误:', error);
 };
 
@@ -498,7 +501,7 @@ const handleRegistrationError = (error: any) => {
     errorMsg = error.message;
   }
 
-  ElMessage.error(errorMsg);
+  ElMessage.error(sanitizeApiMessage(errorMsg, '注册失败，请检查输入信息'));
   console.error('注册错误:', error);
 };
 
@@ -511,7 +514,7 @@ const handleForgotPasswordError = (error: any) => {
     errorMsg = error.message;
   }
 
-  ElMessage.error(errorMsg);
+  ElMessage.error(sanitizeApiMessage(errorMsg, '发送重置邮件失败，请稍后再试'));
   console.error('发送重置邮件失败:', error);
 };
 </script>

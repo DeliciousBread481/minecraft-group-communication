@@ -1,17 +1,41 @@
-// @/utils/message.ts
+﻿// @/utils/message.ts
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus';
 
 /**
- * 显示消息提示
- * @param message 消息内容
- * @param type 消息类型，可选：'success' | 'warning' | 'info' | 'error'
+ * 清洗后端返回的消息，移除敏感信息后再展示给用户
  */
+export const sanitizeApiMessage = (
+  message?: string | null,
+  fallback: string = '操作失败'
+): string => {
+  if (!message || !message.trim()) {
+    return fallback;
+  }
+
+  let sanitized = message.trim().replace(/\s+/g, ' ');
+  sanitized = sanitized.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[REDACTED_EMAIL]');
+  sanitized = sanitized.replace(/\bBearer\s+[A-Za-z0-9._-]+/gi, '[REDACTED_BEARER]');
+  sanitized = sanitized.replace(/\b(?:https?:\/\/|www\.)\S+/gi, '[REDACTED_URL]');
+  sanitized = sanitized.replace(/(?:[A-Za-z]:\\|\/)(?:[^\s,;]+)/g, '[REDACTED_PATH]');
+  sanitized = sanitized.replace(/\b(accessToken|refreshToken|token|password|secret|authorization)\b\s*[:=]\s*([^,;\s]+)/gi, '$1: [REDACTED]');
+
+  if (!sanitized.trim()) {
+    return fallback;
+  }
+
+  if (/\b(?:Caused by|Exception|Error)\b|\bat\s+\S+\(.*\)/i.test(sanitized)) {
+    return fallback;
+  }
+
+  return sanitized;
+};
+
 export const showMessage = (
   message: string,
   type: 'success' | 'warning' | 'info' | 'error' = 'info'
 ) => {
   ElMessage({
-    message,
+    message: sanitizeApiMessage(message, message),
     type,
     duration: 3000,
     showClose: true,
@@ -20,9 +44,6 @@ export const showMessage = (
 
 /**
  * 显示通知
- * @param title 通知标题
- * @param message 通知内容
- * @param type 通知类型
  */
 export const showNotification = (
   title: string,
@@ -30,8 +51,8 @@ export const showNotification = (
   type: 'success' | 'warning' | 'info' | 'error' = 'info'
 ) => {
   ElNotification({
-    title,
-    message,
+    title: sanitizeApiMessage(title, title),
+    message: sanitizeApiMessage(message, message),
     type,
     duration: 5000,
   });
@@ -39,9 +60,6 @@ export const showNotification = (
 
 /**
  * 显示确认对话框
- * @param message 消息内容
- * @param title 标题（可选）
- * @returns Promise<boolean> 用户是否确认
  */
 export const showConfirm = (
   message: string,
@@ -58,9 +76,6 @@ export const showConfirm = (
 
 /**
  * 显示提示输入框
- * @param message 提示信息
- * @param title 标题（可选）
- * @returns Promise<string | null> 用户输入的字符串或 null
  */
 export const showPrompt = (
   message: string,
@@ -74,24 +89,18 @@ export const showPrompt = (
     .catch(() => null);
 };
 
-/**
- * 错误类型定义
- */
 export interface ApiError extends Error {
   response?: {
     data?: {
       message?: string;
       code?: string | number;
+      success?: boolean;
+      status?: number;
     };
     status?: number;
   };
 }
 
-/**
- * 根据HTTP状态码获取用户友好的错误消息
- * @param status HTTP状态码
- * @param defaultMessage 默认消息
- */
 const getErrorMessageByStatus = (status: number, defaultMessage: string): string => {
   const statusMessages: Record<number, string> = {
     400: '请求参数错误，请检查输入信息',
@@ -104,19 +113,12 @@ const getErrorMessageByStatus = (status: number, defaultMessage: string): string
     500: '服务器内部错误，请联系管理员',
     502: '网关错误，请稍后重试',
     503: '服务暂时不可用，请稍后重试',
-    504: '请求超时，请检查网络连接'
+    504: '请求超时，请检查网络连接',
   };
-  
+
   return statusMessages[status] || defaultMessage;
 };
 
-/**
- * 统一处理API错误，提供更友好的错误提示
- * @param error 错误对象
- * @param defaultMessage 默认错误消息
- * @param showMessage 是否显示错误消息
- * @param context 错误发生的上下文，用于提供更具体的提示
- */
 export const handleApiError = (
   error: ApiError,
   defaultMessage: string = '操作失败，请稍后重试',
@@ -126,29 +128,22 @@ export const handleApiError = (
   let errorMessage = defaultMessage;
   let showAsNotification = false;
 
-  // 根据不同的错误类型提供具体的错误信息
   if (error.response) {
-    const status = error.response.status ?? 0; // 使用默认值避免 undefined
-    const serverMessage = error.response.data?.message;
-    
-    // 如果服务器提供了具体的错误消息，优先使用
-    if (serverMessage && !serverMessage.includes('Exception') && !serverMessage.includes('Error')) {
+    const status = error.response.status ?? 0;
+    const serverMessage = sanitizeApiMessage(error.response.data?.message, '');
+
+    if (serverMessage) {
       errorMessage = serverMessage;
     } else {
-      // 根据状态码提供友好的错误消息
       errorMessage = getErrorMessageByStatus(status, defaultMessage);
     }
-    
-    // 对于某些错误类型，使用通知形式显示
+
     showAsNotification = [401, 403, 500, 503].includes(status);
-    
-    // 为401错误提供额外的操作建议
+
     if (status === 401) {
       errorMessage += ' (点击任意页面跳转到登录页)';
     }
-    
   } else if (error.message) {
-    // 网络错误或其他客户端错误
     if (error.message.includes('Network Error') || error.message.includes('ERR_NETWORK')) {
       errorMessage = '网络连接失败，请检查网络设置';
       showAsNotification = true;
@@ -159,8 +154,7 @@ export const handleApiError = (
       errorMessage = error.message;
     }
   }
-  
-  // 如果提供了上下文，在错误消息中包含上下文信息
+
   if (context) {
     errorMessage = `${context}: ${errorMessage}`;
   }
@@ -172,12 +166,6 @@ export const handleApiError = (
   throw new Error(errorMessage);
 };
 
-/**
- * 显示错误消息
- * @param message 错误消息内容
- * @param title 错误标题（用于通知）
- * @param useNotification 是否使用通知形式而非消息
- */
 export const showError = (
   message: string,
   title: string = '错误',
@@ -190,12 +178,6 @@ export const showError = (
   }
 };
 
-/**
- * 显示成功消息
- * @param message 成功消息内容
- * @param title 成功标题（用于通知）
- * @param useNotification 是否使用通知形式而非消息
- */
 export const showSuccess = (
   message: string,
   title: string = '成功',
@@ -208,13 +190,6 @@ export const showSuccess = (
   }
 };
 
-/**
- * 安全执行异步操作，自动捕获并显示错误
- * @param operation 异步操作函数
- * @param errorMessage 自定义错误消息
- * @param showError 是否显示错误
- * @returns 操作结果
- */
 export const safeExecute = async <T>(
   operation: () => Promise<T>,
   errorMessage: string = '操作失败',

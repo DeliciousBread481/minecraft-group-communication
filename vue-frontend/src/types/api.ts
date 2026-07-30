@@ -5,6 +5,7 @@ export interface ApiResponse<T = any> {
   code?: number;
   message: string;
   data: T;
+  details?: unknown;
 }
 
 // ===================== 鉴权相关类型 =====================
@@ -26,6 +27,7 @@ export interface RefreshRequest {
 export interface AuthResponseData {
   accessToken: string;
   refreshToken: string;
+  message?: string;
 }
 
 // ===================== 用户信息相关类型 =====================
@@ -71,6 +73,7 @@ export interface SolutionDTO {
   notes: string;
   steps: string[];
   images: string[];
+  createdByUsername?: string;
 }
 
 export interface SolutionCreateDTO {
@@ -101,6 +104,7 @@ export interface CategoryDTO {
   icon: string;
   description: string;
   color: string;
+  createdByUsername?: string;
 }
 
 // ===================== 管理员申请相关类型 =====================
@@ -110,9 +114,9 @@ export interface AdminApplicationDTO {
   status: string;
   reason: string;
   feedback: string;
-  processorUsername: string;
+  processorUsername?: string;
   createdAt: string;
-  processedAt: string;
+  processedAt?: string;
 }
 
 export interface AdminApplicationStatus {
@@ -143,6 +147,29 @@ export interface PageData<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  pageNumber: number;
-  pageSize: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
+  empty: boolean;
+  pageable?: {
+    pageNumber: number;
+    pageSize: number;
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+    sort?: {
+      sorted: boolean;
+      empty: boolean;
+      unsorted: boolean;
+    };
+  };
+  sort?: {
+    sorted: boolean;
+    empty: boolean;
+    unsorted: boolean;
+  };
+  pageNumber?: number;
+  pageSize?: number;
 }

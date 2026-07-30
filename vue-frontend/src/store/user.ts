@@ -6,8 +6,9 @@ import {
   register as apiRegister
 } from '@/api/auth';
 import { getCurrentUser } from '@/api/user';
-import type { AuthResponseData } from '@/api/auth';
 import type {
+  ApiResponse,
+  AuthResponseData,
   LoginRequest,
   RegisterRequest,
   UserInfoData
@@ -48,10 +49,12 @@ export const useUserStore = defineStore('user', {
      * 用户登录
      * @param credentials 登录凭据
      */
-    async login(credentials: LoginRequest): Promise<boolean> {
+    async login(credentials: LoginRequest): Promise<{ success: boolean; message?: string }> {
       try {
-        const authData: AuthResponseData = await apiLogin(credentials);
-        const { accessToken, refreshToken } = authData;
+        this.clearUserData();
+
+        const authResponse: ApiResponse<AuthResponseData> = await apiLogin(credentials);
+        const { accessToken, refreshToken } = authResponse.data;
 
         // 保存令牌
         this.accessToken = accessToken;
@@ -65,11 +68,14 @@ export const useUserStore = defineStore('user', {
         // 获取并保存用户信息
         await this.fetchUserInfo();
 
-        return true;
+        return {
+          success: true,
+          message: authResponse.message
+        };
       } catch (error) {
         console.error('登录失败:', error);
-        this.clearLoginError();
-        return false;
+        this.clearUserData();
+        return { success: false };
       }
     },
 
@@ -77,10 +83,12 @@ export const useUserStore = defineStore('user', {
      * 用户注册
      * @param userData 注册数据
      */
-    async register(userData: RegisterRequest): Promise<boolean> {
+    async register(userData: RegisterRequest): Promise<{ success: boolean; message?: string }> {
       try {
-        const authData: AuthResponseData = await apiRegister(userData);
-        const { accessToken, refreshToken } = authData;
+        this.clearUserData();
+
+        const authResponse: ApiResponse<AuthResponseData> = await apiRegister(userData);
+        const { accessToken, refreshToken } = authResponse.data;
 
         // 保存令牌
         this.accessToken = accessToken;
@@ -94,11 +102,14 @@ export const useUserStore = defineStore('user', {
         // 获取并保存用户信息
         await this.fetchUserInfo();
 
-        return true;
+        return {
+          success: true,
+          message: authResponse.message
+        };
       } catch (error) {
         console.error('注册失败:', error);
-        this.clearLoginError();
-        return false;
+        this.clearUserData();
+        return { success: false };
       }
     },
 
@@ -135,6 +146,7 @@ export const useUserStore = defineStore('user', {
         // 更新令牌
         this.accessToken = accessToken;
         this.refreshTokenValue = refreshToken;
+        this.isAuthenticated = true;
 
         // 保存到 localStorage
         localStorage.setItem('accessToken', accessToken);
@@ -181,10 +193,7 @@ export const useUserStore = defineStore('user', {
      * 清除登录错误状态
      */
     clearLoginError(): void {
-      this.accessToken = null;
-      this.refreshTokenValue = null;
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      this.clearUserData();
     }
   }
 });

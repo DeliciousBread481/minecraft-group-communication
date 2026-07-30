@@ -58,7 +58,7 @@ public class RestResponse<T> {
      */
     public static <T> RestResponse<T> success(T data, String message) {
         return new RestResponse<>(true, HttpStatus.OK.value(),
-                ErrorCode.SUCCESS.getCode(), message, data, null);
+                ErrorCode.SUCCESS.getCode(), sanitizeMessage(message, "操作成功"), data, null);
     }
 
     /**
@@ -68,7 +68,7 @@ public class RestResponse<T> {
      */
     public static <T> RestResponse<T> success(String message) {
         return new RestResponse<>(true, HttpStatus.OK.value(),
-                ErrorCode.SUCCESS.getCode(), message, null, null);
+                ErrorCode.SUCCESS.getCode(), sanitizeMessage(message, "操作成功"), null, null);
     }
 
     /**
@@ -78,7 +78,7 @@ public class RestResponse<T> {
      */
     public static <T> RestResponse<T> success(T data) {
         return new RestResponse<>(true, HttpStatus.OK.value(),
-                ErrorCode.SUCCESS.getCode(), "操作成功", data, null);
+                ErrorCode.SUCCESS.getCode(), sanitizeMessage("操作成功", "操作成功"), data, null);
     }
 
     /**
@@ -91,7 +91,7 @@ public class RestResponse<T> {
     public static <T> RestResponse<T> fail(int httpStatus, ErrorCode errorCode, String message) {
         return new RestResponse<>(false, httpStatus,
                 errorCode.getCode(),
-                message != null ? message : errorCode.getMessage(),
+                sanitizeMessage(message != null ? message : errorCode.getMessage(), errorCode.getMessage()),
                 null, null);
     }
 
@@ -106,7 +106,7 @@ public class RestResponse<T> {
     public static <T> RestResponse<T> fail(int httpStatus, ErrorCode errorCode, String message, Object details) {
         return new RestResponse<>(false, httpStatus,
                 errorCode.getCode(),
-                message != null ? message : errorCode.getMessage(),
+                sanitizeMessage(message != null ? message : errorCode.getMessage(), errorCode.getMessage()),
                 null, details);
     }
 
@@ -118,7 +118,11 @@ public class RestResponse<T> {
     public static <T> RestResponse<T> fail(BusinessException ex) {
         return new RestResponse<>(false, ex.getHttpStatus().value(),
                 ex.getErrorCode().getCode(),
-                ex.getMessage(),
+                sanitizeMessage(ex.getMessage(), ex.getErrorCode().getMessage()),
                 null, null);
+    }
+
+    private static String sanitizeMessage(String rawMessage, String fallbackMessage) {
+        return ResponseMessageSanitizer.sanitize(rawMessage, fallbackMessage);
     }
 }

@@ -52,8 +52,8 @@ export const useDeveloperStore = defineStore('developer', {
       this.loading = true;
       try {
         const res = await getAllUsers(page, size);
-        this.userPage = res.data;
-        this.users = res.data.content;
+        this.userPage = res;
+        this.users = res.content;
         this.currentUserQuery = { page, size };
       } finally {
         this.loading = false;
@@ -84,8 +84,8 @@ export const useDeveloperStore = defineStore('developer', {
 
     async fetchPendingApplications(page = 0, size = 10) {
       const res = await getPendingApplications(page, size);
-      this.applicationPage = res.data;
-      this.pendingApplications = res.data.content;
+      this.applicationPage = res;
+      this.pendingApplications = res.content;
       this.currentApplicationQuery = { page, size };
     },
 
@@ -103,8 +103,8 @@ export const useDeveloperStore = defineStore('developer', {
 
     async fetchPendingSolutions(page = 0, size = 10) {
       const res = await getPendingSolutions(page, size);
-      this.solutionPage = res.data;
-      this.pendingSolutions = res.data.content;
+      this.solutionPage = res;
+      this.pendingSolutions = res.content;
       this.currentSolutionQuery = { page, size };
     },
 
