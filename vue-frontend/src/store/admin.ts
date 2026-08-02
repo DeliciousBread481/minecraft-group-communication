@@ -18,6 +18,7 @@ import type {
   PageData
 } from '@/types/api';
 import { showSuccess, safeExecute, showConfirm } from '@/utils/message'
+import { normalizePageData } from './payload';
 
 interface AdminState {
   currentUser: UserInfoData | null;
@@ -51,9 +52,7 @@ export const useAdminStore = defineStore('admin', {
           () => getUserById(userId),
           '获取用户信息失败'
         );
-        if (res) {
-          this.currentUser = res.data;
-        }
+        this.currentUser = res?.data ?? null;
       } finally {
         this.loading = false;
       }
@@ -66,11 +65,10 @@ export const useAdminStore = defineStore('admin', {
           () => getAdminSolutions(page, size, status),
           '获取解决方案列表失败'
         );
-        if (res) {
-          this.solutionPage = res.data;
-          this.solutions = res.data.content;
-          this.currentQuery = { page, size, status };
-        }
+        const pageData = normalizePageData(res?.data);
+        this.solutionPage = pageData;
+        this.solutions = pageData.content;
+        this.currentQuery = { page, size, status };
       } finally {
         this.loading = false;
       }
@@ -81,9 +79,7 @@ export const useAdminStore = defineStore('admin', {
         () => getSolutionById(solutionId),
         '获取解决方案详情失败'
       );
-      if (res) {
-        this.currentSolution = res.data;
-      }
+      this.currentSolution = res?.data ?? null;
     },
 
     async createNewSolution(dto: SolutionCreateDTO) {
@@ -103,7 +99,7 @@ export const useAdminStore = defineStore('admin', {
             this.currentQuery.status
           );
         }
-        return res.data;
+        return res?.data ?? null;
       }
       return null;
     },
@@ -116,7 +112,7 @@ export const useAdminStore = defineStore('admin', {
 
       if (res) {
         showSuccess('解决方案更新成功');
-        this.currentSolution = res.data;
+        this.currentSolution = res?.data ?? null;
 
         // 如果有当前查询条件，则重新获取数据保持一致性
         if (this.currentQuery) {
@@ -126,7 +122,7 @@ export const useAdminStore = defineStore('admin', {
             this.currentQuery.status
           );
         }
-        return res.data;
+        return res?.data ?? null;
       }
       return null;
     },
@@ -187,9 +183,7 @@ export const useAdminStore = defineStore('admin', {
         '获取分类列表失败'
       );
 
-      if (res) {
-        this.categories = res;
-      }
+      this.categories = res ?? [];
     },
 
     // 重置状态
