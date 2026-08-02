@@ -63,12 +63,12 @@ export interface SolutionDTO {
   id: string;
   title: string;
   categoryId: string;
-  categoryName: string;
+  categoryName?: string | null;
   difficulty: string;
   version: string;
   updateTime: string;
   description: string;
-  notes: string;
+  notes?: string | null;
   steps: string[];
   images: string[];
 }
@@ -143,6 +143,10 @@ export interface PageData<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  pageNumber: number;
-  pageSize: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
+  empty: boolean;
 }

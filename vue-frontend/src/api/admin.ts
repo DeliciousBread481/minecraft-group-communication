@@ -5,7 +5,6 @@ import type {
   SolutionListApiResponse,
   SolutionCreateDTO,
   SolutionUpdateDTO,
-  CategoryListApiResponse,
   VoidApiResponse
 } from '@/types/api';
 
@@ -67,7 +66,7 @@ export const getAdminSolutions = (
 ): Promise<SolutionListApiResponse> => {
   const params: Record<string, any> = { page, size };
   if (status) params.status = status;
-  
+
   return apiGet('/admin/solutions/my', '获取解决方案列表失败', { params });
 };
 
@@ -77,14 +76,4 @@ export const getAdminSolutions = (
  */
 export const getSolutionById = (solutionId: string): Promise<SolutionApiResponse> => {
   return apiGet(`/admin/solutions/${solutionId}`, '获取解决方案详情失败');
-};
-
-// ===================== 分类管理接口 =====================
-
-/**
- * 获取所有问题分类
- * GET /api/admin/categories
- */
-export const getAllCategories = (): Promise<CategoryListApiResponse> => {
-  return apiGet('/admin/categories', '获取分类列表失败');
 };

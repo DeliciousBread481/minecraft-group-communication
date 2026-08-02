@@ -6,9 +6,9 @@ import {
   deleteSolution,
   submitSolutionForReview,
   getAdminSolutions,
-  getSolutionById,
-  getAllCategories
+  getSolutionById
 } from '@/api/admin';
+import { getSolutionCategories } from '@/api/solution';
 import type {
   UserInfoData,
   SolutionDTO,
@@ -183,12 +183,12 @@ export const useAdminStore = defineStore('admin', {
 
     async fetchAllCategories() {
       const res = await safeExecute(
-        () => getAllCategories(),
+        () => getSolutionCategories(),
         '获取分类列表失败'
       );
 
       if (res) {
-        this.categories = res.data;
+        this.categories = res;
       }
     },
 

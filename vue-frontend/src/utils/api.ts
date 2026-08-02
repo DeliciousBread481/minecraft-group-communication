@@ -87,8 +87,35 @@ export function handleResponse<T>(response: AxiosResponse): ApiResponse<T> {
     };
   }
 
-  if (response.data && typeof response.data === 'object') {
-    return response.data as ApiResponse<T>;
+  if (response.status >= 200 && response.status < 300) {
+    if (response.data && typeof response.data === 'object') {
+      const responseBody = response.data as Record<string, unknown>;
+      const hasStandardEnvelope =
+        'success' in responseBody ||
+        'status' in responseBody ||
+        'message' in responseBody ||
+        'data' in responseBody ||
+        'content' in responseBody;
+
+      if (hasStandardEnvelope) {
+        const data = 'data' in responseBody ? responseBody.data : responseBody.content;
+
+        return {
+          success: typeof responseBody.success === 'boolean' ? responseBody.success : true,
+          status: typeof responseBody.status === 'number' ? responseBody.status : response.status,
+          code: typeof responseBody.code === 'number' ? responseBody.code : undefined,
+          message: typeof responseBody.message === 'string' ? responseBody.message : 'success',
+          data: data as T
+        };
+      }
+    }
+
+    return {
+      success: true,
+      status: response.status,
+      message: 'success',
+      data: response.data as T
+    };
   }
 
   throw new Error('Invalid API response');
