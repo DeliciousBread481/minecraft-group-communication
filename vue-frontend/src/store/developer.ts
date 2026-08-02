@@ -11,6 +11,7 @@ import {
   rejectSolution
 } from '@/api/developer';
 import type { UserInfoData, AdminApplicationDTO, SolutionDTO, PageData } from '@/types/api';
+import { normalizePageData } from './payload';
 
 interface DeveloperState {
   users: UserInfoData[];
@@ -52,9 +53,15 @@ export const useDeveloperStore = defineStore('developer', {
       this.loading = true;
       try {
         const res = await getAllUsers(page, size);
-        this.userPage = res.data;
-        this.users = res.data.content;
+        const pageData = normalizePageData(res?.data);
+        this.userPage = pageData;
+        this.users = pageData.content;
         this.currentUserQuery = { page, size };
+      } catch (error) {
+        this.userPage = normalizePageData(null);
+        this.users = [];
+        this.currentUserQuery = { page, size };
+        console.error('获取用户列表失败:', error);
       } finally {
         this.loading = false;
       }
@@ -83,10 +90,18 @@ export const useDeveloperStore = defineStore('developer', {
     },
 
     async fetchPendingApplications(page = 0, size = 10) {
-      const res = await getPendingApplications(page, size);
-      this.applicationPage = res.data;
-      this.pendingApplications = res.data.content;
-      this.currentApplicationQuery = { page, size };
+      try {
+        const res = await getPendingApplications(page, size);
+        const pageData = normalizePageData(res?.data);
+        this.applicationPage = pageData;
+        this.pendingApplications = pageData.content;
+        this.currentApplicationQuery = { page, size };
+      } catch (error) {
+        this.applicationPage = normalizePageData(null);
+        this.pendingApplications = [];
+        this.currentApplicationQuery = { page, size };
+        console.error('获取待处理申请失败:', error);
+      }
     },
 
     async approveApplication(id: number) {
@@ -102,10 +117,18 @@ export const useDeveloperStore = defineStore('developer', {
     },
 
     async fetchPendingSolutions(page = 0, size = 10) {
-      const res = await getPendingSolutions(page, size);
-      this.solutionPage = res.data;
-      this.pendingSolutions = res.data.content;
-      this.currentSolutionQuery = { page, size };
+      try {
+        const res = await getPendingSolutions(page, size);
+        const pageData = normalizePageData(res?.data);
+        this.solutionPage = pageData;
+        this.pendingSolutions = pageData.content;
+        this.currentSolutionQuery = { page, size };
+      } catch (error) {
+        this.solutionPage = normalizePageData(null);
+        this.pendingSolutions = [];
+        this.currentSolutionQuery = { page, size };
+        console.error('获取待审核解决方案失败:', error);
+      }
     },
 
     async approveSolutionReview(id: string) {

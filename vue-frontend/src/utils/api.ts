@@ -3,6 +3,30 @@ import { useAuthStore } from '@/store/auth';
 import { ElMessage } from 'element-plus';
 import router from '@/router';
 
+const isEmptyPayload = (value: unknown): boolean => {
+  if (value === null || value === undefined) {
+    return true;
+  }
+
+  if (typeof value === 'string') {
+    return value.trim() === '';
+  }
+
+  if (Array.isArray(value)) {
+    return value.length === 0;
+  }
+
+  if (typeof value === 'object') {
+    if (value instanceof Date) {
+      return false;
+    }
+
+    return Object.keys(value as Record<string, unknown>).length === 0;
+  }
+
+  return false;
+};
+
 // 创建 Axios 实例
 const api: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/crashapi/api',
@@ -88,7 +112,7 @@ export function handleResponse<T>(response: AxiosResponse): ApiResponse<T> {
   }
 
   if (response.status >= 200 && response.status < 300) {
-    if (response.data && typeof response.data === 'object') {
+    if (typeof response.data === 'object' && response.data !== null) {
       const responseBody = response.data as Record<string, unknown>;
       const hasStandardEnvelope =
         'success' in responseBody ||
@@ -100,6 +124,10 @@ export function handleResponse<T>(response: AxiosResponse): ApiResponse<T> {
       if (hasStandardEnvelope) {
         const data = 'data' in responseBody ? responseBody.data : responseBody.content;
 
+        if (isEmptyPayload(data)) {
+          throw new Error('API 响应内容为空');
+        }
+
         return {
           success: typeof responseBody.success === 'boolean' ? responseBody.success : true,
           status: typeof responseBody.status === 'number' ? responseBody.status : response.status,
@@ -108,6 +136,10 @@ export function handleResponse<T>(response: AxiosResponse): ApiResponse<T> {
           data: data as T
         };
       }
+    }
+
+    if (isEmptyPayload(response.data)) {
+      throw new Error('API 响应内容为空');
     }
 
     return {
