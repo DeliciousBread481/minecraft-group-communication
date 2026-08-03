@@ -1,10 +1,8 @@
 import { apiGet, apiPost, apiPatch } from '@/utils/apiBase';
 import type {
-  AdminApplicationStatusApiResponse,
-  StringApiResponse,
+  AdminApplicationStatus,
   UpdateUserInfo,
-  UserInfoData,
-  VoidApiResponse
+  UserInfoData
 } from '@/types/api';
 
 /**
@@ -30,8 +28,8 @@ export const updateUserInfo = (updateData: UpdateUserInfo): Promise<UserInfoData
 export const updatePassword = (
   oldPassword: string,
   newPassword: string
-): Promise<VoidApiResponse> => {
-  return apiPost<VoidApiResponse>('/user/me/password', null, '修改密码失败', {
+): Promise<void> => {
+  return apiPost<void>('/user/me/password', null, '修改密码失败', {
     params: { oldPassword, newPassword }
   });
 };
@@ -40,21 +38,19 @@ export const updatePassword = (
  * 更新用户头像
  * POST /api/user/me/avatar
  */
-export const updateAvatar = (file: File): Promise<StringApiResponse> => {
+export const updateAvatar = (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('avatar', file);
 
-  return apiPost<StringApiResponse>('/user/me/avatar', formData, '更新头像失败', {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
+  return apiPost<string>('/user/me/avatar', formData, '更新头像失败');
 };
 
 /**
  * 申请成为管理员
  * POST /api/user/apply-for-admin
  */
-export const applyForAdmin = (reason: string): Promise<VoidApiResponse> => {
-  return apiPost<VoidApiResponse>('/user/apply-for-admin', null, '申请成为管理员失败', {
+export const applyForAdmin = (reason: string): Promise<void> => {
+  return apiPost<void>('/user/apply-for-admin', null, '申请成为管理员失败', {
     params: { reason }
   });
 };
@@ -63,6 +59,6 @@ export const applyForAdmin = (reason: string): Promise<VoidApiResponse> => {
  * 获取管理员申请状态
  * GET /api/user/admin-application/status
  */
-export const getAdminApplicationStatus = (): Promise<AdminApplicationStatusApiResponse> => {
-  return apiGet<AdminApplicationStatusApiResponse>('/user/admin-application/status', '获取管理员申请状态失败');
+export const getAdminApplicationStatus = (): Promise<AdminApplicationStatus> => {
+  return apiGet<AdminApplicationStatus>('/user/admin-application/status', '获取管理员申请状态失败');
 };

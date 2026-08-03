@@ -1,9 +1,10 @@
-import api, { handleResponse } from '@/utils/api';
+import { apiGet, apiPost } from '@/utils/apiBase';
 import { handleApiError } from '@/utils/message';
 import type {
-  AdminApplicationPageApiResponse,
-  UserPageApiResponse,
-  SolutionPageApiResponse
+  AdminApplicationDTO,
+  PageData,
+  SolutionDTO,
+  UserInfoData
 } from '@/types/api';
 
 // ===================== 用户管理接口 =====================
@@ -12,10 +13,9 @@ import type {
  * 获取所有用户信息
  * GET /api/developer/users
  */
-export const getAllUsers = async (page: number, size: number): Promise<UserPageApiResponse> => {
+export const getAllUsers = async (page: number, size: number): Promise<PageData<UserInfoData>> => {
   try {
-    const response = await api.get('/developer/users', { params: { page, size } });
-    return handleResponse(response);
+    return await apiGet<PageData<UserInfoData>>('/developer/users', '获取用户列表失败', { params: { page, size } });
   } catch (error: any) {
     return handleApiError(error, '获取用户列表失败');
   }
@@ -27,7 +27,7 @@ export const getAllUsers = async (page: number, size: number): Promise<UserPageA
  */
 export const promoteToAdmin = async (userId: number): Promise<void> => {
   try {
-    await api.post(`/developer/users/${userId}/promote`);
+    await apiPost<void>(`/developer/users/${userId}/promote`, undefined, '提升用户为管理员失败');
   } catch (error: any) {
     return handleApiError(error, '提升用户为管理员失败');
   }
@@ -39,7 +39,7 @@ export const promoteToAdmin = async (userId: number): Promise<void> => {
  */
 export const revokeAdminRole = async (userId: number): Promise<void> => {
   try {
-    await api.post(`/developer/users/${userId}/revoke-admin`);
+    await apiPost<void>(`/developer/users/${userId}/revoke-admin`, undefined, '撤销管理员权限失败');
   } catch (error: any) {
     return handleApiError(error, '撤销管理员权限失败');
   }
@@ -51,10 +51,9 @@ export const revokeAdminRole = async (userId: number): Promise<void> => {
  * 获取待处理的管理员申请列表
  * GET /api/developer/admin-applications/pending
  */
-export const getPendingApplications = async (page: number, size: number): Promise<AdminApplicationPageApiResponse> => {
+export const getPendingApplications = async (page: number, size: number): Promise<PageData<AdminApplicationDTO>> => {
   try {
-    const response = await api.get('/developer/admin-applications/pending', { params: { page, size } });
-    return handleResponse(response);
+    return await apiGet<PageData<AdminApplicationDTO>>('/developer/admin-applications/pending', '获取申请列表失败', { params: { page, size } });
   } catch (error: any) {
     return handleApiError(error, '获取申请列表失败');
   }
@@ -66,7 +65,7 @@ export const getPendingApplications = async (page: number, size: number): Promis
  */
 export const approveAdminApplication = async (applicationId: number): Promise<void> => {
   try {
-    await api.post(`/developer/admin-applications/${applicationId}/approve`);
+    await apiPost<void>(`/developer/admin-applications/${applicationId}/approve`, undefined, '批准申请失败');
   } catch (error: any) {
     return handleApiError(error, '批准申请失败');
   }
@@ -78,7 +77,7 @@ export const approveAdminApplication = async (applicationId: number): Promise<vo
  */
 export const rejectAdminApplication = async (applicationId: number, feedback: string): Promise<void> => {
   try {
-    await api.post(`/developer/admin-applications/${applicationId}/reject`, null, {
+    await apiPost<void>(`/developer/admin-applications/${applicationId}/reject`, null, '拒绝申请失败', {
       params: { feedback }
     });
   } catch (error: any) {
@@ -92,10 +91,9 @@ export const rejectAdminApplication = async (applicationId: number, feedback: st
  * 获取待审核的解决方案
  * GET /api/developer/solutions/pending
  */
-export const getPendingSolutions = async (page: number, size: number): Promise<SolutionPageApiResponse> => {
+export const getPendingSolutions = async (page: number, size: number): Promise<PageData<SolutionDTO>> => {
   try {
-    const response = await api.get('/developer/solutions/pending', { params: { page, size } });
-    return handleResponse(response);
+    return await apiGet<PageData<SolutionDTO>>('/developer/solutions/pending', '获取待审核解决方案失败', { params: { page, size } });
   } catch (error: any) {
     return handleApiError(error, '获取待审核解决方案失败');
   }
@@ -107,7 +105,7 @@ export const getPendingSolutions = async (page: number, size: number): Promise<S
  */
 export const approveSolution = async (solutionId: string): Promise<void> => {
   try {
-    await api.post(`/developer/solutions/${solutionId}/approve`);
+    await apiPost<void>(`/developer/solutions/${solutionId}/approve`, undefined, '批准解决方案失败');
   } catch (error: any) {
     return handleApiError(error, '批准解决方案失败');
   }
@@ -119,7 +117,7 @@ export const approveSolution = async (solutionId: string): Promise<void> => {
  */
 export const rejectSolution = async (solutionId: string, reason: string): Promise<void> => {
   try {
-    await api.post(`/developer/solutions/${solutionId}/reject`, null, { params: { reason } });
+    await apiPost<void>(`/developer/solutions/${solutionId}/reject`, null, '拒绝解决方案失败', { params: { reason } });
   } catch (error: any) {
     return handleApiError(error, '拒绝解决方案失败');
   }

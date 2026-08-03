@@ -36,6 +36,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { hasAnyRole, ROLE_ADMIN, ROLE_DEV } from '@/types/user'
 import {
   HomeFilled,
   Notebook,
@@ -54,7 +55,7 @@ const menuItems = ref([
   { path: '/notice', title: '询问文档', icon: Notebook },
   { path: '/solutions', title: '解决方案', icon: CollectionTag },
   { path: '/faq', title: '常见问题', icon: QuestionFilled },
-  { path: '/admin', title: '后台管理', icon: Setting, requiresRole: ['ROLE_DEV', 'ROLE_ADMIN'] }
+  { path: '/admin', title: '后台管理', icon: Setting, requiresRole: [ROLE_DEV, ROLE_ADMIN] }
 ])
 
 // 过滤菜单（根据角色判断是否显示）
@@ -62,7 +63,7 @@ const filteredMenuItems = computed(() => {
   const roles: string[] = userStore.userInfo?.roles || []
   return menuItems.value.filter(item => {
     if (!item.requiresRole) return true
-    return roles.some((r: string) => item.requiresRole?.includes(r))
+    return hasAnyRole(roles, item.requiresRole)
   })
 })
 
