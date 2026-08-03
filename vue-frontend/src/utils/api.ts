@@ -4,8 +4,12 @@ import { ElMessage } from 'element-plus';
 import router from '@/router';
 
 const isEmptyPayload = (value: unknown): boolean => {
-  if (value === null || value === undefined) {
+  if (value === undefined) {
     return true;
+  }
+
+  if (value === null) {
+    return false;
   }
 
   if (typeof value === 'string') {

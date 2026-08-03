@@ -1,8 +1,8 @@
 import { apiGet } from '@/utils/apiBase';
 import type {
   CategoryDTO,
-  PageData,
-  SolutionDTO
+  SolutionDTO,
+  SolutionPageDTO
 } from '@/types/api';
 
 /**
@@ -12,7 +12,7 @@ import type {
 export const getPublishedSolutions = (
   page: number,
   size: number
-): Promise<PageData<SolutionDTO>> => {
+): Promise<SolutionPageDTO> => {
   return apiGet('/solutions', '获取解决方案列表失败', { params: { page, size } });
 };
 

@@ -53,7 +53,7 @@ public class SolutionController {
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/admin/solutions")
-    public ResponseEntity<RestResponse<SolutionDTO>> createSolution(@RequestBody SolutionCreateDTO createDTO) {
+    public ResponseEntity<RestResponse<SolutionDTO>> createSolution(@ModelAttribute SolutionCreateDTO createDTO) {
         return ResponseEntity.ok(solutionService.createSolution(createDTO));
     }
 
@@ -64,7 +64,7 @@ public class SolutionController {
     @PutMapping("/admin/solutions/{solutionId}")
     public ResponseEntity<RestResponse<SolutionDTO>> updateSolutionAdmin(
             @PathVariable String solutionId,
-            @RequestBody SolutionUpdateDTO updateDTO) {
+            @ModelAttribute SolutionUpdateDTO updateDTO) {
         return ResponseEntity.ok(solutionService.updateSolutionAdmin(solutionId, updateDTO));
     }
 
@@ -153,7 +153,7 @@ public class SolutionController {
     @PutMapping("/developer/solutions/{solutionId}")
     public ResponseEntity<RestResponse<SolutionDTO>> updateSolutionDeveloper(
             @PathVariable String solutionId,
-            @RequestBody SolutionUpdateDTO updateDTO) {
+            @ModelAttribute SolutionUpdateDTO updateDTO) {
         return ResponseEntity.ok(solutionService.updateSolutionDeveloper(solutionId, updateDTO));
     }
 }

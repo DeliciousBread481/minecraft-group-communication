@@ -52,7 +52,7 @@ export const useAdminStore = defineStore('admin', {
           () => getUserById(userId),
           '获取用户信息失败'
         );
-        this.currentUser = res?.data ?? null;
+        this.currentUser = res ?? null;
       } finally {
         this.loading = false;
       }
@@ -65,7 +65,7 @@ export const useAdminStore = defineStore('admin', {
           () => getAdminSolutions(page, size, status),
           '获取解决方案列表失败'
         );
-        const pageData = normalizePageData(res?.data);
+        const pageData = normalizePageData(res);
         this.solutionPage = pageData;
         this.solutions = pageData.content;
         this.currentQuery = { page, size, status };
@@ -79,7 +79,7 @@ export const useAdminStore = defineStore('admin', {
         () => getSolutionById(solutionId),
         '获取解决方案详情失败'
       );
-      this.currentSolution = res?.data ?? null;
+      this.currentSolution = res ?? null;
     },
 
     async createNewSolution(dto: SolutionCreateDTO) {
@@ -99,7 +99,7 @@ export const useAdminStore = defineStore('admin', {
             this.currentQuery.status
           );
         }
-        return res?.data ?? null;
+        return res ?? null;
       }
       return null;
     },
@@ -112,7 +112,7 @@ export const useAdminStore = defineStore('admin', {
 
       if (res) {
         showSuccess('解决方案更新成功');
-        this.currentSolution = res?.data ?? null;
+        this.currentSolution = res ?? null;
 
         // 如果有当前查询条件，则重新获取数据保持一致性
         if (this.currentQuery) {
@@ -122,7 +122,7 @@ export const useAdminStore = defineStore('admin', {
             this.currentQuery.status
           );
         }
-        return res?.data ?? null;
+        return res ?? null;
       }
       return null;
     },

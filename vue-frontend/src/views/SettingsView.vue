@@ -21,6 +21,7 @@
       </div>
 
       <div
+        v-if="canApplyForAdmin"
         class="menu-item"
         :class="{ active: activeMenu === 'admin' }"
         @click="activeMenu = 'admin'"
@@ -246,7 +247,7 @@
       </div>
 
       <!-- 申请管理员设置 -->
-      <div v-if="activeMenu === 'admin'" class="settings-section">
+      <div v-if="activeMenu === 'admin' && canApplyForAdmin" class="settings-section">
         <div class="admin-application-container">
           <h3 class="form-title">申请成为管理员</h3>
 
@@ -329,18 +330,14 @@ import { useUserStore } from '@/store/user';
 import { updateUserInfo, updatePassword, updateAvatar, applyForAdmin, getAdminApplicationStatus } from '@/api/user'
 import { showMessage } from '@/utils/message';
 import { copyToClipboard } from '@/utils/clipboard';
-import type { VoidApiResponse } from '@/types/api'
+import { hasAnyRole, ROLE_ADMIN, ROLE_DEV } from '@/types/user'
 
 const userStore = useUserStore();
 const activeMenu = ref('profile');
 const avatarInput = ref<HTMLInputElement | null>(null);
 
-const isAdmin = computed(() => {
-  const roles = userStore.userInfo?.roles || [];
-  return roles.some((r: string) =>
-    r.toLowerCase() === 'ROLE_DEV' || r.toUpperCase() === 'ROLE_ADMIN'
-  );
-});
+const hasElevatedRole = computed(() => hasAnyRole(userStore.userInfo?.roles, [ROLE_DEV, ROLE_ADMIN]));
+const canApplyForAdmin = computed(() => !hasElevatedRole.value);
 
 // 初始化用户信息
 const userForm = reactive({
@@ -364,7 +361,7 @@ const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const isSubmitting = ref(false);
 const isChangingPassword = ref(false);
-let userIdTimer: number | null = null;
+let userIdTimer: ReturnType<typeof setTimeout> | null = null;
 
 // 表单状态
 const formState = reactive({
@@ -534,17 +531,13 @@ const changePassword = async () => {
 
   try {
     isChangingPassword.value = true;
-    const response = await updatePassword(
+    await updatePassword(
       passwordForm.oldPassword,
       passwordForm.newPassword
     );
 
-    if (response.success) {
-      showMessage('密码修改成功', 'success');
-      resetPasswordForm();
-    } else {
-      showMessage(response.message || '密码修改失败', 'error');
-    }
+    showMessage('密码修改成功', 'success');
+    resetPasswordForm();
   } catch (error) {
     showMessage('密码修改失败，请稍后再试', 'error');
     console.error('修改密码错误:', error);
@@ -583,12 +576,12 @@ const saveSettings = async () => {
         const file = new File([blob], 'avatar.png', { type: 'image/png' });
 
         // 上传头像
-        const avatarResponse = await updateAvatar(file);
-        if (avatarResponse.success && avatarResponse.data) {
-          updateData.avatar = avatarResponse.data;
+        const avatarUrl = await updateAvatar(file);
+        if (avatarUrl) {
+          updateData.avatar = avatarUrl;
           avatarUpdated = true;
         } else {
-          throw new Error(avatarResponse.message || '头像上传失败');
+          throw new Error('头像上传失败');
         }
       } else {
         // 如果是URL，直接使用
@@ -600,7 +593,7 @@ const saveSettings = async () => {
     if (Object.keys(updateData).length > 0) {
       const response = await updateUserInfo(updateData);
 
-      if (response.success) {
+      if (response) {
         showMessage('设置保存成功', 'success');
         // 更新本地存储
         if (avatarUpdated) {
@@ -609,7 +602,7 @@ const saveSettings = async () => {
         // 刷新用户信息
         await userStore.fetchUserInfo();
       } else {
-        showMessage(response.message || '保存设置失败', 'error');
+        showMessage('保存设置失败', 'error');
       }
     } else {
       showMessage('没有更改需要保存', 'info');
@@ -639,15 +632,29 @@ const adminForm = reactive({
 // --- 管理员申请逻辑 ---
 const canSubmitAdminApplication = computed(() => adminForm.reason.length >= 100);
 
+const normalizeAdminApplicationStatus = (status?: string) => {
+  const normalizedStatus = status?.trim().toLowerCase();
+
+  if (normalizedStatus === 'approved') {
+    return 'approved';
+  }
+
+  if (normalizedStatus === 'rejected') {
+    return 'rejected';
+  }
+
+  return 'pending';
+};
+
 const fetchAdminApplicationStatus = async () => {
   try {
     const response = await getAdminApplicationStatus();
-    if (response.success && response.data) {
+    if (response) {
       adminForm.isApplied = true;
-      adminForm.status = response.data.status;
-      adminForm.adminFeedback = response.data.feedback || '';
-      adminForm.lastAppliedAt = response.data.createdAt
-        ? new Date(response.data.createdAt).toLocaleString()
+      adminForm.status = normalizeAdminApplicationStatus(response.status);
+      adminForm.adminFeedback = response.feedback || '';
+      adminForm.lastAppliedAt = response.createdAt
+        ? new Date(response.createdAt).toLocaleString()
         : '';
       updateStatusDisplay();
     } else {
@@ -686,17 +693,13 @@ const submitAdminApplication = async () => {
   }
   try {
     adminForm.isSubmitting = true;
-    const response: VoidApiResponse = await applyForAdmin(adminForm.reason);
-    if (response.success) {
-      showMessage('申请已提交，请等待审核', 'success');
-      adminForm.isApplied = true;
-      adminForm.status = 'pending';
-      adminForm.lastAppliedAt = new Date().toLocaleString();
-      updateStatusDisplay();
-      await fetchAdminApplicationStatus();
-    } else {
-      showMessage(response.message || '申请提交失败，请稍后再试', 'error');
-    }
+    await applyForAdmin(adminForm.reason);
+    showMessage('申请已提交，请等待审核', 'success');
+    adminForm.isApplied = true;
+    adminForm.status = 'pending';
+    adminForm.lastAppliedAt = new Date().toLocaleString();
+    updateStatusDisplay();
+    await fetchAdminApplicationStatus();
   } catch (error) {
     console.error('提交管理员申请失败:', error);
     showMessage('申请提交失败，请稍后再试', 'error');
@@ -715,9 +718,18 @@ const resetAdminForm = () => {
 };
 
 // --- 生命周期 & 监听 ---
+watch(
+  canApplyForAdmin,
+  (canApply) => {
+    if (!canApply && activeMenu.value === 'admin') {
+      activeMenu.value = 'profile';
+    }
+  }
+);
+
 onMounted(() => {
   resetForm();
-  if (!isAdmin.value) {
+  if (canApplyForAdmin.value) {
     fetchAdminApplicationStatus();
   }
 });
@@ -725,7 +737,7 @@ onMounted(() => {
 watch(
   () => userStore.userInfo,
   (newUser) => {
-    if (newUser && !isAdmin.value) {
+    if (newUser && canApplyForAdmin.value) {
       fetchAdminApplicationStatus();
     }
   },

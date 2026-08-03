@@ -8,7 +8,7 @@ import NoticeView from '@/views/NoticeView.vue'
 import SolutionView from '@/views/SolutionView.vue'
 import { useUserStore } from '@/store/user'
 import type { UserInfo } from '@/types/user'
-import { ADMIN_ROLES } from '@/types/user'
+import { hasAnyRole, ADMIN_ROLES } from '@/types/user'
 
 // 路由数组
 const routes: RouteRecordRaw[] = [
@@ -38,8 +38,7 @@ const routes: RouteRecordRaw[] = [
 
 // 检查管理员权限
 const checkAdminPermission = (userInfo?: UserInfo): boolean => {
-  const roles: string[] = userInfo?.roles?.map(r => r.toUpperCase()) || []
-  return roles.some(r => ADMIN_ROLES.includes(r))
+  return hasAnyRole(userInfo?.roles, ADMIN_ROLES)
 }
 
 // 创建 router

@@ -1,6 +1,5 @@
 import { apiPost } from '@/utils/apiBase';
 import type {
-  VoidApiResponse,
   LoginRequest,
   RegisterRequest,
   RefreshRequest
@@ -67,17 +66,17 @@ export const refreshToken = async (data: RefreshRequest): Promise<AuthResponseDa
 /**
  * 用户登出
  */
-export const logout = async (): Promise<VoidApiResponse> => {
-  return apiPost<VoidApiResponse>('/auth/logout', undefined, '登出失败');
+export const logout = async (): Promise<void> => {
+  await apiPost<void>('/auth/logout', undefined, '登出失败');
 };
 
 /**
  * 撤销令牌
  * @param username 用户名
  */
-export const revokeToken = async (username: string): Promise<VoidApiResponse> => {
+export const revokeToken = async (username: string): Promise<void> => {
   try {
-    return await apiPost<VoidApiResponse>('/auth/revoke-token', null, '撤销令牌失败', {
+    await apiPost<void>('/auth/revoke-token', null, '撤销令牌失败', {
       params: { username }
     });
   } catch (error: any) {

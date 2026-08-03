@@ -71,6 +71,36 @@ export interface SolutionDTO {
   notes?: string | null;
   steps: string[];
   images: string[];
+  createdByUsername?: string | null;
+}
+
+export interface SolutionPageDTO {
+  content: SolutionDTO[];
+  pageable?: {
+   pageNumber: number;
+   pageSize: number;
+   sort?: {
+     sorted: boolean;
+     empty: boolean;
+     unsorted: boolean;
+   };
+   offset: number;
+   paged: boolean;
+   unpaged: boolean;
+  };
+  last: boolean;
+  totalPages: number;
+  totalElements: number;
+  first: boolean;
+  numberOfElements: number;
+  size: number;
+  number: number;
+  sort?: {
+   sorted: boolean;
+   empty: boolean;
+   unsorted: boolean;
+  };
+  empty: boolean;
 }
 
 export interface SolutionCreateDTO {
@@ -101,6 +131,7 @@ export interface CategoryDTO {
   icon: string;
   description: string;
   color: string;
+  createdByUsername?: string | null;
 }
 
 // ===================== 管理员申请相关类型 =====================
@@ -135,7 +166,7 @@ export type SolutionListApiResponse = ApiResponse<PageData<SolutionDTO>>;
 export type CategoryListApiResponse = ApiResponse<CategoryDTO[]>;
 export type AdminApplicationPageApiResponse = ApiResponse<PageData<AdminApplicationDTO>>;
 export type AdminApplicationStatusApiResponse = ApiResponse<AdminApplicationStatus>;
-export type SolutionPageApiResponse = ApiResponse<PageData<SolutionDTO>>;
+export type SolutionPageApiResponse = ApiResponse<SolutionPageDTO>;
 export type UserPageApiResponse = ApiResponse<PageData<UserInfoData>>;
 
 // ===================== 分页数据结构 =====================

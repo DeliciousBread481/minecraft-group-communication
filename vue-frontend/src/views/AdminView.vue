@@ -2,8 +2,18 @@
   <div class="admin-page" v-loading="pageLoading">
     <h1 class="text-2xl font-bold mb-4">后台管理页面</h1>
 
+    <el-alert
+      v-if="isDeveloperOnly"
+      class="mb-4"
+      type="info"
+      :closable="false"
+      show-icon
+      title="当前账号仅拥有开发者权限"
+      description="你可以继续使用开发者相关管理能力，但管理员功能不可用。"
+    />
+
     <!-- 管理员功能 -->
-    <el-card v-if="isRole('ROLE_ADMIN')" class="admin-card">
+    <el-card v-if="hasAdminRole" class="admin-card">
       <h2 class="text-xl font-semibold mb-2">解决方案管理</h2>
       <div class="mb-4">
         <el-button type="primary" @click="openCreateDialog">创建解决方案</el-button>
@@ -22,7 +32,7 @@
     </el-card>
 
     <!-- 开发者功能 -->
-    <el-card v-if="isRole('ROLE_DEV')" class="admin-card">
+    <el-card v-if="hasDevRole" class="admin-card">
       <h2 class="text-xl font-semibold mb-2">开发者管理</h2>
 
       <!-- 用户管理 -->
@@ -37,7 +47,7 @@
         <el-table-column label="操作">
           <template #default="{ row }">
             <el-button
-              v-if="!row.roles.includes('ROLE_ADMIN')"
+              v-if="!hasRole(row.roles, ROLE_ADMIN)"
               type="primary"
               size="small"
               @click="confirmPromote(row.id)"
@@ -104,9 +114,12 @@
         </el-form-item>
         <el-form-item label="分类" prop="categoryId" class="required-label">
           <el-select v-model="createForm.categoryId" placeholder="请选择分类" style="width: 100%">
-            <el-option label="启动问题" value="startup" />
-            <el-option label="联机问题" value="network" />
-            <el-option label="模组问题" value="mod" />
+            <el-option
+              v-for="category in adminStore.categories"
+              :key="category.id"
+              :label="category.name"
+              :value="category.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="难度" prop="difficulty" class="required-label">
@@ -158,11 +171,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from "vue"
+import { ref, onMounted, reactive, computed } from "vue"
 import { ElMessageBox, ElMessage } from "element-plus"
 import { useUserStore } from "@/store/user"
 import { useAdminStore } from "@/store/admin"
 import { useDeveloperStore } from "@/store/developer"
+import { hasRole, ROLE_ADMIN, ROLE_DEV } from "@/types/user"
 
 const userStore = useUserStore()
 const adminStore = useAdminStore()
@@ -219,9 +233,12 @@ const createRules = {
 
 // 角色判断
 const isRole = (role: string) => {
-  const roles = userStore.userInfo?.roles || []
-  return roles.includes(role)
+  return hasRole(userStore.userInfo?.roles, role)
 }
+
+const hasAdminRole = computed(() => isRole(ROLE_ADMIN))
+const hasDevRole = computed(() => isRole(ROLE_DEV))
+const isDeveloperOnly = computed(() => hasDevRole.value && !hasAdminRole.value)
 
 // 步骤管理
 const addStep = () => {
@@ -244,6 +261,10 @@ const openCreateDialog = () => {
   createForm.notes = ""
   createForm.steps = [""]
   createForm.imageFiles = []
+
+  if (adminStore.categories.length > 0 && !adminStore.categories.some(category => category.id === createForm.categoryId)) {
+    createForm.categoryId = adminStore.categories[0].id
+  }
 
   if (createFormRef.value) {
     createFormRef.value.clearValidate()
@@ -420,10 +441,10 @@ const rejectSol = async (id: string) => {
 onMounted(async () => {
   try {
     const tasks: Promise<any>[] = []
-    if (isRole("ROLE_ADMIN")) {
-      tasks.push(loadMySolutions())
+    if (hasAdminRole.value) {
+      tasks.push(adminStore.fetchAllCategories(), loadMySolutions())
     }
-    if (isRole("ROLE_DEV")) {
+    if (hasDevRole.value) {
       tasks.push(loadUsers(), loadAdminApplications(), loadPendingSolutions())
     }
     await Promise.all(tasks)
